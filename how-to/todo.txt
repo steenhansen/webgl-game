@@ -1,0 +1,17 @@
+
+
+
+footprint
+
+
+
+
+
+
+have field built with big hexagons
+
+have raised edges
+
+have lite up areas not repeat
+
+

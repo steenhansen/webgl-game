@@ -1,0 +1,25 @@
+{
+  "name": "vite-project",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "compile2-bundle": "browserify ./src/main.js -p esmify > main-bundle.js -t [ babelify --presets [ @babel/preset-env @babel/preset-react ] --plugins [ @babel/plugin-transform-class-properties ] ]",
+    "compress-bundle": "terser main-bundle.js --compress ecma=2015,computed_props=false > main-compressed.js"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.6",
+    "@babel/plugin-transform-class-properties": "^7.28.6",
+    "@babel/preset-env": "^7.28.6",
+    "@babel/preset-react": "^7.28.5",
+    "babelify": "^10.0.0",
+    "browser-resolve": "^2.0.0",
+    "esmify": "^2.1.1",
+    "vite": "^7.2.4"
+  },
+  "dependencies": {
+    "gl-bench": "^1.0.42",
+    "three": "^0.182.0"
+  }
+}
