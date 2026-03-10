@@ -1,17 +1,5 @@
 
-
-
-footprint
-
-
-
-
-
-
-have field built with big hexagons
-
-have raised edges
-
-have lite up areas not repeat
+https://discoverthreejs.com/tips-and-tricks/
+object.matrixAutoUpdate = false for static or rarely moving objects
 
 

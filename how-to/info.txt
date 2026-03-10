@@ -1,3 +1,17 @@
+/*
+          n_n
+      /--------\
+  n_w /          \ n_e
+    /            \
+    \            /
+  s_w \          / s_e         no w nor e, named from like storms
+      \--------/
+          s_s
+*/
+
+
+
+
 https://www.redblobgames.com/grids/hexagons/
 
 

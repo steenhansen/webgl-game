@@ -1,4 +1,55 @@
+/*
+
+what if to make ramp, we dont rotate just make ready make
+
+
+
+so     /-----------------\        height 20     NO rotating
+      /                   \
+     /                     \
+    /                       \
+   /                         \       height
+   \                         /
+    \                       /
+     \                     /
+       -------------------         hieght 10
+
+       /-------------------\       height 10
+
+
+
+
+So we have a bunch of flat hexagons, then a hexagon with different hieghts is made for a ramp
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*/
+
 var g_hex_tiles = new Map([]);
+var g_angled_water = new Map([]);
 var g_covered_tiles = new Map([]);
 
 //const xyz_camera = [5, 3, 0];
@@ -6,7 +57,7 @@ var g_covered_tiles = new Map([]);
 //const xyz_camera = [11, 12, 22];
 
 //const xyz_camera = [4, 6, 6];
-const xyz_camera = [1.6, 1, 8.8];
+//const xyz_camera = [1.6, 1, 8.8];
 
 import * as THREE from "three";
 
@@ -14,11 +65,30 @@ import GLBench from "gl-bench/dist/gl-bench.module";
 
 import { PerspCamera, projMatrix } from "./perspective-camera.js";
 import { AScene } from "./a-scene.js";
-//import { ACube } from "./a-cube.js";
-import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls.js";
-import { HexTile, nearTile, hexRow, hexfield, hexFlower, hexNewColor, rowTilt, columnTilt, xzTilt } from "./hex-tile.js";
+import { HexTile, HexTile2, hexNewColor } from "./tiles/hex-tile.js";
+
+import { hexRow, hexfield, hexFlower } from "./tiles/field-tiles.js";
+
+import { nearTile } from "./tiles/hover-tiles.js";
+import { makeWave } from "./waves.js";
+import { tiltTile, tipTileZx, doColumnTipTile, doRowTipTile } from "./tiles/tilt-tiles.js";
+
+import { moveKeys, makeControls } from "./controls/key-controls.js";
 
 import { XyzDot } from "./a-dot.js";
+
+var doWaves = makeWave(-10, 20);
+
+doWaves();
+// doWaves();
+// doWaves();
+// doWaves();
+// doWaves();
+// doWaves();
+// doWaves();
+// doWaves();
+
+doWaves();
 
 const HI_DPI_ENABLE = Math.min(window.devicePixelRatio, 2);
 
@@ -31,15 +101,30 @@ const the_scene = AScene(dark_gray);
 const the_fov = 75;
 const width_height = [the_width, the_height];
 const nf_planes = [0.1, 1000];
-//const xyz_camera = [0, 0, 0];
+const xyz_camera = [8, 3, 7];
 
 const persp_camera = PerspCamera(the_fov, width_height, nf_planes, xyz_camera);
-//persp_camera.lookAt(1, 2, 2);
-persp_camera.lookAt(1, 2, 18);
+persp_camera.lookAt(0, 1, 3);
 
 the_scene.add(persp_camera);
 
-g_hex_tiles = hexfield(g_hex_tiles, the_scene, 0, 10, 0x3366ee, 0x33ee66);
+const top_color = 0x8888ff;
+const outline_color = 0x8888ff; // bronze   https://htmlcolorcodes.com/colors/shades-of-brown/
+//const six_side_colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffaaaa, 0xaaffaa, 0xaaaaff];
+const six_side_colors = [0x0000cc];
+const tile_colors = [top_color, outline_color, six_side_colors];
+
+const top_color2 = 0x8888ee;
+const outline_color2 = 0x8888ff; // bronze   https://htmlcolorcodes.com/colors/shades-of-brown/
+const six_side_colors2 = [0x0000cc];
+const tile_colors2 = [top_color2, outline_color2, six_side_colors2];
+
+//                                              x,y,z, height
+g_hex_tiles = HexTile2(g_hex_tiles, the_scene, [1, 1, 1, 0], tile_colors2, "SW");
+g_hex_tiles = HexTile2(g_hex_tiles, the_scene, [2, 0.5, 1, 0.5], tile_colors2, "NW");
+g_hex_tiles = HexTile2(g_hex_tiles, the_scene, [3, 0, 1, 0.5], tile_colors2, "NW");
+
+[g_hex_tiles, g_angled_water] = hexfield(g_hex_tiles, g_angled_water, the_scene, -10, 10, 0x3366ee, 0x33ee66);
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 the_scene.add(ambientLight);
@@ -68,73 +153,9 @@ window.addEventListener("resize", () => {
     a_renderer.setPixelRatio(HI_DPI_ENABLE);
 });
 
-const controls = new PointerLockControls(persp_camera, document.body);
-
-// controls.minPolarAngle = Math.PI / 2; // Limit upward rotation
-// controls.maxPolarAngle = Math.PI / 2; // Limit downward rotation (e.g., no looking behind)
-
-document.body.addEventListener("click", () => {
-    controls.lock();
-});
-
-let moveForward = false;
-let moveBackward = false;
-let moveLeft = false;
-let moveRight = false;
-
-const onKeyDown = function (event) {
-    switch (event.code) {
-        case "ArrowUp":
-        case "KeyW":
-            moveForward = true;
-            break;
-        case "ArrowLeft":
-        case "KeyA":
-            moveLeft = true;
-            break;
-        case "ArrowDown":
-        case "KeyS":
-            moveBackward = true;
-            break;
-        case "ArrowRight":
-        case "KeyD":
-            moveRight = true;
-            break;
-    }
-};
-
-const onKeyUp = function (event) {
-    switch (event.code) {
-        case "ArrowUp":
-        case "KeyW":
-            moveForward = false;
-            break;
-        case "ArrowLeft":
-        case "KeyA":
-            moveLeft = false;
-            break;
-        case "ArrowDown":
-        case "KeyS":
-            moveBackward = false;
-            break;
-        case "ArrowRight":
-        case "KeyD":
-            moveRight = false;
-            break;
-    }
-};
-
-document.addEventListener("keydown", onKeyDown);
-document.addEventListener("keyup", onKeyUp);
+let controls = makeControls(persp_camera);
 
 var rot = Math.PI / 6;
-// XyzDot(the_scene, 5, 1, 5, 0xff0000);
-// XyzDot(the_scene, 15, 1, 5, 0x0000ff);
-// XyzDot(the_scene, 15, 1, 15, 0x00ff00);
-// XyzDot(the_scene, 5, 1, 15, 0x44aaff);
-// XyzDot(the_scene, 10, 2, 10, 0xffffff);
-
-//tipTile(g_hex_tiles, 1, 1, 0.05, 0xffccaa);
 
 /**
  * 7. ANIMATION LOOP
@@ -142,32 +163,16 @@ var rot = Math.PI / 6;
 const clock = new THREE.Clock();
 const vector = new THREE.Vector3(); // create once and reuse it!
 
-columnTilt(g_hex_tiles, 6, 3, 4, 0xff2222);
-xzTilt(g_hex_tiles, 7, 2, 3, 0x22ff22); // perfect green old x-rotate once trick easy
-
-rowTilt(g_hex_tiles, 2, 6, 7, 0xcccccc);
-
 const tick = () => {
     const delta = clock.getDelta();
     const elapsedTime = clock.getElapsedTime();
 
-    //w tipTile(g_hex_tiles, 1, 1, elapsedTime / 1, 0xffccaa);
-
     const cam_pos = persp_camera.position;
+    //console.log("cam_pos", cam_pos);
 
     persp_camera.getWorldDirection(vector);
+    moveKeys(delta, controls);
 
-    //  console.log("cam_pos", cam_pos, vector);
-
-    //  FOOTpRINT
-    //  g_covered_tiles = nearTile(g_hex_tiles, g_covered_tiles, cam_pos.x, cam_pos.z);
-
-    const speed = 10 * delta;
-    if (moveForward) controls.moveForward(speed);
-    if (moveBackward) controls.moveForward(-speed);
-
-    if (moveLeft) controls.moveRight(-speed);
-    if (moveRight) controls.moveRight(speed);
     a_renderer.render(the_scene, persp_camera);
 
     window.requestAnimationFrame(tick);

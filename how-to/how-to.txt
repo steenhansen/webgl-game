@@ -32,8 +32,8 @@ COMPRESS TO SINGLE FILE
 
 	compile
 		npm run compile2-bundle
-			For  --> file:///C:/Users/16043/Documents/GitHub/aa/index-bundled.html
+			For  --> file:///C:/Users/16043/Documents/GitHub/aaa/index-bundled.html
 
 	compress	
 		npm run compress-bundle
-			For  --> file:///C:/Users/16043/Documents/GitHub/aa/index.html
+			For  --> file:///C:/Users/16043/Documents/GitHub/aaa/index.html
