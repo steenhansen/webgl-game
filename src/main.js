@@ -65,21 +65,21 @@ import GLBench from "gl-bench/dist/gl-bench.module";
 
 import { PerspCamera, projMatrix } from "./perspective-camera.js";
 import { AScene } from "./a-scene.js";
-import { HexTile, HexTile2, hexNewColor } from "./tiles/hex-tile.js";
+import { HexRamp, hexNewColor } from "./tiles/hex-tile.js";
 
 import { hexRow, hexfield, hexFlower } from "./tiles/field-tiles.js";
 
 import { nearTile } from "./tiles/hover-tiles.js";
-import { makeWave } from "./waves.js";
+//import { makeWave } from "./waves.js";
 import { tiltTile, tipTileZx, doColumnTipTile, doRowTipTile } from "./tiles/tilt-tiles.js";
 
 import { moveKeys, makeControls } from "./controls/key-controls.js";
 
 import { XyzDot } from "./a-dot.js";
 
-var doWaves = makeWave(-10, 20);
+//var doWaves = makeWave(-10, 20);
 
-doWaves();
+//doWaves();
 // doWaves();
 // doWaves();
 // doWaves();
@@ -88,7 +88,7 @@ doWaves();
 // doWaves();
 // doWaves();
 
-doWaves();
+//doWaves();
 
 const HI_DPI_ENABLE = Math.min(window.devicePixelRatio, 2);
 
@@ -114,17 +114,40 @@ const outline_color = 0x8888ff; // bronze   https://htmlcolorcodes.com/colors/sh
 const six_side_colors = [0x0000cc];
 const tile_colors = [top_color, outline_color, six_side_colors];
 
-const top_color2 = 0x8888ee;
-const outline_color2 = 0x8888ff; // bronze   https://htmlcolorcodes.com/colors/shades-of-brown/
-const six_side_colors2 = [0x0000cc];
-const tile_colors2 = [top_color2, outline_color2, six_side_colors2];
+const top_color2 = 0x88ee88;
+const outline_color2 = 0x88ff88; // bronze   https://htmlcolorcodes.com/colors/shades-of-brown/
 
-//                                              x,y,z, height
-g_hex_tiles = HexTile2(g_hex_tiles, the_scene, [1, 1, 1, 0], tile_colors2, "SW");
-g_hex_tiles = HexTile2(g_hex_tiles, the_scene, [2, 0.5, 1, 0.5], tile_colors2, "NW");
-g_hex_tiles = HexTile2(g_hex_tiles, the_scene, [3, 0, 1, 0.5], tile_colors2, "NW");
+const tile_colors2 = [top_color2, outline_color2];
 
-[g_hex_tiles, g_angled_water] = hexfield(g_hex_tiles, g_angled_water, the_scene, -10, 10, 0x3366ee, 0x33ee66);
+const the_ramp = [
+    ["001", "02.0", "001"],
+    ["002", "00.5", "001", "NW", 1.5],
+    ["003", "00.0", "001", "NW", 0.5],
+    ["004", "00.0", "001"],
+    ["004", "00.0", "000"],
+    ["004", "00.0", "002"],
+    ["003", "00.0", "002"],
+    ["005", "00.0", "000"],
+    ["005", "00.0", "001"]
+];
+
+for (var i = 0; i < the_ramp.length; i++) {
+    const ramp_piece = the_ramp[i];
+    const [x_str, y_str, z_str] = ramp_piece;
+    const x_index = parseInt(x_str);
+    const y_index = parseFloat(y_str);
+    const z_index = parseInt(z_str);
+    const ramp_xyz = [x_index, y_index, z_index];
+
+    if (ramp_piece.length == 3) {
+        g_hex_tiles = HexRamp(g_hex_tiles, the_scene, ramp_xyz, tile_colors2);
+    } else {
+        const incline_and_dir = [ramp_piece[3], ramp_piece[4]];
+        g_hex_tiles = HexRamp(g_hex_tiles, the_scene, ramp_xyz, tile_colors2, incline_and_dir);
+    }
+}
+console.log("ghex", g_hex_tiles);
+//[g_hex_tiles, g_angled_water] = hexfield(g_hex_tiles, g_angled_water, the_scene, -10, 10, 0x3366ee, 0x33ee66);
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 the_scene.add(ambientLight);
@@ -168,7 +191,8 @@ const tick = () => {
     const elapsedTime = clock.getElapsedTime();
 
     const cam_pos = persp_camera.position;
-    //console.log("cam_pos", cam_pos);
+    //   XyzDot(the_scene, cam_pos.x, cam_pos.y, cam_pos.z, 0xff6666);
+    //    console.log("cam_pos", cam_pos);
 
     persp_camera.getWorldDirection(vector);
     moveKeys(delta, controls);

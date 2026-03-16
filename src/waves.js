@@ -258,50 +258,49 @@ const WAVES_SHOW = [...WAVES_1, ...WAVES_2, ...WAVES_3, ...WAVES_4, ...WAVES_5, 
 
 //      '+00~-01,NN:0'
 
-function offsetWaves(x_offset, z_offset) {
-    var moved_waves = [];
-    console.log("offsets", x_offset, z_offset);
-    for (let i = 0; i < WAVES_SHOW.length; i++) {
-        // for (let i = 0; i < 2; i++) {
-        const a_wave = WAVES_SHOW[i];
-        var wave_set = [];
-        for (let j = 0; j < a_wave.length; j++) {
-            //for (let j = 0; j < 2; j++) {
-            const w_name = a_wave[j];
-            const [xz_coord, tilt_angle] = w_name.split(",");
-            const [x_origin_str, z_origin_str] = xz_coord.split("~");
-            const x_int = parseInt(x_origin_str);
-            const z_int = parseInt(z_origin_str);
-            const x_moved = x_int + x_offset;
-            const z_moved = z_int + z_offset;
-            const moved_zx = `${x_moved}~${z_moved}`;
-            const new_wave = moved_zx + "," + tilt_angle;
-            wave_set.push(new_wave);
-        }
-        moved_waves.push(wave_set);
-    }
-    return moved_waves;
-}
+// function offsetWaves(x_offset, z_offset) {
+//     var moved_waves = [];
+//     for (let i = 0; i < WAVES_SHOW.length; i++) {
+//         // for (let i = 0; i < 2; i++) {
+//         const a_wave = WAVES_SHOW[i];
+//         var wave_set = [];
+//         for (let j = 0; j < a_wave.length; j++) {
+//             //for (let j = 0; j < 2; j++) {
+//             const w_name = a_wave[j];
+//             const [xz_coord, tilt_angle] = w_name.split(",");
+//             const [x_origin_str, z_origin_str] = xz_coord.split("~");
+//             const x_int = parseInt(x_origin_str);
+//             const z_int = parseInt(z_origin_str);
+//             const x_moved = x_int + x_offset;
+//             const z_moved = z_int + z_offset;
+//             const moved_zx = `${x_moved}~${z_moved}`;
+//             const new_wave = moved_zx + "," + tilt_angle;
+//             wave_set.push(new_wave);
+//         }
+//         moved_waves.push(wave_set);
+//     }
+//     return moved_waves;
+// }
 
-function makeWave(x_offset, z_offset) {
-    var wave_index = 0;
-    var last_waves = [];
-    const WAVES_MOVED = offsetWaves(x_offset, z_offset);
+// function makeWave(x_offset, z_offset) {
+//     var wave_index = 0;
+//     var last_waves = [];
+//     const WAVES_MOVED = offsetWaves(x_offset, z_offset);
 
-    function doWaves() {
-        //console.log("turn off these waves", last_waves);
-        last_waves = WAVES_MOVED[wave_index];
-        let current_waves = WAVES_MOVED[wave_index];
-        if (wave_index >= WAVES_MOVED.length) {
-            wave_index = 0;
-        } else {
-            wave_index++;
-        }
-        // console.log("turn on these waves", current_waves);
-        // console.log("new index", wave_index);
-    }
+//     function doWaves() {
+//         //console.log("turn off these waves", last_waves);
+//         last_waves = WAVES_MOVED[wave_index];
+//         let current_waves = WAVES_MOVED[wave_index];
+//         if (wave_index >= WAVES_MOVED.length) {
+//             wave_index = 0;
+//         } else {
+//             wave_index++;
+//         }
+//         // console.log("turn on these waves", current_waves);
+//         // console.log("new index", wave_index);
+//     }
 
-    return doWaves;
-}
+//     return doWaves;
+// }
 
-export { makeWave };
+//export { makeWave };

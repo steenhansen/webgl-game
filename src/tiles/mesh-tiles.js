@@ -29,9 +29,9 @@ var loader2 = new FontLoader();
 const WHITE_LABELS = 0xffffff;
 var the_font = loader2.parse(type_face);
 
-function addCoords(a_tile, x_y_z, up_direction) {
-    const [x_index, y_index, z_index, angled_height] = x_y_z;
-    //  const [lean_amount, lean_direction] = lean_and_dir;
+function addCoords(a_tile, x_y_z, incline_and_dir) {
+    const [up_direction, angled_height] = incline_and_dir;
+    const [x_index, y_index, z_index] = x_y_z;
     var textMaterial = new MeshLambertMaterial({
         emissive: 0xffffff,
         color: WHITE_LABELS
@@ -44,12 +44,11 @@ function addCoords(a_tile, x_y_z, up_direction) {
     });
     var text_mesh = new Mesh(textGeometry, textMaterial);
 
-    // text_mesh.position.y = 2.1; // y_height + 0.0;
-
-    if (up_direction == "") {
+    if (y_index < 0) {
         text_mesh.position.y = 0.001;
+    } else if (up_direction == "") {
+        text_mesh.position.y = y_index + 0.001;
     } else {
-        console.log("addcords", y_index, up_direction);
         text_mesh.position.y = y_index + angled_height;
     }
 
@@ -84,7 +83,7 @@ function addCoords(a_tile, x_y_z, up_direction) {
     a_tile.add(text_mesh);
 }
 
-//function geoMesh(vertices_set, group, a_color, x, z, outline_color) {
+// only ramp needs to be double sided
 function geoMesh(group, vertices_set, a_color, outline_color) {
     // console.log("geoMesh:::", group, vertices_set, a_color, outline_color);
     const side_geometry = geometricVertices(vertices_set);
@@ -94,7 +93,7 @@ function geoMesh(group, vertices_set, a_color, outline_color) {
     side_material.side = DoubleSide;
 
     const edges = new EdgesGeometry(side_geometry);
-    const lineMaterial = new LineBasicMaterial({ color: outline_color, linewidth: 16 });
+    const lineMaterial = new LineBasicMaterial({ color: outline_color, linewidth: 256 });
     lineMaterial.side = DoubleSide;
     const edgeLines = new LineSegments(edges, lineMaterial);
     hexagon_side.add(edgeLines);

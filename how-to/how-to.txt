@@ -1,3 +1,84 @@
+the height of a tile is one single value, thus no fast/tall angles, gentle
+
+
+
+
+have multiple flyovers
+
+-------   --------------
+
+---------- -------------
+
+---- ----------- --------
+
+but will need to have multilevels
+
+
+
+
+
+[4, 0, 1]                             => 6 5.196152422706632
+ 1   [5.5, 6.06]  5.536  4.3924  
+    [6.5, 6.06]
+    [7,   5.19]
+ 0   [6.5, 4.33]  6.464  4.3924
+ 2   [5.5, 4.33]  5.536  4.3924
+    [5,   5.19]
+
+
+
+   5,
+   5,
+   6,
+   6,
+
+
+
+HAVE CURRENT HEX-TILE RED
+
+NEED TO HAVE EACH TILE, XY
+
+
+[4, 0, 1]
+    [-0.5, 0, 0.8660254037844386] ===> NEEDS TO BE 0.8038
+    [0.5, 0, 0.8660254037844386]
+    [1, 0, 0]
+    [0.5, 0, -0.8660254037844386]
+    [-0.5, 0, -0.8660254037844386]
+    [-1, 0, 0]
+
+x== -1 ... 1           (+4)       3 ... 5
+z== -0.86 ... 0.86     (+1)    0.14 ... 1.86
+       1.72
+
+https://search.brave.com/search?q=fast+way+to+tell+if+xy+point+is+inside+a+hexagon&summary=1&conversation=08d9b124229c212d721ac6857db80f66b313
+
+x,y is point to check
+cx,cy is the center of the hexagon
+
+						3.01,0.15	  4,1         1	
+def is_point_in_hexagon(x, y,         cx, cy, radius):
+    # Translate point to hexagon's local coordinate system
+    dx = abs(x - cx)
+    dy = abs(y - cy)
+    
+    # Define half-width (h) and half-height (v) of the hexagon
+    # For a regular hexagon with radius `r`, the height is r * sqrt(3)
+    h = radius  # Half the width (distance from center to flat side)
+    v = radius * (3 ** 0.5) / 2  # Half the height (distance from center to vertex)
+    
+    # Early bounding box check
+    if dx > h or dy > v * 2:
+        return False
+    
+    # Final check using the transformed point in quadrant 2
+    return 2 * v * h - v * dx - h * dy >= 0
+
+
+
+dwd
+
+
 ARRIVE
 	cd C:\Users\16043\Documents\GitHub\aaa
 

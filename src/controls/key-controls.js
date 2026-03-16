@@ -33,7 +33,7 @@ function makeControls(persp_camera) {
     };
 
     const onKeyUp = function (event) {
-        console.log("keypup", event.code);
+        //console.log("keypup", event.code);
         switch (event.code) {
             case "ArrowUp":
             case "KeyW":
