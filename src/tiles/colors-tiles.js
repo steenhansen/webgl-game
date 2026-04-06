@@ -46,7 +46,7 @@ function tileColor2(g_hex_tiles, xz_color, new_color) {
 }
 
 function hexNewColor(g_hex_tiles, x, z, new_color) {
-    let [xx, zz] = hexPosition(x, z);
+    let [xx, zz] = tilePosition(x, z);
     let xz_index = intTileIndex(xx, zz);
     if (g_hex_tiles.has(xz_index)) {
         const recolor_tile = g_hex_tiles.get(xz_index);

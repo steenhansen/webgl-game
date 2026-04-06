@@ -1,4 +1,28 @@
-the height of a tile is one single value, thus no fast/tall angles, gentle
+tile_positions => tile_vertexs
+
+
+https://search.brave.com/search?q=how+to+find+where+two+lines+intercept&summary=1&conversation=08dd524c9ed269cb47c84973d872341fb026
+
+
+   //-------------\
+  //               \ 
+ //                 \ 
+//                   \
+ \                   /
+  \                 /
+   \               /
+    \-------------/
+
+
+
+    /=============\
+   /               \ 
+  /                 \ 
+ /                   \
+ \                   /
+  \                 /
+   \               /
+    \-------------/
 
 
 
@@ -79,7 +103,7 @@ def is_point_in_hexagon(x, y,         cx, cy, radius):
 dwd
 
 
-ARRIVE
+GOTO DIR               
 	cd C:\Users\16043\Documents\GitHub\aaa
 
 WEB SERVER

@@ -13,6 +13,9 @@ import {
     RGB_ETC2_Format
 } from "three";
 
+
+import { X_INDX, Y_INDX, Z_INDX  } from "../constants.js";
+
 /*
  ----------------RED-X-LINE------------------------
 |
@@ -61,12 +64,12 @@ const sqrt_3 = Math.sqrt(3);
 function flatWater(hex_tiles, the_scene, x_y_z, tile_colors) {
     const [x_index, y_height, z_index] = x_y_z;
     let [top_color, outline_color] = tile_colors;
-    let [x_position, z_position] = hexPosition(x_index, z_index);
+    let [x_center, z_center] = tilePosition(x_index, z_index);
     const tile_radius = 1;
     const a_tile = new Group();
-    a_tile.position.set(x_position, 0, z_position);
-    const hex_points = hexPoints(tile_radius, y_height);
-    const top_triangles = hexTopTriangles(hex_points);
+    a_tile.position.set(x_center, 0, z_center);
+    const stair_tiles = hexPoints(tile_radius, y_height);
+    const top_triangles = hexTopTriangles(stair_tiles);
     geoMesh(a_tile, top_triangles, top_color, outline_color);
     the_scene.add(a_tile);
     addCoords(a_tile, x_y_z, [0, ""]);
@@ -75,8 +78,8 @@ function flatWater(hex_tiles, the_scene, x_y_z, tile_colors) {
     return hex_tiles;
 }
 
-function hexTopTriangles(hex_points) {
-    const [top_left, top_right, right_tip, bot_right, bot_left, left_tip] = hex_points;
+function hexTopTriangles(stair_tiles) {
+    const [top_left, top_right, right_tip, bot_right, bot_left, left_tip] = stair_tiles;
     const square_up_left = [...bot_left, ...top_left, ...top_right];
     const square_down_right = [...bot_left, ...top_right, ...bot_right];
     const triangle_left = [...bot_left, ...left_tip, ...top_left];
@@ -168,73 +171,120 @@ function hexPoints(tile_radius, y_height, up_direction, angled_height) {
         console.log("hexPoints hhhhhhhhhhhhh  up_direction==", up_direction);
     }
 
-    const hex_points = [top_left, top_rght, rght_tip, bot_rght, bot_left, left_tip];
-    return hex_points;
+    const stair_tiles = [top_left, top_rght, rght_tip, bot_rght, bot_left, left_tip];
+    return stair_tiles;
 }
 
-function HexRamp(hex_tiles, the_scene, x_y_z, tile_colors, incline_and_dir) {
+//function possibleStairsXyz(x_center, y_index, z_center){
+/*
+A B C
+D E F
+G H I
+*/
+
+function pushXyz(stair_overlaps, xyz_key, xyz_index) {
+    if (stair_overlaps.has(xyz_key)) {
+        let cur_arr = stair_overlaps.get(xyz_key);
+        cur_arr.push(xyz_index);
+        stair_overlaps.set(xyz_key, cur_arr);
+    } else {
+        stair_overlaps.set(xyz_key, [xyz_index]);
+    }
+    return stair_overlaps;
+}
+
+function possibleAboves(stair_overlaps, x_y_z) {
     const [x_index, y_index, z_index] = x_y_z;
+    const xyz_index = `${x_index},${y_index},${z_index}`;
+    let [x_center, z_center] = tilePosition(x_index, z_index);
+
+    const x_mid = Math.floor(x_center);
+    const x_low = x_mid - 1;
+    const x_hih = x_mid + 1;
+
+    const z_mid = Math.floor(z_center);
+    const z_low = z_mid - 1;
+    const z_hih = z_mid + 1;
+
+    stair_overlaps = pushXyz(stair_overlaps, `${x_low},${z_low}`, xyz_index);
+    stair_overlaps = pushXyz(stair_overlaps, `${x_low},${z_mid}`, xyz_index);
+    stair_overlaps = pushXyz(stair_overlaps, `${x_low},${z_hih}`, xyz_index);
+
+    stair_overlaps = pushXyz(stair_overlaps, `${x_mid},${z_low}`, xyz_index);
+    stair_overlaps = pushXyz(stair_overlaps, `${x_mid},${z_mid}`, xyz_index);
+    stair_overlaps = pushXyz(stair_overlaps, `${x_mid},${z_hih}`, xyz_index);
+
+    stair_overlaps = pushXyz(stair_overlaps, `${x_hih},${z_low}`, xyz_index);
+    stair_overlaps = pushXyz(stair_overlaps, `${x_hih},${z_mid}`, xyz_index);
+    stair_overlaps = pushXyz(stair_overlaps, `${x_hih},${z_hih}`, xyz_index);
+
+    return stair_overlaps;
+}
+
+// x_y_z      xyz_tile
+function offsetTilePoints(stair_tiles, x_y_z, incline_and_dir, tile_points) {
+    const [x_index, y_index, z_index] = x_y_z;
+    const xyz_index = `${x_index},${y_index},${z_index}`;
+    let [x_center, z_center] = tilePosition(x_index, z_index);
+
+    console.log("tile,", tile_points);
+    let tile_positions = [];
+    for (let i = 0; i < tile_points.length; i++) {
+        let tile_point = tile_points[i];
+        let [x, y, z] = tile_point;
+        x = x + x_center;
+        z = z + z_center;
+        tile_positions.push([x, y, z]);
+    }
+
+    var tile_obj = {
+        x_center: x_center,
+        y_position: y_index,
+        z_center: z_center,
+        tilt_up: incline_and_dir[0],
+        angle_incline: incline_and_dir[1],
+        //  tile_points: tile_points,
+        tile_positions: tile_positions
+    };
+    console.log("tile_obj", tile_obj);
+
+    stair_tiles.set(xyz_index, tile_obj);
+    //stair_tiles.set(xyz_index, [x_center, z_center]);
+
+    return stair_tiles;
+}
+
+//       HexRamp(the_scene, hex_ground, stair_meshes, , x_y_z, t
+function HexRamp(stair_meshes, stair_tiles, stair_overlaps, the_scene, x_y_z, tile_colors, incline_and_dir) {
+    stair_overlaps = possibleAboves(stair_overlaps, x_y_z);
+    const [x_index, y_index, z_index] = x_y_z;
+    const xyz_index = `${x_index},${y_index},${z_index}`;
     if (incline_and_dir == undefined) {
         incline_and_dir = ["", 0];
     }
     const [up_direction, angled_height] = incline_and_dir;
     let [top_color, outline_color] = tile_colors;
-    let [x_position, z_position] = hexPosition(x_index, z_index);
-    //  console.log("x z ", x_position, z_position); //x z  6 5.196152422706632
-
-    const tile_radius = 1; // VERTICAL SPACE== 0.8660254037844386
-
-    //   5.196152422706632
-    // + 0.803671574711959
-    // ==1
-    //const tile_radius = 0.928; //   0.8038  0.803671574711959
-
+    let [x_center, z_center] = tilePosition(x_index, z_index);
+    const tile_radius = 1;
     const a_tile = new Group();
-    a_tile.position.set(x_position, 0, z_position);
-    const hex_points = hexPoints(tile_radius, y_index, up_direction, angled_height);
-    //console.log("hex_points", x_y_z, hex_points);
+    a_tile.position.set(x_center, 0, z_center);
+    const tile_points = hexPoints(tile_radius, y_index, up_direction, angled_height);
+    stair_tiles = offsetTilePoints(stair_tiles, x_y_z, incline_and_dir, tile_points);
 
-    const x_middle = Math.floor(x_position);
-    const x_low = x_middle - 1;
-    const x_high = x_middle + 1;
-
-    const z_middle = Math.floor(z_position);
-    const z_low = z_middle - 1;
-    const z_high = z_middle + 1;
-
-    console.log("----------------------------------------");
-
-    console.log("x_z", x_y_z, x_position, z_position);
-    console.log("xs", x_low, x_middle, x_high);
-    console.log("zs", z_low, z_middle, z_high);
-
-    for (var i = 0; i < hex_points.length; i++) {
-        let [ax, _y, az] = hex_points[i];
-        let nx = ax + x_position;
-        let nz = az + z_position;
-        console.log(nx, "-", nz);
-        if (x_low > nx && x_high < nx) {
-            console.log("bad xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-        }
-        if (z_low > nz && z_high < nz) {
-            console.log("bad zZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
-        }
-    }
-
-    const top_triangles = hexTopTriangles(hex_points);
+    const top_triangles = hexTopTriangles(tile_points);
     //    console.log("top_tr", top_triangles);
     geoMesh(a_tile, top_triangles, top_color, outline_color);
     the_scene.add(a_tile);
     addCoords(a_tile, x_y_z, incline_and_dir);
-    const xyz_index = `${x_index},${y_index},${z_index}`;
-    hex_tiles.set(xyz_index, a_tile);
 
-    return hex_tiles;
+    stair_meshes.set(xyz_index, a_tile);
+
+    return [stair_meshes, stair_tiles, stair_overlaps];
 }
 
-function hexPosition(x_ind, y_ind) {
-    const x_coord = (3 / 2) * x_ind;
-    const y_coord = (sqrt_3 / 2) * x_ind + sqrt_3 * y_ind;
+function tilePosition(x_tile, z_tile) {
+    const x_coord = (3 / 2) * x_tile;
+    const y_coord = (sqrt_3 / 2) * x_tile + sqrt_3 * z_tile;
     return [x_coord, y_coord];
 }
 
@@ -245,4 +295,162 @@ function intTileIndex(x_float, z_float) {
     return tile_index;
 }
 
-export { HexRamp, nearTile, hexNewColor, flatWater };
+/*
+           blue
+          neg-z
+            |
+            |
+            |
+            |
+            |
+red--neg-x----------------------pos-x
+            |
+            |
+            |
+            |                nn
+            | -0.5,-0.86/----------\0.5,-0.86
+            |          /4          3\ 
+            |       nw/              \ne
+            |        /                \ 
+            |       /5      0,0        \ 1,0  
+            |   -1,0\                 2/
+            |        \                /
+            |      sw \              / se        
+            |          \0          1/
+            |  -0.5,0.86\----------/0.5,0.86
+            |     ^          ss 
+            |     |
+            |    start point
+            |
+          pos-z
+*/
+
+function pointInHex(x_point, z_point, stair_tile) {
+    let tile_positions = stair_tile.tile_positions;
+    let highest_z = tile_positions[0][2];
+    let lowest_z = tile_positions[3][2];
+    let highest_x = tile_positions[2][0];
+    let lowest_x = tile_positions[5][0];
+    const outside_hex = x_point < lowest_x || x_point > highest_x || z_point < lowest_z || z_point > highest_z;
+    if (outside_hex) {
+        return false;
+    }
+    let { x_center, z_center } = stair_tile;
+    if (x_point > x_center) {
+        if (z_point > z_center) {
+            const se_x1 = tile_positions[1][0];
+            const se_z1 = tile_positions[1][2];
+            const se_x2 = tile_positions[2][0];
+            const se_z2 = tile_positions[2][2];
+            const se_d = (x_point - se_x1) * (se_z2 - se_z1) - (z_point - se_z1) * (se_x2 - se_x1);
+            //  console.log("SE d", se_d);
+            if (se_d < 0) {
+                return false;
+            }
+        } else {
+            const ne_x1 = tile_positions[2][0];
+            const ne_z1 = tile_positions[2][2];
+            const ne_x2 = tile_positions[3][0];
+            const ne_z2 = tile_positions[3][2];
+            const ne_d = (x_point - ne_x1) * (ne_z2 - ne_z1) - (z_point - ne_z1) * (ne_x2 - ne_x1);
+            //  console.log("NE d", ne_d);
+            if (ne_d < 0) {
+                return false;
+            }
+        }
+    } else {
+        if (z_point > z_center) {
+            const sw_x1 = tile_positions[5][0];
+            const sw_z1 = tile_positions[5][2];
+            const sw_x2 = tile_positions[0][0];
+            const sw_z2 = tile_positions[0][2];
+            const sw_d = (x_point - sw_x1) * (sw_z2 - sw_z1) - (z_point - sw_z1) * (sw_x2 - sw_x1);
+            //   console.log("SW d", sw_d);
+            if (sw_d < 0) {
+                return false;
+            }
+        } else {
+            const nw_x1 = tile_positions[4][0];
+            const nw_z1 = tile_positions[4][2];
+            const nw_x2 = tile_positions[5][0];
+            const nw_z2 = tile_positions[5][2];
+            const nw_d = (x_point - nw_x1) * (nw_z2 - nw_z1) - (z_point - nw_z1) * (nw_x2 - nw_x1);
+            //  console.log("Nw d", nw_d);
+            if (nw_d < 0) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/*
+    crissCross([0,0,10,10], [0,1,1,0]) == 0,1
+    we need it to be perp to swivel/hinge line - root 3
+*/
+function crissCross(line_a, line_b) {
+    const [x1, y1, x2, y2] = line_a;
+    const [x3, y3, x4, y4] = line_b;
+
+    const x_top = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4);
+    const x_bot = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+
+    const x_ans = x_top / x_bot;
+
+    const y_top = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4);
+    const y_bot = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+
+    const y_ans = y_top / y_bot;
+    return [x_ans, y_ans];
+    /*
+    https://search.brave.com/search?q=how+to+find+where+two+lines+intercept&summary=1&conversation=08dd524c9ed269cb47c84973d872341fb026
+
+x = (x1y2−y1x2)(x3−x4)−(x1−x2)(x3y4−y3x4)
+​    (x1−x2)(y3−y4)−(y1−y2)(x3−x4)
+​
+ 
+y = (x1​y2−y1x2)(y3−y4)−(y1−y2)(x3y4−y3x4)
+​    (x1-x2)(y3-y4)-(y1-y2)(x3-x4)
+*/
+}
+
+function findIncline(cam_pos, stair_tile){
+    let cam_x = cam_pos.x;
+    let cam_y = cam_pos.y;
+    let cam_z = cam_pos.z;
+    let {tilt_up, angle_incline, y_position, tile_positions}=stair_tile;
+    if (tilt_up=='NN'){
+       console.log("stair_tile ", stair_tile);
+
+        let highest_z = tile_positions[0][Z_INDX];
+        let lowest_z = tile_positions[3][Z_INDX];
+        let total_z_width = highest_z - lowest_z;
+        let z_distance_traveled = highest_z - cam_z;
+        let height_increase = z_distance_traveled/total_z_width * angle_incline;
+            console.log("z_distance_traveled", z_distance_traveled);        
+                 let new_cam_y2 = y_position + height_increase+1;
+        return new_cam_y2;
+
+
+        let ss_bottom = tile_positions[0][Z_INDX];
+        let bottom_upto_cam = ss_bottom - cam_z;
+        let incline_percent = bottom_upto_cam/2.5 ;  //         / 1.7320508075688772;
+
+        let highest_point = tile_positions[5][Y_INDX];     // this is wrong, just a guess
+
+      //  console.log("angle_incline+y_position", angle_incline+y_position);
+
+       // console.log("highest_point", highest_point);
+
+        let current_tile_height = highest_point * incline_percent;
+//        let new_cam_y = current_tile_height +2;
+// qbert
+        let new_cam_y = current_tile_height +2 ; // +2 for 0,3,   +w3 for 0,2
+     //   console.log("NN", new_cam_y)
+        return new_cam_y;
+    }
+   //  console.log("??", cam_y)
+    return cam_y;
+}
+
+export {findIncline, crissCross, pointInHex, HexRamp, nearTile, hexNewColor, flatWater };

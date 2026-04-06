@@ -1,9 +1,9 @@
 import { geoMesh } from "./mesh-tiles.js";
 import { hexNewColor, colorLeft, colorRight } from "./colors-tiles.js";
 
-function tileSides2(a_tile, hex_points, six_side_colors, outline_color) {
+function tileSides2(a_tile, stair_tiles, six_side_colors, outline_color) {
     const [color_1, color_2, color_3, color_4, color_5, color_6] = six_side_colors;
-    const [top_left, top_right, right_tip, bot_right, bot_left, left_tip] = hex_points;
+    const [top_left, top_right, right_tip, bot_right, bot_left, left_tip] = stair_tiles;
 
     const ss_side = tileColumnSides(top_right, top_left, 2);
     geoMesh(a_tile, ss_side, color_4, outline_color); // lean into  ss !!!!    XXXXXXXXXX
@@ -24,8 +24,8 @@ function tileSides2(a_tile, hex_points, six_side_colors, outline_color) {
     geoMesh(a_tile, sw_side, color_5, outline_color);
 }
 
-function hexSides(group, the_color, hex_points) {
-    const [top_left, bot_left, top_right, bot_right, left_tip, right_tip] = hex_points;
+function hexSides(group, the_color, stair_tiles) {
+    const [top_left, bot_left, top_right, bot_right, left_tip, right_tip] = stair_tiles;
 
     const bot_side = tileColumnSides(bot_left, bot_right, 2);
     geoMesh(group, bot_side, colorLeft(the_color));

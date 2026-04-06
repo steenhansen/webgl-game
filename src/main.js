@@ -48,7 +48,10 @@ So we have a bunch of flat hexagons, then a hexagon with different hieghts is ma
 
 */
 
-var g_hex_tiles = new Map([]);
+var g_stair_meshes = new Map([]); //
+var g_stair_overlaps = new Map([]); // g_stacked_stairs
+var g_stair_tiles = new Map([]); // g_stair_centers
+
 var g_angled_water = new Map([]);
 var g_covered_tiles = new Map([]);
 
@@ -65,7 +68,7 @@ import GLBench from "gl-bench/dist/gl-bench.module";
 
 import { PerspCamera, projMatrix } from "./perspective-camera.js";
 import { AScene } from "./a-scene.js";
-import { HexRamp, hexNewColor } from "./tiles/hex-tile.js";
+import { findIncline, crissCross, pointInHex, HexRamp, hexNewColor } from "./tiles/hex-tile.js";
 
 import { hexRow, hexfield, hexFlower } from "./tiles/field-tiles.js";
 
@@ -87,7 +90,9 @@ import { XyzDot } from "./a-dot.js";
 // doWaves();
 // doWaves();
 // doWaves();
-
+// const X_INDX = 0
+// const Y_INDX = 1
+// const Z_INDX = 2
 //doWaves();
 
 const HI_DPI_ENABLE = Math.min(window.devicePixelRatio, 2);
@@ -101,10 +106,10 @@ const the_scene = AScene(dark_gray);
 const the_fov = 75;
 const width_height = [the_width, the_height];
 const nf_planes = [0.1, 1000];
-const xyz_camera = [8, 3, 7];
+const xyz_camera = [0, 3, 6];
 
 const persp_camera = PerspCamera(the_fov, width_height, nf_planes, xyz_camera);
-persp_camera.lookAt(0, 1, 3);
+persp_camera.lookAt(0, 0, 0);
 
 the_scene.add(persp_camera);
 
@@ -119,16 +124,30 @@ const outline_color2 = 0x88ff88; // bronze   https://htmlcolorcodes.com/colors/s
 
 const tile_colors2 = [top_color2, outline_color2];
 
+let xx = crissCross([0, 0, 10, 10], [0, 1, 1, 0]);
+console.log("criss xx", xx);
+
 const the_ramp = [
-    ["001", "02.0", "001"],
-    ["002", "00.5", "001", "NW", 1.5],
-    ["003", "00.0", "001", "NW", 0.5],
-    ["004", "00.0", "001"],
-    ["004", "00.0", "000"],
-    ["004", "00.0", "002"],
-    ["003", "00.0", "002"],
-    ["005", "00.0", "000"],
-    ["005", "00.0", "001"]
+    // ["001", "02.0", "001"],
+    // ["002", "00.5", "001", "NW", 1.5],
+    // ["003", "00.0", "001", "NW", 0.5],
+
+    // need to have y_first for sorting?
+    // ["004", "00.0", "001"],
+    // ["004", "02.0", "001"],
+
+
+    // ["000", "04.0", "000", "NN", 1],
+    // ["000", "03.0", "001", "NN", 1],
+     ["000", "02.0", "002", "NN", 1],
+    ["000", "01.0", "003", "NN", 1],
+    
+    
+    // ["004", "00.0", "000"],
+    // ["004", "00.0", "002"],
+    // ["003", "00.0", "002"],
+    // ["005", "00.0", "000"],
+    // ["005", "00.0", "001"]
 ];
 
 for (var i = 0; i < the_ramp.length; i++) {
@@ -140,14 +159,25 @@ for (var i = 0; i < the_ramp.length; i++) {
     const ramp_xyz = [x_index, y_index, z_index];
 
     if (ramp_piece.length == 3) {
-        g_hex_tiles = HexRamp(g_hex_tiles, the_scene, ramp_xyz, tile_colors2);
+        // HexStairs
+        [g_stair_meshes, g_stair_tiles, g_stair_overlaps] = HexRamp(g_stair_meshes, g_stair_tiles, g_stair_overlaps, the_scene, ramp_xyz, tile_colors2);
     } else {
         const incline_and_dir = [ramp_piece[3], ramp_piece[4]];
-        g_hex_tiles = HexRamp(g_hex_tiles, the_scene, ramp_xyz, tile_colors2, incline_and_dir);
+        [g_stair_meshes, g_stair_tiles, g_stair_overlaps] = HexRamp(
+            g_stair_meshes,
+            g_stair_tiles,
+            g_stair_overlaps,
+            the_scene,
+            ramp_xyz,
+            tile_colors2,
+            incline_and_dir
+        );
     }
 }
-console.log("ghex", g_hex_tiles);
-//[g_hex_tiles, g_angled_water] = hexfield(g_hex_tiles, g_angled_water, the_scene, -10, 10, 0x3366ee, 0x33ee66);
+console.log("g_stair_meshes", g_stair_meshes); // stair_meshes
+console.log("g_stair_tiles", g_stair_tiles); // stair_tiles
+console.log("g_stair_overlaps", g_stair_overlaps); // stair_overlaps
+[g_stair_meshes, g_angled_water] = hexfield(g_stair_meshes, g_angled_water, the_scene, -10, 10, 0x3366ee, 0x33ee66);
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 the_scene.add(ambientLight);
@@ -186,20 +216,127 @@ var rot = Math.PI / 6;
 const clock = new THREE.Clock();
 const vector = new THREE.Vector3(); // create once and reuse it!
 
+//            if (cam_y >= yy && yy > highest_y_tile) {
+/*
+  problem is that instead of choosing higher 0,2,   lower 0,3 is chosen
+  because of overlap
+
+  XyzDot 4 0 4.497338720318693 4.333200000002976
+    possible_aboves (2) ['0,2,2', '0,1,3']
+  
+    XyzDot 3 0 3.043484606211529 4.299999999999995
+   possible_aboves (2) ['0,2,2', '0,1,3']
+
+
+   if (x>=0 && x<1 && z>2 && z<6){
+            console.log("YES XyzDot",x,y,z)
+
+        }else {
+            console.log("NO XyzDot",x,y,z)
+
+        }
+
+
+possible_aboves ['0,1,3']
+main.js:260 try1 0,1,3
+main.js:262 try2 0,1,3
+main.js:264 try3 0,1,3
+main.js:269 point IN 0,1,3
+main.js:253 possible_aboves (2) ['0,2,2', '0,1,3']
+main.js:260 try1 0,2,2
+main.js:260 try1 0,1,3
+main.js:262 try2 0,1,3
+main.js:264 try3 0,1,3
+main.js:269 point IN 0,1,3
+
+
+possible_aboves (2) ['0,2,2', '0,1,3']
+main.js:260 try1 0,2,2
+main.js:260 try1 0,1,3
+main.js:262 try2 0,1,3
+main.js:264 try3 0,1,3
+main.js:274 point NOT IN 0,1,3
+                            should say point in 0,2,2 !!!!
+main.js:253 possible_aboves (2) ['0,2,2', '0,1,3']
+
+
+
+*/
+
+var last_x=0;
+var last_z=0;
 const tick = () => {
     const delta = clock.getDelta();
     const elapsedTime = clock.getElapsedTime();
-
     const cam_pos = persp_camera.position;
-    //   XyzDot(the_scene, cam_pos.x, cam_pos.y, cam_pos.z, 0xff6666);
-    //    console.log("cam_pos", cam_pos);
 
+    // if (cam_pos.x != last_x || cam_pos.z != last_z){
+    //  //   console.log("cam pos changed", cam_pos.x, cam_pos.z);
+    //     last_x = cam_pos.x;
+    //     last_z = cam_pos.z;
+    // }
+   
+
+    const trunc_cam_x = Math.trunc(cam_pos.x); 
+    const cam_y = cam_pos.y;
+    const trunc_cam_z = Math.trunc(cam_pos.z);
+    const xz_key = `${trunc_cam_x},${trunc_cam_z}`;
+    let highest_y_tile = 0;
+    let highest_xyz_tile = "";
+    if (g_stair_overlaps.has(xz_key)) {
+        let poss_aboves = g_stair_overlaps.get(xz_key);
+        //console.log("possible_aboves", xz_key, poss_aboves);
+        for (var i = 0; i < poss_aboves.length; i++) {
+            let x_y_z_str = poss_aboves[i];
+        
+            let [xx, yy, zz] = x_y_z_str.split(","); 
+            let stair_tile = g_stair_tiles.get(x_y_z_str);
+
+             // console.log("stair_tile ", stair_tile)
+
+            if (xx>=0 && xx<4 && zz>=0 && zz<6){
+           // console.log("try2", x_y_z_str)
+
+                if (cam_y >= yy) {
+                               
+          //  console.log("try3", x_y_z_str)
+                    highest_y_tile = yy;
+                    highest_xyz_tile = x_y_z_str;
+                    const point_in = pointInHex(cam_pos.x, cam_pos.z, stair_tile);
+                    if (point_in) {
+                      //      console.log("poss_aboves", point_in, x_y_z_str,i)
+                     //      if (cam_pos.x != last_x || cam_pos.z != last_z){
+                       // console.log("point IN", x_y_z_str, stair_tile)
+                         //  }
+                        let new_cam_y =findIncline(cam_pos, stair_tile);
+                        cam_pos.y= new_cam_y;
+                    // break;
+                    } else {
+              //           console.log("point NOT IN", x_y_z_str)
+                    }
+                }else{
+                //    console.log("cam_y not >= yy", cam_y, yy)
+                }
+            }else {
+          //  console.log("NO xx, zz", xx,zz)
+            }
+
+
+
+        }
+    }
+   //   console.log("cam_pos.y",  cam_pos.y)
+    XyzDot(the_scene, cam_pos.x, cam_pos.y, cam_pos.z, 0xff6666);
     persp_camera.getWorldDirection(vector);
     moveKeys(delta, controls);
-
     a_renderer.render(the_scene, persp_camera);
-
     window.requestAnimationFrame(tick);
+        if (cam_pos.x != last_x || cam_pos.z != last_z){
+     //   console.log("cam pos changed", cam_pos.x, cam_pos.z);
+        last_x = cam_pos.x;
+        last_z = cam_pos.z;
+    }
+   
 };
 
 tick();

@@ -67,7 +67,8 @@ function makeControls(persp_camera) {
 function moveKeys(delta, controls) {
     //console.log("movekeys", moveForward);
     // const delta = clock.getDelta();
-    const speed = 10 * delta;
+    //    const speed = 10 * delta;
+    const speed = 2 * delta;
     if (moveForward) controls.moveForward(speed);
     if (moveBackward) controls.moveForward(-speed);
 
