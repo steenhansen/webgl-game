@@ -21617,12 +21617,25 @@ function _interopRequireWildcard(e, t) {
     return f;
   })(e, t);
 }
+/*
+XyzDot 4 0 4.497165515241812 4.333399999998501
+XyzDot 3 0 3.0431959310833934 4.30019999999552
+*/
+
 function XyzDot(the_scene, x, y, z, the_color) {
+  var y_floor = Math.floor(y);
+  if (x >= 0 && x < 1 && z > 2 && z < 6) {
+    // console.log("YES XyzDot",x,y,z)
+  } else {
+    //   console.log("NO XyzDot",x,y,z)
+  }
+  //console.log("XyzDot", y_floor, x,y,z)
+
   var dotGeometry = new THREE.BufferGeometry();
-  dotGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array([x, y, z]), 3));
+  dotGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array([x, y - 0.5, z]), 3));
   // console.log("xyDot", x, y, z);
   var dotMaterial = new THREE.PointsMaterial({
-    size: 0.4,
+    size: 0.04,
     color: the_color
   });
   var dot = new THREE.Points(dotGeometry, dotMaterial);
@@ -21649,6 +21662,17 @@ function AScene(background_color) {
 }
 
 },{"three":3}],9:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Z_INDX = exports.Y_INDX = exports.X_INDX = void 0;
+var X_INDX = exports.X_INDX = 0;
+var Y_INDX = exports.Y_INDX = 1;
+var Z_INDX = exports.Z_INDX = 2;
+
+},{}],10:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21689,7 +21713,7 @@ function makeControls(persp_camera) {
     }
   };
   var onKeyUp = function onKeyUp(event) {
-    console.log("keypup", event.code);
+    //console.log("keypup", event.code);
     switch (event.code) {
       case "ArrowUp":
       case "KeyW":
@@ -21719,14 +21743,15 @@ function makeControls(persp_camera) {
 function moveKeys(delta, controls) {
   //console.log("movekeys", moveForward);
   // const delta = clock.getDelta();
-  var speed = 10 * delta;
+  //    const speed = 10 * delta;
+  var speed = 2 * delta;
   if (moveForward) controls.moveForward(speed);
   if (moveBackward) controls.moveForward(-speed);
   if (moveLeft) controls.moveRight(-speed);
   if (moveRight) controls.moveRight(speed);
 }
 
-},{"three/examples/jsm/controls/PointerLockControls.js":4}],10:[function(require,module,exports){
+},{"three/examples/jsm/controls/PointerLockControls.js":4}],11:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -21743,7 +21768,6 @@ var _aScene = require("./a-scene.js");
 var _hexTile = require("./tiles/hex-tile.js");
 var _fieldTiles = require("./tiles/field-tiles.js");
 var _hoverTiles = require("./tiles/hover-tiles.js");
-var _waves = require("./waves.js");
 var _tiltTiles = require("./tiles/tilt-tiles.js");
 var _keyControls = require("./controls/key-controls.js");
 var _aDot = require("./a-dot.js");
@@ -21822,7 +21846,10 @@ So we have a bunch of flat hexagons, then a hexagon with different hieghts is ma
 
 */
 
-var g_hex_tiles = new Map([]);
+var g_stair_meshes = new Map([]); //
+var g_stair_overlaps = new Map([]); // g_stacked_stairs
+var g_stair_tiles = new Map([]); // g_stair_centers
+
 var g_angled_water = new Map([]);
 var g_covered_tiles = new Map([]);
 
@@ -21833,17 +21860,23 @@ var g_covered_tiles = new Map([]);
 //const xyz_camera = [4, 6, 6];
 //const xyz_camera = [1.6, 1, 8.8];
 
-var doWaves = (0, _waves.makeWave)(-10, 20);
-doWaves();
-// doWaves();
-// doWaves();
-// doWaves();
-// doWaves();
-// doWaves();
-// doWaves();
-// doWaves();
+//import { makeWave } from "./waves.js";
 
-doWaves();
+//var doWaves = makeWave(-10, 20);
+
+//doWaves();
+// doWaves();
+// doWaves();
+// doWaves();
+// doWaves();
+// doWaves();
+// doWaves();
+// doWaves();
+// const X_INDX = 0
+// const Y_INDX = 1
+// const Z_INDX = 2
+//doWaves();
+
 var HI_DPI_ENABLE = Math.min(window.devicePixelRatio, 2);
 var the_width = window.innerWidth;
 var the_height = window.innerHeight;
@@ -21852,28 +21885,80 @@ var the_scene = (0, _aScene.AScene)(dark_gray);
 var the_fov = 75;
 var width_height = [the_width, the_height];
 var nf_planes = [0.1, 1000];
-var xyz_camera = [8, 3, 7];
+var xyz_camera = [0, 3, 6];
 var persp_camera = (0, _perspectiveCamera.PerspCamera)(the_fov, width_height, nf_planes, xyz_camera);
-persp_camera.lookAt(0, 1, 3);
+persp_camera.lookAt(0, 0, 0);
 the_scene.add(persp_camera);
 var top_color = 0x8888ff;
 var outline_color = 0x8888ff; // bronze   https://htmlcolorcodes.com/colors/shades-of-brown/
 //const six_side_colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffaaaa, 0xaaffaa, 0xaaaaff];
 var six_side_colors = [0x0000cc];
 var tile_colors = [top_color, outline_color, six_side_colors];
-var top_color2 = 0x8888ee;
-var outline_color2 = 0x8888ff; // bronze   https://htmlcolorcodes.com/colors/shades-of-brown/
-var six_side_colors2 = [0x0000cc];
-var tile_colors2 = [top_color2, outline_color2, six_side_colors2];
+var top_color2 = 0x88ee88;
+var outline_color2 = 0x88ff88; // bronze   https://htmlcolorcodes.com/colors/shades-of-brown/
 
-//                                              x,y,z, height
-g_hex_tiles = (0, _hexTile.HexTile2)(g_hex_tiles, the_scene, [1, 1, 1, 0], tile_colors2, "SW");
-g_hex_tiles = (0, _hexTile.HexTile2)(g_hex_tiles, the_scene, [2, 0.5, 1, 0.5], tile_colors2, "NW");
-g_hex_tiles = (0, _hexTile.HexTile2)(g_hex_tiles, the_scene, [3, 0, 1, 0.5], tile_colors2, "NW");
-var _ref = (0, _fieldTiles.hexfield)(g_hex_tiles, g_angled_water, the_scene, -10, 10, 0x3366ee, 0x33ee66);
-var _ref2 = _slicedToArray(_ref, 2);
-g_hex_tiles = _ref2[0];
-g_angled_water = _ref2[1];
+var tile_colors2 = [top_color2, outline_color2];
+var xx = (0, _hexTile.crissCross)([0, 0, 10, 10], [0, 1, 1, 0]);
+var the_ramp = [
+// ["001", "02.0", "001"],
+// ["002", "00.5", "001", "NW", 1.5],
+// ["003", "00.0", "001", "NW", 0.5],
+
+// need to have y_first for sorting?
+// ["004", "00.0", "001"],
+// ["004", "02.0", "001"],
+
+// ["000", "04.0", "000", "NN", 1],
+// ["000", "03.0", "001", "NN", 1],
+
+["001", "01.0", "001", "NW", 0.25], ["001", "01.0", "002", "NE", 0.5], ["001", "01.0", "003", "SE", 0.75], ["001", "01.0", "004", "SW", 1]
+// ["001", "01.0", "003"],     
+
+//    ["000", "02.0", "002", "NN", 2],       //aa
+//    ["000", "01.0", "003", "NN", 1],       //aa
+//    ["000", "01.0", "004"],                //aa
+//    ["000", "01.0", "005", "SS", 1],       //aa
+//    ["000", "02.0", "006", "SS", 1],       //aa
+
+// ["004", "00.0", "000"],
+// ["004", "00.0", "002"],
+// ["003", "00.0", "002"],
+// ["005", "00.0", "000"],
+// ["005", "00.0", "001"]
+];
+for (var i = 0; i < the_ramp.length; i++) {
+  var ramp_piece = the_ramp[i];
+  var _ramp_piece = _slicedToArray(ramp_piece, 3),
+    x_str = _ramp_piece[0],
+    y_str = _ramp_piece[1],
+    z_str = _ramp_piece[2];
+  var x_index = parseInt(x_str);
+  var y_index = parseFloat(y_str);
+  var z_index = parseInt(z_str);
+  var ramp_xyz = [x_index, y_index, z_index];
+  if (ramp_piece.length == 3) {
+    // HexStairs
+    var _ref = (0, _hexTile.HexRamp)(g_stair_meshes, g_stair_tiles, g_stair_overlaps, the_scene, ramp_xyz, tile_colors2);
+    var _ref2 = _slicedToArray(_ref, 3);
+    g_stair_meshes = _ref2[0];
+    g_stair_tiles = _ref2[1];
+    g_stair_overlaps = _ref2[2];
+  } else {
+    var incline_and_dir = [ramp_piece[3], ramp_piece[4]];
+    var _ref3 = (0, _hexTile.HexRamp)(g_stair_meshes, g_stair_tiles, g_stair_overlaps, the_scene, ramp_xyz, tile_colors2, incline_and_dir);
+    var _ref4 = _slicedToArray(_ref3, 3);
+    g_stair_meshes = _ref4[0];
+    g_stair_tiles = _ref4[1];
+    g_stair_overlaps = _ref4[2];
+  }
+}
+//console.log("g_stair_meshes", g_stair_meshes); // stair_meshes
+//console.log("g_stair_tiles", g_stair_tiles); // stair_tiles
+//console.log("g_stair_overlaps", g_stair_overlaps); // stair_overlaps
+var _ref5 = (0, _fieldTiles.hexfield)(g_stair_meshes, g_angled_water, the_scene, -10, 10, 0x3366ee, 0x33ee66);
+var _ref6 = _slicedToArray(_ref5, 2);
+g_stair_meshes = _ref6[0];
+g_angled_water = _ref6[1];
 var ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 the_scene.add(ambientLight);
 var pointLight = new THREE.PointLight(0xffffff, 10);
@@ -21904,16 +21989,140 @@ var rot = Math.PI / 6;
 var clock = new THREE.Clock();
 var vector = new THREE.Vector3(); // create once and reuse it!
 
+//            if (cam_y >= yy && yy > highest_y_tile) {
+/*
+  problem is that instead of choosing higher 0,2,   lower 0,3 is chosen
+  because of overlap
+
+  XyzDot 4 0 4.497338720318693 4.333200000002976
+    possible_aboves (2) ['0,2,2', '0,1,3']
+  
+    XyzDot 3 0 3.043484606211529 4.299999999999995
+   possible_aboves (2) ['0,2,2', '0,1,3']
+
+
+   if (x>=0 && x<1 && z>2 && z<6){
+            console.log("YES XyzDot",x,y,z)
+
+        }else {
+            console.log("NO XyzDot",x,y,z)
+
+        }
+
+
+possible_aboves ['0,1,3']
+main.js:260 try1 0,1,3
+main.js:262 try2 0,1,3
+main.js:264 try3 0,1,3
+main.js:269 point IN 0,1,3
+main.js:253 possible_aboves (2) ['0,2,2', '0,1,3']
+main.js:260 try1 0,2,2
+main.js:260 try1 0,1,3
+main.js:262 try2 0,1,3
+main.js:264 try3 0,1,3
+main.js:269 point IN 0,1,3
+
+
+possible_aboves (2) ['0,2,2', '0,1,3']
+main.js:260 try1 0,2,2
+main.js:260 try1 0,1,3
+main.js:262 try2 0,1,3
+main.js:264 try3 0,1,3
+main.js:274 point NOT IN 0,1,3
+                            should say point in 0,2,2 !!!!
+main.js:253 possible_aboves (2) ['0,2,2', '0,1,3']
+
+
+
+*/
+
+var last_x = 0;
+var last_z = 0;
 var _tick = function tick() {
   var delta = clock.getDelta();
   var elapsedTime = clock.getElapsedTime();
   var cam_pos = persp_camera.position;
-  //console.log("cam_pos", cam_pos);
+  var cam_pos_t = {
+    x: 1.1,
+    y: 2.3,
+    z: 5.8
+  }; // positive line side
+  //  let cam_pos_t =  {x: 1.9, y: 2.3, z: 6.8}; // negative line side
 
+  var stair_tile_t = {
+    angle_incline: 1,
+    tile_positions: [[1, 1.5, 6.928203230275509], [2, 1, 6.928203230275509], [2.5, 1, 6.06217782649107], [2, 1.5, 5.196152422706632], [1, 2, 5.196152422706632], [0.5, 2, 6.06217782649107]],
+    tilt_up: "SE",
+    x_center: 1.5,
+    x_z: "1,3",
+    y_position: 1,
+    accross_length: 1.7320508075688772,
+    z_center: 6.06217782649107
+  };
+
+  //let new_cam_y_test =findIncline(cam_pos_t, stair_tile_t);
+  //console.log("new_cam_y_test", new_cam_y_test)
+  //return;
+
+  // if (cam_pos.x != last_x || cam_pos.z != last_z){
+  //  //   console.log("cam pos changed", cam_pos.x, cam_pos.z);
+  //     last_x = cam_pos.x;
+  //     last_z = cam_pos.z;
+  // }
+
+  var trunc_cam_x = Math.trunc(cam_pos.x);
+  var cam_y = cam_pos.y;
+  var trunc_cam_z = Math.trunc(cam_pos.z);
+  var xz_key = "".concat(trunc_cam_x, ",").concat(trunc_cam_z);
+  var highest_y_tile = 0;
+  var highest_xyz_tile = "";
+  console.log("XXXXXXXXXXXX  vccc");
+  if (g_stair_overlaps.has(xz_key)) {
+    console.log("ZZZZZZZZZZZZZZZ");
+    var poss_aboves = g_stair_overlaps.get(xz_key);
+    for (var i = 0; i < poss_aboves.length; i++) {
+      var x_y_z_str = poss_aboves[i];
+      console.log("x_y_z_str", x_y_z_str);
+      var _x_y_z_str$split = x_y_z_str.split(","),
+        _x_y_z_str$split2 = _slicedToArray(_x_y_z_str$split, 3),
+        _xx = _x_y_z_str$split2[0],
+        yy = _x_y_z_str$split2[1],
+        zz = _x_y_z_str$split2[2];
+      var stair_tile = g_stair_tiles.get(x_y_z_str);
+      //            if (xx>=0 && xx<10 && zz>=0 && zz<10){
+      if (1) {
+        if (cam_y >= yy) {
+          highest_y_tile = yy;
+          highest_xyz_tile = x_y_z_str;
+          var point_in = (0, _hexTile.pointInHex)(cam_pos.x, cam_pos.z, stair_tile);
+          if (point_in) {
+            var new_cam_y = (0, _hexTile.findIncline)(cam_pos, stair_tile);
+            cam_pos.y = new_cam_y;
+            // break;
+          } else {
+            //           console.log("point NOT IN", x_y_z_str)
+          }
+        } else {
+          //    console.log("cam_y not >= yy", cam_y, yy)
+        }
+      } else {
+        //  console.log("NO xx, zz", xx,zz)
+      }
+    }
+  } else {
+    cam_pos.y = cam_pos.y - 0.02;
+  }
+  //   console.log("cam_pos.y",  cam_pos.y)
+  (0, _aDot.XyzDot)(the_scene, cam_pos.x, cam_pos.y, cam_pos.z, 0xff6666);
   persp_camera.getWorldDirection(vector);
   (0, _keyControls.moveKeys)(delta, controls);
   a_renderer.render(the_scene, persp_camera);
   window.requestAnimationFrame(_tick);
+  if (cam_pos.x != last_x || cam_pos.z != last_z) {
+    //   console.log("cam pos changed", cam_pos.x, cam_pos.z);
+    last_x = cam_pos.x;
+    last_z = cam_pos.z;
+  }
 };
 _tick();
 function draw(now) {
@@ -21926,7 +22135,7 @@ a_renderer.setAnimationLoop(function (now) {
   return draw(now);
 });
 
-},{"./a-dot.js":7,"./a-scene.js":8,"./controls/key-controls.js":9,"./perspective-camera.js":11,"./tiles/field-tiles.js":13,"./tiles/hex-tile.js":15,"./tiles/hover-tiles.js":16,"./tiles/tilt-tiles.js":19,"./waves.js":20,"gl-bench/dist/gl-bench.module":1,"three":3}],11:[function(require,module,exports){
+},{"./a-dot.js":7,"./a-scene.js":8,"./controls/key-controls.js":10,"./perspective-camera.js":12,"./tiles/field-tiles.js":14,"./tiles/hex-tile.js":16,"./tiles/hover-tiles.js":17,"./tiles/tilt-tiles.js":19,"gl-bench/dist/gl-bench.module":1,"three":3}],12:[function(require,module,exports){
 "use strict";
 
 function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
@@ -21969,7 +22178,7 @@ function projMatrix(the_camera, width_height) {
   the_camera.updateProjectionMatrix();
 }
 
-},{"three":3}],12:[function(require,module,exports){
+},{"three":3}],13:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -22029,10 +22238,10 @@ function tileColor2(g_hex_tiles, xz_color, new_color) {
   }
 }
 function hexNewColor(g_hex_tiles, x, z, new_color) {
-  var _hexPosition = hexPosition(x, z),
-    _hexPosition2 = _slicedToArray(_hexPosition, 2),
-    xx = _hexPosition2[0],
-    zz = _hexPosition2[1];
+  var _tilePosition = tilePosition(x, z),
+    _tilePosition2 = _slicedToArray(_tilePosition, 2),
+    xx = _tilePosition2[0],
+    zz = _tilePosition2[1];
   var xz_index = intTileIndex(xx, zz);
   if (g_hex_tiles.has(xz_index)) {
     var recolor_tile = g_hex_tiles.get(xz_index);
@@ -22041,7 +22250,7 @@ function hexNewColor(g_hex_tiles, x, z, new_color) {
   }
 }
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -22074,20 +22283,10 @@ function hexRow(g_hex_tiles, g_angled_water, the_scene, x_row, start_z, end_z, b
   var top_color = 0x0000ff;
   var outline_color = 0x8888ff; // bronze   https://htmlcolorcodes.com/colors/shades-of-brown/
   //const six_side_colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffaaaa, 0xaaffaa, 0xaaaaff];
-  var six_side_colors = [0x0000cc];
-  var tile_colors = [top_color, outline_color, six_side_colors];
-  for (var z = start_z; z < end_z; z++) {
-    // for (let angle_index = 0; angle_index < 8; angle_index++) {
-    //     //for (let angle_index = 0; angle_index < 1; angle_index++) {
-    //        g_angled_water = angledWater(g_angled_water, the_scene, [x_row, NORMAL_HEIGHT, z], tile_colors, "NN", 7);
-    //     // g_angled_water = angledWater(g_angled_water, the_scene, [x_row, NORMAL_HEIGHT, z], tile_colors, "NE", angle_index);
-    //     // g_angled_water = angledWater(g_angled_water, the_scene, [x_row, NORMAL_HEIGHT, z], tile_colors, "SE", angle_index);
-    //     // g_angled_water = angledWater(g_angled_water, the_scene, [x_row, NORMAL_HEIGHT, z], tile_colors, "SS", angle_index);
-    //     // g_angled_water = angledWater(g_angled_water, the_scene, [x_row, NORMAL_HEIGHT, z], tile_colors, "SW", angle_index);
-    //     // g_angled_water = angledWater(g_angled_water, the_scene, [x_row, NORMAL_HEIGHT, z], tile_colors, "NW", angle_index);
-    // }
 
-    g_hex_tiles = (0, _hexTile.flatWater)(g_hex_tiles, the_scene, [x_row, -1, z], tile_colors, "not-used");
+  var tile_colors = [top_color, outline_color];
+  for (var z = start_z; z < end_z; z++) {
+    g_hex_tiles = (0, _hexTile.flatWater)(g_hex_tiles, the_scene, [x_row, -1, z], tile_colors);
   }
   return [g_hex_tiles, g_angled_water];
 }
@@ -22101,7 +22300,7 @@ function hexFlower(g_hex_tiles, x, z, center_color, outer_color) {
   (0, _hexTile.hexNewColor)(g_hex_tiles, x - 1, z + 1, outer_color);
 }
 
-},{"./hex-tile.js":15}],14:[function(require,module,exports){
+},{"./hex-tile.js":16}],15:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23390,7 +23589,7 @@ var type_face = exports.type_face = {
   underlineThickness: 50
 };
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 "use strict";
 
 function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
@@ -23406,9 +23605,9 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.HexTile = HexTile;
-exports.HexTile2 = HexTile2;
-exports.angledWater = angledWater;
+exports.HexRamp = HexRamp;
+exports.crissCross = crissCross;
+exports.findIncline = findIncline;
 exports.flatWater = flatWater;
 Object.defineProperty(exports, "hexNewColor", {
   enumerable: true,
@@ -23422,13 +23621,13 @@ Object.defineProperty(exports, "nearTile", {
     return _hoverTiles.nearTile;
   }
 });
+exports.pointInHex = pointInHex;
 var _three = require("three");
+var _constants = require("../constants.js");
 var _hoverTiles = require("./hover-tiles.js");
 var _meshTiles = require("./mesh-tiles.js");
 var _tiltTiles = require("./tilt-tiles.js");
-var _sidesTiles = require("./sides-tiles.js");
 var _colorsTiles = require("./colors-tiles.js");
-var _aDot = require("../a-dot.js");
 /*
  ----------------RED-X-LINE------------------------
 |
@@ -23460,105 +23659,46 @@ E
 |
 |
 
-
-
-
-
-
-
 */
 
-/*
-          n_n
-      /--------\
-  n_w /          \ n_e
-    /            \
-    \            /
-  s_w \          / s_e         no w nor e, named from like storms
-      \--------/
-          s_s
-*/
+//import { hexSides, tileSides2, tileColumnSides } from "./sides-tiles.js";
+//import { hexNewColor, colorLeft, colorRight } from "./colors-tiles.js";
 
-//import { rowTilt, columnTilt, xzTilt } from "./tilt-tiles.js";
+//import { XyzDot } from "../a-dot.js";
 
 var sqrt_3 = Math.sqrt(3);
-function angledWater(hex_tiles, the_scene, x_y_z, tile_colors, direction, angle_index) {
+function flatWater(hex_tiles, the_scene, x_y_z, tile_colors) {
   var _x_y_z = _slicedToArray(x_y_z, 3),
     x_index = _x_y_z[0],
     y_height = _x_y_z[1],
     z_index = _x_y_z[2];
-  var _tile_colors = _slicedToArray(tile_colors, 3),
+  var _tile_colors = _slicedToArray(tile_colors, 2),
     top_color = _tile_colors[0],
-    outline_color = _tile_colors[1],
-    six_side_colors = _tile_colors[2];
-  if (six_side_colors.length == 1) {
-    var one_color = six_side_colors[0];
-    six_side_colors = [one_color, one_color, one_color, one_color, one_color, one_color];
-  }
-  var _hexPosition = hexPosition(x_index, z_index),
-    _hexPosition2 = _slicedToArray(_hexPosition, 2),
-    x_position = _hexPosition2[0],
-    z_position = _hexPosition2[1];
+    outline_color = _tile_colors[1];
+  var _tilePosition = tilePosition(x_index, z_index),
+    _tilePosition2 = _slicedToArray(_tilePosition, 2),
+    x_center = _tilePosition2[0],
+    z_center = _tilePosition2[1];
   var tile_radius = 1;
   var a_tile = new _three.Group();
-  a_tile.position.set(x_position, 0, z_position);
-  var hex_points = hexPoints(tile_radius, y_height);
-  var top_triangles = hexTopTriangles(hex_points);
+  a_tile.position.set(x_center, 0, z_center);
+  var stair_tiles = hexPoints(tile_radius, y_height);
+  var top_triangles = hexTopTriangles(stair_tiles);
   (0, _meshTiles.geoMesh)(a_tile, top_triangles, top_color, outline_color);
-  (0, _sidesTiles.tileSides2)(a_tile, hex_points, six_side_colors, outline_color);
   the_scene.add(a_tile);
-  (0, _meshTiles.addCoords)(a_tile, x_y_z, [angle_index, direction]);
+  (0, _meshTiles.addCoords)(a_tile, x_y_z, [0, ""]);
   var xyz_index = "".concat(x_index, ",").concat(y_height, ",").concat(z_index);
   hex_tiles.set(xyz_index, a_tile);
   return hex_tiles;
 }
-function flatWater(hex_tiles, the_scene, x_y_z, tile_colors, no_lean_and_dir) {
-  var lean_and_dir = [0, "nw"];
-  var _x_y_z2 = _slicedToArray(x_y_z, 3),
-    x_index = _x_y_z2[0],
-    y_height = _x_y_z2[1],
-    z_index = _x_y_z2[2];
-  var _tile_colors2 = _slicedToArray(tile_colors, 3),
-    top_color = _tile_colors2[0],
-    outline_color = _tile_colors2[1],
-    six_side_colors = _tile_colors2[2];
-  if (six_side_colors.length == 1) {
-    var one_color = six_side_colors[0];
-    six_side_colors = [one_color, one_color, one_color, one_color, one_color, one_color];
-  }
-  var lean_amount = lean_and_dir[0],
-    lean_direction = lean_and_dir[1];
-
-  //console.log("HexTile", x, y, z);
-  var _hexPosition3 = hexPosition(x_index, z_index),
-    _hexPosition4 = _slicedToArray(_hexPosition3, 2),
-    x_position = _hexPosition4[0],
-    z_position = _hexPosition4[1];
-  var tile_radius = 1;
-  var a_tile = new _three.Group();
-  if (lean_amount > 0) {
-    (0, _tiltTiles.tiltTile)(a_tile, lean_and_dir);
-  }
-  a_tile.position.set(x_position, 0, z_position);
-  var hex_points = hexPoints(tile_radius, y_height);
-  var top_triangles = hexTopTriangles(hex_points);
-  //    geoMesh(top_triangles, a_tile, top_color, x_index, z_index, outline_color);
-  (0, _meshTiles.geoMesh)(a_tile, top_triangles, top_color, outline_color);
-  //tileSides2(a_tile, hex_points, six_side_colors, outline_color);
-  the_scene.add(a_tile);
-  (0, _meshTiles.addCoords)(a_tile, x_y_z, "");
-  var xyz_index = "".concat(x_index, ",").concat(y_height, ",").concat(z_index);
-  hex_tiles.set(xyz_index, a_tile);
-  return hex_tiles;
-}
-function hexTopTriangles(hex_points) {
-  var _hex_points = _slicedToArray(hex_points, 6),
-    top_left = _hex_points[0],
-    top_right = _hex_points[1],
-    right_tip = _hex_points[2],
-    bot_right = _hex_points[3],
-    bot_left = _hex_points[4],
-    left_tip = _hex_points[5];
+function hexTopTriangles(stair_tiles) {
+  var _stair_tiles = _slicedToArray(stair_tiles, 6),
+    top_left = _stair_tiles[0],
+    top_right = _stair_tiles[1],
+    right_tip = _stair_tiles[2],
+    bot_right = _stair_tiles[3],
+    bot_left = _stair_tiles[4],
+    left_tip = _stair_tiles[5];
   var square_up_left = [].concat(_toConsumableArray(bot_left), _toConsumableArray(top_left), _toConsumableArray(top_right));
   var square_down_right = [].concat(_toConsumableArray(bot_left), _toConsumableArray(top_right), _toConsumableArray(bot_right));
   var triangle_left = [].concat(_toConsumableArray(bot_left), _toConsumableArray(left_tip), _toConsumableArray(top_left));
@@ -23566,8 +23706,6 @@ function hexTopTriangles(hex_points) {
   var hexagon_sides = [].concat(_toConsumableArray(square_up_left), _toConsumableArray(square_down_right), _toConsumableArray(triangle_left), _toConsumableArray(triangle_right));
   return hexagon_sides;
 }
-
-//  have flat water by y==-1
 function hexPoints(tile_radius, y_height, up_direction, angled_height) {
   var hex_dist = tile_radius * Math.sqrt(3) / 2;
   var half_radius = tile_radius / 2;
@@ -23575,11 +23713,6 @@ function hexPoints(tile_radius, y_height, up_direction, angled_height) {
   var top_height = y_height + angled_height;
   var bot_height = y_height;
   var mid_height = y_height + angled_height / 2;
-
-  // const top_height = 0.5 + y_height;
-  // const bot_height = 0.0 + y_height;
-  // const mid_height = 0.25 + y_height;
-
   var top_left_x = 0 - half_radius;
   var bot_left_x = 0 - half_radius;
   var top_rght_x = 0 + half_radius;
@@ -23592,134 +23725,214 @@ function hexPoints(tile_radius, y_height, up_direction, angled_height) {
   var bot_rght_z = 0 - hex_dist;
   var left_tip_z = 0;
   var rght_tip_z = 0;
-
-  // up_direction = "NW";
-
   if (y_height < 0) {
-    top_left = [top_left_x, 0, top_left_z]; // good
-    bot_left = [bot_left_x, 0, bot_left_z];
-    top_rght = [top_rght_x, 0, top_rght_z];
-    bot_rght = [bot_rght_x, 0, bot_rght_z];
-    left_tip = [left_tip_x, 0, left_tip_z];
-    rght_tip = [rght_tip_x, 0, rght_tip_z];
+    top_left = [top_left_x, -0.01, top_left_z];
+    bot_left = [bot_left_x, -0.01, bot_left_z];
+    top_rght = [top_rght_x, -0.01, top_rght_z];
+    bot_rght = [bot_rght_x, -0.01, bot_rght_z];
+    left_tip = [left_tip_x, -0.01, left_tip_z];
+    rght_tip = [rght_tip_x, -0.01, rght_tip_z];
+  } else if (up_direction === "") {
+    top_left = [top_left_x, y_height, top_left_z];
+    bot_left = [bot_left_x, y_height, bot_left_z];
+    top_rght = [top_rght_x, y_height, top_rght_z];
+    bot_rght = [bot_rght_x, y_height, bot_rght_z];
+    left_tip = [left_tip_x, y_height, left_tip_z];
+    rght_tip = [rght_tip_x, y_height, rght_tip_z];
   } else if (up_direction === "SS") {
-    // S_S_UP_DIR
-    top_left = [top_left_x, top_height, top_left_z]; //good
+    top_left = [top_left_x, top_height, top_left_z];
     bot_left = [bot_left_x, bot_height, bot_left_z];
     top_rght = [top_rght_x, top_height, top_rght_z];
     bot_rght = [bot_rght_x, bot_height, bot_rght_z];
     left_tip = [left_tip_x, mid_height, left_tip_z];
     rght_tip = [rght_tip_x, mid_height, rght_tip_z];
   } else if (up_direction === "SW") {
-    top_left = [top_left_x, top_height, top_left_z]; //good
+    top_left = [top_left_x, top_height, top_left_z];
     bot_left = [bot_left_x, mid_height, bot_left_z];
     top_rght = [top_rght_x, mid_height, top_rght_z];
     bot_rght = [bot_rght_x, bot_height, bot_rght_z];
     left_tip = [left_tip_x, top_height, left_tip_z];
     rght_tip = [rght_tip_x, bot_height, rght_tip_z];
   } else if (up_direction === "NE") {
-    top_left = [top_left_x, bot_height, top_left_z]; //good
+    top_left = [top_left_x, bot_height, top_left_z];
     bot_left = [bot_left_x, mid_height, bot_left_z];
     top_rght = [top_rght_x, mid_height, top_rght_z];
     bot_rght = [bot_rght_x, top_height, bot_rght_z];
     left_tip = [left_tip_x, bot_height, left_tip_z];
     rght_tip = [rght_tip_x, top_height, rght_tip_z];
   } else if (up_direction === "NW") {
-    top_left = [top_left_x, mid_height, top_left_z]; //good
+    top_left = [top_left_x, mid_height, top_left_z];
     bot_left = [bot_left_x, top_height, bot_left_z];
     top_rght = [top_rght_x, bot_height, top_rght_z];
     bot_rght = [bot_rght_x, mid_height, bot_rght_z];
     left_tip = [left_tip_x, top_height, left_tip_z];
     rght_tip = [rght_tip_x, bot_height, rght_tip_z];
   } else if (up_direction === "NN") {
-    top_left = [top_left_x, bot_height, top_left_z]; //good
+    top_left = [top_left_x, bot_height, top_left_z];
     bot_left = [bot_left_x, top_height, bot_left_z];
     top_rght = [top_rght_x, bot_height, top_rght_z];
     bot_rght = [bot_rght_x, top_height, bot_rght_z];
     left_tip = [left_tip_x, mid_height, left_tip_z];
     rght_tip = [rght_tip_x, mid_height, rght_tip_z];
   } else if (up_direction === "SE") {
-    top_left = [top_left_x, bot_height, top_left_z]; //good
-    bot_left = [bot_left_x, mid_height, bot_left_z];
-    top_rght = [top_rght_x, mid_height, top_rght_z];
-    bot_rght = [bot_rght_x, top_height, bot_rght_z];
+    top_left = [top_left_x, mid_height, top_left_z];
+    bot_left = [bot_left_x, bot_height, bot_left_z];
+    top_rght = [top_rght_x, top_height, top_rght_z];
+    bot_rght = [bot_rght_x, mid_height, bot_rght_z];
     left_tip = [left_tip_x, bot_height, left_tip_z];
     rght_tip = [rght_tip_x, top_height, rght_tip_z];
+  } else {
+    console.log("hexPoints hhhhhhhhhhhhh  up_direction==", up_direction);
   }
-  var hex_points = [top_left, top_rght, rght_tip, bot_rght, bot_left, left_tip];
-  return hex_points;
+  var stair_tiles = [top_left, top_rght, rght_tip, bot_rght, bot_left, left_tip];
+  return stair_tiles;
 }
-function HexTile2(hex_tiles, the_scene, x_y_z, tile_colors, up_direction) {
-  var _x_y_z3 = _slicedToArray(x_y_z, 4),
+
+//function possibleStairsXyz(x_center, y_index, z_center){
+/*
+A B C
+D E F
+G H I
+*/
+
+function pushXyz(stair_overlaps, xyz_key, xyz_index) {
+  if (stair_overlaps.has(xyz_key)) {
+    var cur_arr = stair_overlaps.get(xyz_key);
+    cur_arr.push(xyz_index);
+    stair_overlaps.set(xyz_key, cur_arr);
+  } else {
+    stair_overlaps.set(xyz_key, [xyz_index]);
+  }
+  return stair_overlaps;
+}
+function possibleAboves(stair_overlaps, x_y_z) {
+  var _x_y_z2 = _slicedToArray(x_y_z, 3),
+    x_index = _x_y_z2[0],
+    y_index = _x_y_z2[1],
+    z_index = _x_y_z2[2];
+  var xyz_index = "".concat(x_index, ",").concat(y_index, ",").concat(z_index);
+  var _tilePosition3 = tilePosition(x_index, z_index),
+    _tilePosition4 = _slicedToArray(_tilePosition3, 2),
+    x_center = _tilePosition4[0],
+    z_center = _tilePosition4[1];
+  var x_mid = Math.floor(x_center);
+  var x_low = x_mid - 1;
+  var x_hih = x_mid + 1;
+  var z_mid = Math.floor(z_center);
+  var z_low = z_mid - 1;
+  var z_hih = z_mid + 1;
+  stair_overlaps = pushXyz(stair_overlaps, "".concat(x_low, ",").concat(z_low), xyz_index);
+  stair_overlaps = pushXyz(stair_overlaps, "".concat(x_low, ",").concat(z_mid), xyz_index);
+  stair_overlaps = pushXyz(stair_overlaps, "".concat(x_low, ",").concat(z_hih), xyz_index);
+  stair_overlaps = pushXyz(stair_overlaps, "".concat(x_mid, ",").concat(z_low), xyz_index);
+  stair_overlaps = pushXyz(stair_overlaps, "".concat(x_mid, ",").concat(z_mid), xyz_index);
+  stair_overlaps = pushXyz(stair_overlaps, "".concat(x_mid, ",").concat(z_hih), xyz_index);
+  stair_overlaps = pushXyz(stair_overlaps, "".concat(x_hih, ",").concat(z_low), xyz_index);
+  stair_overlaps = pushXyz(stair_overlaps, "".concat(x_hih, ",").concat(z_mid), xyz_index);
+  stair_overlaps = pushXyz(stair_overlaps, "".concat(x_hih, ",").concat(z_hih), xyz_index);
+  return stair_overlaps;
+}
+
+// x_y_z      xyz_tile
+function offsetTilePoints(stair_tiles, x_y_z, incline_and_dir, tile_points) {
+  var _incline_and_dir = _slicedToArray(incline_and_dir, 2),
+    tilt_up = _incline_and_dir[0],
+    angle_incline = _incline_and_dir[1];
+  var _x_y_z3 = _slicedToArray(x_y_z, 3),
     x_index = _x_y_z3[0],
     y_index = _x_y_z3[1],
-    z_index = _x_y_z3[2],
-    angled_height = _x_y_z3[3];
-  var _tile_colors3 = _slicedToArray(tile_colors, 3),
-    top_color = _tile_colors3[0],
-    outline_color = _tile_colors3[1],
-    six_side_colors = _tile_colors3[2];
-  if (six_side_colors.length == 1) {
-    var one_color = six_side_colors[0];
-    six_side_colors = [one_color, one_color, one_color, one_color, one_color, one_color];
+    z_index = _x_y_z3[2];
+  var xyz_index = "".concat(x_index, ",").concat(y_index, ",").concat(z_index);
+  var _tilePosition5 = tilePosition(x_index, z_index),
+    _tilePosition6 = _slicedToArray(_tilePosition5, 2),
+    x_center = _tilePosition6[0],
+    z_center = _tilePosition6[1];
+  var tile_positions = [];
+  for (var i = 0; i < tile_points.length; i++) {
+    var tile_point = tile_points[i];
+    var _tile_point = _slicedToArray(tile_point, 3),
+      x = _tile_point[0],
+      y = _tile_point[1],
+      z = _tile_point[2];
+    x = x + x_center;
+    z = z + z_center;
+    tile_positions.push([x, y, z]);
   }
-  var _hexPosition5 = hexPosition(x_index, z_index),
-    _hexPosition6 = _slicedToArray(_hexPosition5, 2),
-    x_position = _hexPosition6[0],
-    z_position = _hexPosition6[1];
+  var accross_length = 0;
+  if (tilt_up == "NW") {
+    var bottom_point = tile_positions[1];
+    var top_point = tile_positions[5];
+    accross_length = distance2hexpoints(bottom_point, top_point);
+    //     console.log('nw, accross_length', accross_length)
+  } else if (tilt_up == "NE") {
+    var _bottom_point = tile_positions[0];
+    var _top_point = tile_positions[2];
+    accross_length = distance2hexpoints(_bottom_point, _top_point);
+    //   console.log('NE, tile_positions', tile_positions)
+  } else if (tilt_up == "SW") {
+    var _bottom_point2 = tile_positions[0];
+    var _top_point2 = tile_positions[2];
+    accross_length = distance2hexpoints(_bottom_point2, _top_point2);
+    //console.log('se, tile_positions', tile_positions)
+  } else if (tilt_up == "SE") {
+    var _bottom_point3 = tile_positions[0];
+    var _top_point3 = tile_positions[2];
+    accross_length = distance2hexpoints(_bottom_point3, _top_point3);
+    //console.log('se, tile_positions', tile_positions)
+  }
+  var tile_obj = {
+    x_center: x_center,
+    y_position: y_index,
+    z_center: z_center,
+    tilt_up: tilt_up,
+    angle_incline: angle_incline,
+    accross_length: accross_length,
+    tile_positions: tile_positions,
+    x_z: "".concat(x_index, ",").concat(z_index)
+  };
+  stair_tiles.set(xyz_index, tile_obj);
+  return stair_tiles;
+}
+
+//       HexRamp(the_scene, hex_ground, stair_meshes, , x_y_z, t
+function HexRamp(stair_meshes, stair_tiles, stair_overlaps, the_scene, x_y_z, tile_colors, incline_and_dir) {
+  stair_overlaps = possibleAboves(stair_overlaps, x_y_z);
+  var _x_y_z4 = _slicedToArray(x_y_z, 3),
+    x_index = _x_y_z4[0],
+    y_index = _x_y_z4[1],
+    z_index = _x_y_z4[2];
+  var xyz_index = "".concat(x_index, ",").concat(y_index, ",").concat(z_index);
+  if (incline_and_dir == undefined) {
+    incline_and_dir = ["", 0];
+  }
+  var _incline_and_dir2 = incline_and_dir,
+    _incline_and_dir3 = _slicedToArray(_incline_and_dir2, 2),
+    up_direction = _incline_and_dir3[0],
+    angled_height = _incline_and_dir3[1];
+  var _tile_colors2 = _slicedToArray(tile_colors, 2),
+    top_color = _tile_colors2[0],
+    outline_color = _tile_colors2[1];
+  var _tilePosition7 = tilePosition(x_index, z_index),
+    _tilePosition8 = _slicedToArray(_tilePosition7, 2),
+    x_center = _tilePosition8[0],
+    z_center = _tilePosition8[1];
   var tile_radius = 1;
   var a_tile = new _three.Group();
-  a_tile.position.set(x_position, 0, z_position);
-  var hex_points = hexPoints(tile_radius, y_index, up_direction, angled_height);
-  var top_triangles = hexTopTriangles(hex_points);
-  //    geoMesh(top_triangles, a_tile, top_color, x_index, z_index, outline_color);
+  a_tile.position.set(x_center, 0, z_center);
+  var tile_points = hexPoints(tile_radius, y_index, up_direction, angled_height);
+  stair_tiles = offsetTilePoints(stair_tiles, x_y_z, incline_and_dir, tile_points);
+  var top_triangles = hexTopTriangles(tile_points);
+  //    console.log("top_tr", top_triangles);
   (0, _meshTiles.geoMesh)(a_tile, top_triangles, top_color, outline_color);
-  //tileSides2(a_tile, hex_points, six_side_colors, outline_color);
   the_scene.add(a_tile);
-  (0, _meshTiles.addCoords)(a_tile, x_y_z, up_direction);
-  var xyz_index = "".concat(x_index, ",").concat(y_index, ",").concat(z_index);
-  hex_tiles.set(xyz_index, a_tile);
-  return hex_tiles;
+  (0, _meshTiles.addCoords)(a_tile, x_y_z, incline_and_dir);
+  stair_meshes.set(xyz_index, a_tile);
+  return [stair_meshes, stair_tiles, stair_overlaps];
 }
-function hexPosition(x_ind, y_ind) {
-  var x_coord = 3 / 2 * x_ind;
-  var y_coord = sqrt_3 / 2 * x_ind + sqrt_3 * y_ind;
+function tilePosition(x_tile, z_tile) {
+  var x_coord = 3 / 2 * x_tile;
+  var y_coord = sqrt_3 / 2 * x_tile + sqrt_3 * z_tile;
   return [x_coord, y_coord];
-}
-function HexTile(g_hex_tiles, the_scene, x, y, z, the_color) {
-  //console.log("HexTile", x, y, z);
-  var _hexPosition7 = hexPosition(x, z),
-    _hexPosition8 = _slicedToArray(_hexPosition7, 2),
-    xx = _hexPosition8[0],
-    zz = _hexPosition8[1];
-  var radius = 1;
-  var yy = y;
-  var group = new _three.Group();
-  group.position.x = xx;
-  group.position.y = 0;
-  group.position.z = zz;
-  var h = radius * Math.sqrt(3) / 2;
-  var half_r = radius / 2;
-  var top_left = [0 - half_r, yy, 0 + h];
-  var bot_left = [0 - half_r, yy, 0 - h];
-  var top_right = [0 + half_r, yy, 0 + h];
-  var bot_right = [0 + half_r, yy, 0 - h];
-  var left_tip = [0 - radius, yy, 0];
-  var right_tip = [0 + radius, yy, 0];
-  var square_up_left = [].concat(bot_left, top_left, top_right);
-  var square_down_right = [].concat(bot_left, top_right, bot_right);
-  var triangle_left = [].concat(bot_left, left_tip, top_left);
-  var triangle_right = [].concat(top_right, right_tip, bot_right);
-  var the_hexagon = [].concat(_toConsumableArray(square_up_left), _toConsumableArray(square_down_right), _toConsumableArray(triangle_left), _toConsumableArray(triangle_right));
-  // console.log("000000", x, y);
-  //    geoMesh(the_hexagon, group, the_color, x, z);
-  (0, _meshTiles.geoMesh)(group, the_hexagon, the_color, x, z);
-  var hex_points = [top_left, bot_left, top_right, bot_right, left_tip, right_tip];
-  (0, _sidesTiles.hexSides)(group, the_color, hex_points);
-  the_scene.add(group);
-  var xz_index = "".concat(x, ",").concat(z);
-  g_hex_tiles.set(xz_index, group);
-  return g_hex_tiles;
 }
 function intTileIndex(x_float, z_float) {
   var int_x = Math.round(x_float);
@@ -23728,7 +23941,269 @@ function intTileIndex(x_float, z_float) {
   return tile_index;
 }
 
-},{"../a-dot.js":7,"./colors-tiles.js":12,"./hover-tiles.js":16,"./mesh-tiles.js":17,"./sides-tiles.js":18,"./tilt-tiles.js":19,"three":3}],16:[function(require,module,exports){
+/*
+           blue
+          neg-z
+            |
+            |
+            |
+            |
+            |
+red--neg-x----------------------pos-x
+            |
+            |
+            |
+            |                nn
+            | -0.5,-0.86/----------\0.5,-0.86
+            |          /4          3\ 
+            |       nw/              \ne
+            |        /                \ 
+            |       /5      0,0        \ 1,0  
+            |   -1,0\                 2/
+            |        \                /
+            |      sw \              / se        
+            |          \0          1/
+            |  -0.5,0.86\----------/0.5,0.86
+            |     ^          ss 
+            |     |
+            |    start point
+            |
+          pos-z
+*/
+
+function pointInHex(x_point, z_point, stair_tile) {
+  var tile_positions = stair_tile.tile_positions;
+  var highest_z = tile_positions[0][2];
+  var lowest_z = tile_positions[3][2];
+  var highest_x = tile_positions[2][0];
+  var lowest_x = tile_positions[5][0];
+  var outside_hex = x_point < lowest_x || x_point > highest_x || z_point < lowest_z || z_point > highest_z;
+  if (outside_hex) {
+    return false;
+  }
+  var x_center = stair_tile.x_center,
+    z_center = stair_tile.z_center;
+  if (x_point > x_center) {
+    if (z_point > z_center) {
+      var se_x1 = tile_positions[1][0];
+      var se_z1 = tile_positions[1][2];
+      var se_x2 = tile_positions[2][0];
+      var se_z2 = tile_positions[2][2];
+      var se_d = (x_point - se_x1) * (se_z2 - se_z1) - (z_point - se_z1) * (se_x2 - se_x1);
+      //  console.log("SE d", se_d);
+      if (se_d < 0) {
+        return false;
+      }
+    } else {
+      var ne_x1 = tile_positions[2][0];
+      var ne_z1 = tile_positions[2][2];
+      var ne_x2 = tile_positions[3][0];
+      var ne_z2 = tile_positions[3][2];
+      var ne_d = (x_point - ne_x1) * (ne_z2 - ne_z1) - (z_point - ne_z1) * (ne_x2 - ne_x1);
+      //  console.log("NE d", ne_d);
+      if (ne_d < 0) {
+        return false;
+      }
+    }
+  } else {
+    if (z_point > z_center) {
+      var sw_x1 = tile_positions[5][0];
+      var sw_z1 = tile_positions[5][2];
+      var sw_x2 = tile_positions[0][0];
+      var sw_z2 = tile_positions[0][2];
+      //  sw_d = dotsSideOfLine([x_point, z_point] cam_x_z, tile_positions[5], tile_positions[0]); // MO BETTER WAY
+      var sw_d = (x_point - sw_x1) * (sw_z2 - sw_z1) - (z_point - sw_z1) * (sw_x2 - sw_x1);
+      //   console.log("SW d", sw_d);
+      if (sw_d < 0) {
+        return false;
+      }
+    } else {
+      var nw_x1 = tile_positions[4][0];
+      var nw_z1 = tile_positions[4][2];
+      var nw_x2 = tile_positions[5][0];
+      var nw_z2 = tile_positions[5][2];
+      var nw_d = (x_point - nw_x1) * (nw_z2 - nw_z1) - (z_point - nw_z1) * (nw_x2 - nw_x1);
+      //  console.log("Nw d", nw_d);
+      if (nw_d < 0) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+/*
+    crissCross([0,0,10,10], [0,1,1,0]) == 0,1
+    we need it to be perp to swivel/hinge line - root 3
+*/
+function crissCross(line_a, line_b) {
+  var _line_a = _slicedToArray(line_a, 4),
+    x1 = _line_a[0],
+    y1 = _line_a[1],
+    x2 = _line_a[2],
+    y2 = _line_a[3];
+  var _line_b = _slicedToArray(line_b, 4),
+    x3 = _line_b[0],
+    y3 = _line_b[1],
+    x4 = _line_b[2],
+    y4 = _line_b[3];
+  var x_top = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4);
+  var x_bot = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+  var x_ans = x_top / x_bot;
+  var y_top = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4);
+  var y_bot = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+  var y_ans = y_top / y_bot;
+  return [x_ans, y_ans];
+  /*
+  https://search.brave.com/search?q=how+to+find+where+two+lines+intercept&summary=1&conversation=08dd524c9ed269cb47c84973d872341fb026
+  x = (x1y2−y1x2)(x3−x4)−(x1−x2)(x3y4−y3x4)
+  ​    (x1−x2)(y3−y4)−(y1−y2)(x3−x4)
+  ​
+  y = (x1​y2−y1x2)(y3−y4)−(y1−y2)(x3y4−y3x4)
+  ​    (x1-x2)(y3-y4)-(y1-y2)(x3-x4)
+  */
+}
+function findIncline(cam_pos, stair_tile) {
+  var cam_x = cam_pos.x;
+  var cam_y = cam_pos.y;
+  var cam_z = cam_pos.z;
+  var cam_x_z = [cam_x, cam_z];
+  var tilt_up = stair_tile.tilt_up,
+    angle_incline = stair_tile.angle_incline,
+    y_position = stair_tile.y_position,
+    tile_positions = stair_tile.tile_positions,
+    accross_length = stair_tile.accross_length;
+  //  console.log("findInclines", tilt_up);
+  if (tilt_up == 'NN') {
+    var highest_z = tile_positions[0][_constants.Z_INDX];
+    var lowest_z = tile_positions[3][_constants.Z_INDX];
+    var total_z_width = highest_z - lowest_z;
+    var z_distance_traveled = highest_z - cam_z;
+    var height_increase = z_distance_traveled / total_z_width * angle_incline;
+    var _new_cam_y = y_position + height_increase + 1;
+    return _new_cam_y;
+  } else if (tilt_up == 'SS') {
+    var _highest_z = tile_positions[0][_constants.Z_INDX];
+    var _lowest_z = tile_positions[3][_constants.Z_INDX];
+    var _total_z_width = _highest_z - _lowest_z;
+    var _z_distance_traveled = cam_z - _highest_z;
+    var _height_increase = _z_distance_traveled / _total_z_width * angle_incline;
+    var _new_cam_y2 = y_position + _height_increase + 2;
+    return _new_cam_y2;
+  } else if (tilt_up == 'NW') {
+    var swivel_a = tile_positions[0];
+    var swivel_b = tile_positions[3];
+    var swivel_intercept = swivelIntercept(swivel_a, swivel_b, cam_x_z);
+    var length_from_swivel2 = intercept2cam(swivel_intercept, cam_x_z);
+    var nw_side_2 = dotsSideOfLine(cam_x_z, swivel_a, swivel_b);
+    var pixel_size = 0;
+    if (nw_side_2 < 0) {
+      pixel_size = accross_length / 2 - length_from_swivel2;
+    } else {
+      pixel_size = accross_length / 2 + length_from_swivel2;
+    }
+    var _height_increase2 = angle_incline * (pixel_size / accross_length);
+    var _new_cam_y3 = y_position + _height_increase2 + 0.52;
+    return _new_cam_y3;
+  } else if (tilt_up == 'NE') {
+    var _swivel_a = tile_positions[1];
+    var _swivel_b = tile_positions[4];
+    var _swivel_intercept = swivelIntercept(_swivel_a, _swivel_b, cam_x_z);
+    var _length_from_swivel = intercept2cam(_swivel_intercept, cam_x_z);
+    var _nw_side_ = dotsSideOfLine(cam_x_z, _swivel_a, _swivel_b);
+    var _pixel_size = 0;
+    if (_nw_side_ > 0) {
+      _pixel_size = accross_length / 2 - _length_from_swivel;
+    } else {
+      _pixel_size = accross_length / 2 + _length_from_swivel;
+    }
+    var _height_increase3 = angle_incline * (_pixel_size / accross_length);
+    var _new_cam_y4 = y_position + _height_increase3 + 0.52;
+    return _new_cam_y4;
+  } else if (tilt_up == 'SE') {
+    //  console.log("se find tile_positions", tile_positions);
+    var _swivel_a2 = tile_positions[0];
+    var _swivel_b2 = tile_positions[3];
+    var _swivel_intercept2 = swivelIntercept(_swivel_a2, _swivel_b2, cam_x_z);
+    var _length_from_swivel2 = intercept2cam(_swivel_intercept2, cam_x_z);
+    var _nw_side_2 = dotsSideOfLine(cam_x_z, _swivel_a2, _swivel_b2);
+    var _pixel_size2 = 0;
+    if (_nw_side_2 > 0) {
+      _pixel_size2 = accross_length / 2 - _length_from_swivel2;
+    } else {
+      _pixel_size2 = accross_length / 2 + _length_from_swivel2;
+    }
+    var _height_increase4 = angle_incline * (_pixel_size2 / accross_length);
+    var _new_cam_y5 = y_position + _height_increase4 + 0.52;
+    //console.log("swwwwwwwwwwwwwwww", new_cam_y2)
+    return _new_cam_y5;
+  } else if (tilt_up == 'SW') {
+    //  console.log("sw find tile_positions", tile_positions);
+    var _swivel_a3 = tile_positions[1];
+    var _swivel_b3 = tile_positions[4];
+    var _swivel_intercept3 = swivelIntercept(_swivel_a3, _swivel_b3, cam_x_z);
+    var _length_from_swivel3 = intercept2cam(_swivel_intercept3, cam_x_z);
+    var _nw_side_3 = dotsSideOfLine(cam_x_z, _swivel_a3, _swivel_b3);
+    var _pixel_size3 = 0;
+    if (_nw_side_3 < 0) {
+      _pixel_size3 = accross_length / 2 - _length_from_swivel3;
+    } else {
+      _pixel_size3 = accross_length / 2 + _length_from_swivel3;
+    }
+    var _height_increase5 = angle_incline * (_pixel_size3 / accross_length);
+    var _new_cam_y6 = y_position + _height_increase5 + 0.52;
+    //console.log("swwwwwwwwwwwwwwww", new_cam_y2)
+    return _new_cam_y6;
+  }
+  new_cam_y2 = cam_y - 0.1;
+  return cam_y;
+}
+function distance2hexpoints(hex_point_1, hex_point_2) {
+  var x_diff = hex_point_2[0] - hex_point_1[0];
+  var z_diff = hex_point_2[2] - hex_point_1[2];
+  var length = Math.sqrt(x_diff * x_diff + z_diff * z_diff);
+  return length;
+}
+function dotsSideOfLine(cam_x_z, line_point_a, line_point_b) {
+  var _cam_x_z = _slicedToArray(cam_x_z, 2),
+    cam_x = _cam_x_z[0],
+    cam_z = _cam_x_z[1];
+  var nw_x1 = line_point_a[0];
+  var nw_z1 = line_point_a[2];
+  var nw_x2 = line_point_b[0];
+  var nw_z2 = line_point_b[2];
+  var pos_or_neg = (cam_x - nw_x1) * (nw_z2 - nw_z1) - (cam_z - nw_z1) * (nw_x2 - nw_x1);
+  return pos_or_neg;
+}
+function intercept2cam(swivel_intercept, cam_x_z) {
+  var _cam_x_z2 = _slicedToArray(cam_x_z, 2),
+    cam_x = _cam_x_z2[0],
+    cam_z = _cam_x_z2[1];
+  var x_diff = cam_x - swivel_intercept[0];
+  var z_diff = cam_z - swivel_intercept[1];
+  var length_from_swivel = Math.sqrt(x_diff * x_diff + z_diff * z_diff);
+  return length_from_swivel;
+}
+function swivelIntercept(swivel_a, swivel_b, cam_x_z) {
+  var _cam_x_z3 = _slicedToArray(cam_x_z, 2),
+    cam_x = _cam_x_z3[0],
+    cam_z = _cam_x_z3[1];
+  var x1 = swivel_a[_constants.X_INDX];
+  var z1 = swivel_a[_constants.Z_INDX];
+  var x2 = swivel_b[_constants.X_INDX];
+  var z2 = swivel_b[_constants.Z_INDX];
+  var dx = x2 - x1;
+  var dz = z2 - z1;
+  var dAB = dx * dx + dz * dz;
+  var u_top = (cam_x - x1) * dx + (cam_z - z1) * dz;
+  var u = u_top / dAB;
+  var x = x1 + u * dx;
+  var z = z1 + u * dz;
+  var swivel_intercept = [x, z];
+  return swivel_intercept;
+}
+
+},{"../constants.js":9,"./colors-tiles.js":13,"./hover-tiles.js":17,"./mesh-tiles.js":18,"./tilt-tiles.js":19,"three":3}],17:[function(require,module,exports){
 "use strict";
 
 function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
@@ -23836,7 +24311,7 @@ function nearTile(g_hex_tiles, old_covered_tiles, x_float, z_float) {
   return new_covered_tiles;
 }
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -23861,13 +24336,14 @@ var _helvetiker_regularTypeface = require("./helvetiker_regular.typeface.js");
 var loader2 = new _FontLoader.FontLoader();
 var WHITE_LABELS = 0xffffff;
 var the_font = loader2.parse(_helvetiker_regularTypeface.type_face);
-function addCoords(a_tile, x_y_z, up_direction) {
-  var _x_y_z = _slicedToArray(x_y_z, 4),
+function addCoords(a_tile, x_y_z, incline_and_dir) {
+  var _incline_and_dir = _slicedToArray(incline_and_dir, 2),
+    up_direction = _incline_and_dir[0],
+    angled_height = _incline_and_dir[1];
+  var _x_y_z = _slicedToArray(x_y_z, 3),
     x_index = _x_y_z[0],
     y_index = _x_y_z[1],
-    z_index = _x_y_z[2],
-    angled_height = _x_y_z[3];
-  //  const [lean_amount, lean_direction] = lean_and_dir;
+    z_index = _x_y_z[2];
   var textMaterial = new _three.MeshLambertMaterial({
     emissive: 0xffffff,
     color: WHITE_LABELS
@@ -23879,13 +24355,11 @@ function addCoords(a_tile, x_y_z, up_direction) {
     curveSegments: 12
   });
   var text_mesh = new _three.Mesh(textGeometry, textMaterial);
-
-  // text_mesh.position.y = 2.1; // y_height + 0.0;
-
-  if (up_direction == "") {
+  if (y_index < 0) {
     text_mesh.position.y = 0.001;
+  } else if (up_direction == "") {
+    text_mesh.position.y = y_index + 0.001;
   } else {
-    console.log("addcords", y_index, up_direction);
     text_mesh.position.y = y_index + angled_height;
   }
   text_mesh.rotation.x = -Math.PI / 2;
@@ -23917,7 +24391,7 @@ function addCoords(a_tile, x_y_z, up_direction) {
   a_tile.add(text_mesh);
 }
 
-//function geoMesh(vertices_set, group, a_color, x, z, outline_color) {
+// only ramp needs to be double sided
 function geoMesh(group, vertices_set, a_color, outline_color) {
   // console.log("geoMesh:::", group, vertices_set, a_color, outline_color);
   var side_geometry = geometricVertices(vertices_set);
@@ -23931,7 +24405,7 @@ function geoMesh(group, vertices_set, a_color, outline_color) {
   var edges = new _three.EdgesGeometry(side_geometry);
   var lineMaterial = new _three.LineBasicMaterial({
     color: outline_color,
-    linewidth: 16
+    linewidth: 256
   });
   lineMaterial.side = _three.DoubleSide;
   var edgeLines = new _three.LineSegments(edges, lineMaterial);
@@ -23949,105 +24423,7 @@ function geometricVertices(the_vertices) {
   return the_geometry;
 }
 
-},{"./helvetiker_regular.typeface.js":14,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}],18:[function(require,module,exports){
-"use strict";
-
-function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
-function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.hexSides = hexSides;
-exports.tileColumnSides = tileColumnSides;
-exports.tileSides2 = tileSides2;
-var _meshTiles = require("./mesh-tiles.js");
-var _colorsTiles = require("./colors-tiles.js");
-function tileSides2(a_tile, hex_points, six_side_colors, outline_color) {
-  var _six_side_colors = _slicedToArray(six_side_colors, 6),
-    color_1 = _six_side_colors[0],
-    color_2 = _six_side_colors[1],
-    color_3 = _six_side_colors[2],
-    color_4 = _six_side_colors[3],
-    color_5 = _six_side_colors[4],
-    color_6 = _six_side_colors[5];
-  var _hex_points = _slicedToArray(hex_points, 6),
-    top_left = _hex_points[0],
-    top_right = _hex_points[1],
-    right_tip = _hex_points[2],
-    bot_right = _hex_points[3],
-    bot_left = _hex_points[4],
-    left_tip = _hex_points[5];
-  var ss_side = tileColumnSides(top_right, top_left, 2);
-  (0, _meshTiles.geoMesh)(a_tile, ss_side, color_4, outline_color); // lean into  ss !!!!    XXXXXXXXXX
-
-  var se_side = tileColumnSides(right_tip, top_right, 2); // lean into se!!!!!
-  (0, _meshTiles.geoMesh)(a_tile, se_side, color_3, outline_color);
-  var ne_side = tileColumnSides(bot_right, right_tip, 2); // lean into ne !!!!
-  (0, _meshTiles.geoMesh)(a_tile, ne_side, color_2, outline_color);
-  var nn_side = tileColumnSides(bot_left, bot_right, 2); //  lean into nn !!!!!    XXXXXXXXXX
-  (0, _meshTiles.geoMesh)(a_tile, nn_side, color_1, outline_color);
-  var nw_side = tileColumnSides(left_tip, bot_left, 2); // lean into  nw !!!!!
-  (0, _meshTiles.geoMesh)(a_tile, nw_side, color_6, outline_color);
-  var sw_side = tileColumnSides(top_left, left_tip, 2); // lean into sw !!!!
-  (0, _meshTiles.geoMesh)(a_tile, sw_side, color_5, outline_color);
-}
-function hexSides(group, the_color, hex_points) {
-  var _hex_points2 = _slicedToArray(hex_points, 6),
-    top_left = _hex_points2[0],
-    bot_left = _hex_points2[1],
-    top_right = _hex_points2[2],
-    bot_right = _hex_points2[3],
-    left_tip = _hex_points2[4],
-    right_tip = _hex_points2[5];
-  var bot_side = tileColumnSides(bot_left, bot_right, 2);
-  (0, _meshTiles.geoMesh)(group, bot_side, (0, _colorsTiles.colorLeft)(the_color));
-  var top_side = tileColumnSides(top_right, top_left, 2);
-  (0, _meshTiles.geoMesh)(group, top_side, (0, _colorsTiles.colorRight)(the_color));
-  var top_right_side = tileColumnSides(right_tip, top_right, 2);
-  (0, _meshTiles.geoMesh)(group, top_right_side, (0, _colorsTiles.colorLeft)(the_color));
-  var top_left_side = tileColumnSides(top_left, left_tip, 2);
-  (0, _meshTiles.geoMesh)(group, top_left_side, (0, _colorsTiles.colorLeft)(the_color));
-  var bot_left_side = tileColumnSides(left_tip, bot_left, 2);
-  (0, _meshTiles.geoMesh)(group, bot_left_side, (0, _colorsTiles.colorRight)(the_color));
-  var bot_right_side = tileColumnSides(bot_right, right_tip, 2);
-  (0, _meshTiles.geoMesh)(group, bot_right_side, (0, _colorsTiles.colorRight)(the_color));
-}
-function tileColumnSides(first_point, second_point, height) {
-  var _first_point = _slicedToArray(first_point, 3),
-    x1 = _first_point[0],
-    y1 = _first_point[1],
-    z1 = _first_point[2];
-  var _second_point = _slicedToArray(second_point, 3),
-    x2 = _second_point[0],
-    y2 = _second_point[1],
-    z2 = _second_point[2];
-
-  //   const point_a_1 = [x1, y1, z1 - height];
-  var point_a_1 = [x1, y1 - height, z1];
-  var point_a_2 = first_point;
-  var point_a_3 = second_point;
-  var triangle_up_left = [].concat(point_a_1, _toConsumableArray(point_a_2), _toConsumableArray(point_a_3));
-
-  // const point_b_1 = [x1, y1, z1 - height];
-  var point_b_2 = second_point;
-  //    const point_b_3 = [x2, y2, z2 - height];
-  var point_b_3 = [x2, y2 - height, z2];
-
-  //    const triangle_bottom_right = [...point_b_1, ...point_b_2, ...point_b_3];
-  var triangle_bottom_right = [].concat(point_a_1, _toConsumableArray(point_b_2), point_b_3);
-  var square_triangles = [].concat(_toConsumableArray(triangle_up_left), _toConsumableArray(triangle_bottom_right));
-  return square_triangles;
-}
-
-},{"./colors-tiles.js":12,"./mesh-tiles.js":17}],19:[function(require,module,exports){
+},{"./helvetiker_regular.typeface.js":15,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}],19:[function(require,module,exports){
 "use strict";
 
 function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
@@ -24242,271 +24618,4 @@ function tipTileZx(g_hex_tiles, x, z, tip_angle, new_color) {
   return g_hex_tiles;
 }
 
-},{}],20:[function(require,module,exports){
-"use strict";
-
-function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.makeWave = makeWave;
-// InstancedMesh in Three.js   water_hex
-
-//object.visible = false; //Invisible
-//object.visible = true;  //Visible
-
-// ocean has no angles, just veritcal difference
-// {'2~3_a' : y==-1 , mesh}     this one never hides, shows
-// {'2~3_b' : y==0 , mesh }          hide hide for low
-// {'2~3_c' : y==1 , mesh }   hide for normal  show for high
-
-// waves has all directions and leans
-// { '2~3,se-7' : mesh}
-
-// ochestra
-// 0 : show: '2~3,nn-7', '2~3,ss-7'...
-//     hide: '19~19,se-6', `19~18,ne-6'       // the outermost ones
-
-// 1 : show: '2~3,se-7', '2~3,ne-7'...
-//     hide: '1~1,se-6', `1~2,ne-6'           // the previouse ones
-
-//Eagle catchs salmon in the waves, and carries it back to her nest.
-
-// const contacts = new Map();
-// contacts.set("Jessie", { phone: "213-555-1234", address: "123 N 1st Ave" });
-
-// const cars = [
-//   { make: "Toyota", model: "Corolla", year: 2022 },
-//   { make: "Tesla", model: "Model 3", year: 2021 },
-//   { make: "Ford", model: "Mustang", year: 1969 }
-// ];
-
-/////////////////////////////////////////
-
-// BLACK HEXAGONS
-var WAVE_1_BASE = ["+00~-01,NN:", "+01~-01,NE:", "+01~+00,SE:", "+00~+01,SS:", "-01~+01,SW:", "-01~+00,NW:"];
-var WAVE_1_0 = WAVE_1_BASE.map(function (w_name) {
-  return w_name + "0";
-});
-var WAVE_1_1 = WAVE_1_BASE.map(function (w_name) {
-  return w_name + "1";
-});
-var WAVE_1_2 = WAVE_1_BASE.map(function (w_name) {
-  return w_name + "2";
-});
-var WAVE_1_3 = WAVE_1_BASE.map(function (w_name) {
-  return w_name + "3";
-});
-var WAVE_1_4 = WAVE_1_BASE.map(function (w_name) {
-  return w_name + "4";
-});
-var WAVE_1_5 = WAVE_1_BASE.map(function (w_name) {
-  return w_name + "5";
-});
-var WAVE_1_6 = WAVE_1_BASE.map(function (w_name) {
-  return w_name + "6";
-});
-var WAVE_1_7 = WAVE_1_BASE.map(function (w_name) {
-  return w_name + "7";
-});
-
-// RED HEXAGONS
-var WAVE_2_BASE = ["+00~-02,NN:", "+01~-02,NE:", "+02~-02,NE:", "+02~-01,SE:", "+02~+00,SE:", "+01~+01,SE:", "+00~+02,SS:", "-01~+02,SW:", "-02~+02,SW:", "-02~+01,NW:", "-02~+00,NW:", "-01~-01,NW:"];
-var WAVE_2_0 = WAVE_2_BASE.map(function (w_name) {
-  return w_name + "0";
-});
-var WAVE_2_1 = WAVE_2_BASE.map(function (w_name) {
-  return w_name + "1";
-});
-var WAVE_2_2 = WAVE_2_BASE.map(function (w_name) {
-  return w_name + "2";
-});
-var WAVE_2_3 = WAVE_2_BASE.map(function (w_name) {
-  return w_name + "3";
-});
-var WAVE_2_4 = WAVE_2_BASE.map(function (w_name) {
-  return w_name + "4";
-});
-var WAVE_2_5 = WAVE_2_BASE.map(function (w_name) {
-  return w_name + "5";
-});
-var WAVE_2_6 = WAVE_2_BASE.map(function (w_name) {
-  return w_name + "6";
-});
-var WAVE_2_7 = WAVE_2_BASE.map(function (w_name) {
-  return w_name + "7";
-});
-
-// LIGHT BLUE HEXAGONS
-var WAVE_3_BASE = ["+00~-03,NN:", "+01~-03,NN:", "+02~-03,NE:", "+03~-03,NE:", "+03~-02,NE:", "+03~-01,SE:", "+03~+00,SE:", "+02~+01,SE:", "+01~+02,SS:", "+00~+03,SS:", "-01~+03,SS:", "-02~+03,SW:", "-03~+03,SW:", "-03~+02,SW:", "-03~+01,NW:", "-03~+00,NW:", "-02~-01,NW:", "-01~-02,NN:"];
-var WAVE_3_0 = WAVE_3_BASE.map(function (w_name) {
-  return w_name + "0";
-});
-var WAVE_3_1 = WAVE_3_BASE.map(function (w_name) {
-  return w_name + "1";
-});
-var WAVE_3_2 = WAVE_3_BASE.map(function (w_name) {
-  return w_name + "2";
-});
-var WAVE_3_3 = WAVE_3_BASE.map(function (w_name) {
-  return w_name + "3";
-});
-var WAVE_3_4 = WAVE_3_BASE.map(function (w_name) {
-  return w_name + "4";
-});
-var WAVE_3_5 = WAVE_3_BASE.map(function (w_name) {
-  return w_name + "5";
-});
-var WAVE_3_6 = WAVE_3_BASE.map(function (w_name) {
-  return w_name + "6";
-});
-var WAVE_3_7 = WAVE_3_BASE.map(function (w_name) {
-  return w_name + "7";
-});
-
-// LIGHT GREEN HEXAGONS
-var WAVE_4_BASE = ["+00~-04,NN:", "+01~-04,NN:", "+02~-04,NN:", "+03~-04,NE:", "+04~-04,NE:", "+04~-03,NE:", "+04~-02,NE:", "+04~-01,SE:", "+04~+00,SE:", "+03~+01,SE:", "+02~+02,SS:", "+01~+03,SS:", "+00~+04,SS:", "-01~+04,SS:", "-02~+04,SS:", "-03~+04,SW:", "-04~+04,SW:", "-04~+03,SW:", "-04~+02,SW:", "-04~+01,NW:", "-04~+00,NW:", "-03~-01,NW:", "-02~-02,NW:", "-01~-03,NW:"];
-var WAVE_4_0 = WAVE_4_BASE.map(function (w_name) {
-  return w_name + "0";
-});
-var WAVE_4_1 = WAVE_4_BASE.map(function (w_name) {
-  return w_name + "1";
-});
-var WAVE_4_2 = WAVE_4_BASE.map(function (w_name) {
-  return w_name + "2";
-});
-var WAVE_4_3 = WAVE_4_BASE.map(function (w_name) {
-  return w_name + "3";
-});
-var WAVE_4_4 = WAVE_4_BASE.map(function (w_name) {
-  return w_name + "4";
-});
-var WAVE_4_5 = WAVE_4_BASE.map(function (w_name) {
-  return w_name + "5";
-});
-var WAVE_4_6 = WAVE_4_BASE.map(function (w_name) {
-  return w_name + "6";
-});
-var WAVE_4_7 = WAVE_4_BASE.map(function (w_name) {
-  return w_name + "7";
-});
-
-// PURPLE HEXAGONS
-var WAVE_5_BASE = ["+00~-05,NN:", "+01~-05,NN:", "+02~-05,NN:", "+03~-05,NE:", "+04~-05,NE:", "+05~-05,NE:", "+05~-04,NE:", "+05~-03,NE:", "+05~-02,SE:", "+05~-01,SE:", "+05~+00,SE:", "+04~+01,SE:", "+03~+02,SE:", "+02~+03,SS:", "+01~+04,SS:", "+00~+05,SS:", "-01~+05,SS:", "-02~+05,SS:", "-03~+05,SW:", "-04~+05,SW:", "-05~+05,SW:", "-05~+04,SW:", "-05~+03,SW:", "-05~+02,NW:", "-05~+01,NW:", "-05~+00,NW:", "-04~-01,NW:", "-03~-02,NW:", "-02~-03,NN:", "-01~-04,NN:"];
-var WAVE_5_0 = WAVE_5_BASE.map(function (w_name) {
-  return w_name + "0";
-});
-var WAVE_5_1 = WAVE_5_BASE.map(function (w_name) {
-  return w_name + "1";
-});
-var WAVE_5_2 = WAVE_5_BASE.map(function (w_name) {
-  return w_name + "2";
-});
-var WAVE_5_3 = WAVE_5_BASE.map(function (w_name) {
-  return w_name + "3";
-});
-var WAVE_5_4 = WAVE_5_BASE.map(function (w_name) {
-  return w_name + "4";
-});
-var WAVE_5_5 = WAVE_5_BASE.map(function (w_name) {
-  return w_name + "5";
-});
-var WAVE_5_6 = WAVE_5_BASE.map(function (w_name) {
-  return w_name + "6";
-});
-var WAVE_5_7 = WAVE_5_BASE.map(function (w_name) {
-  return w_name + "7";
-});
-
-// yellow HEXAGONS
-var WAVE_6_BASE = ["+00~-06,NN:", "+01~-06,NN:", "+02~-06,NN:", "+03~-06,NN:", "+04~-06,NE:", "+05~-06,NE:", "+06~-06,NE:", "+06~-05,NE:", "+06~-04,NE:", "+06~-03,NE:", "+06~-02,SE:", "+06~-01,SE:", "+06~+00,SE:", "+05~+01,SE:", "+04~+02,SE:", "+03~+03,SE:", "+02~+04,SS:", "+01~+05,SS:", "+00~+06,SS:", "-01~+06,SS:", "-02~+06,SS:", "-03~+06,SS:", "-04~+06,SW:", "-05~+06,SW:", "-06~+06,SW:", "-06~+05,SW:", "-06~+04,SW:", "-06~+03,SW:", "-06~+02,NW:", "-06~+01,NW:", "-06~+00,NW:", "-05~-01,NW:", "-04~-02,NW:", "-03~-03,NW:", "-02~-04,NN:", "-01~-05,NN:"];
-var WAVE_6_0 = WAVE_6_BASE.map(function (w_name) {
-  return w_name + "0";
-});
-var WAVE_6_1 = WAVE_6_BASE.map(function (w_name) {
-  return w_name + "1";
-});
-var WAVE_6_2 = WAVE_6_BASE.map(function (w_name) {
-  return w_name + "2";
-});
-var WAVE_6_3 = WAVE_6_BASE.map(function (w_name) {
-  return w_name + "3";
-});
-var WAVE_6_4 = WAVE_6_BASE.map(function (w_name) {
-  return w_name + "4";
-});
-var WAVE_6_5 = WAVE_6_BASE.map(function (w_name) {
-  return w_name + "5";
-});
-var WAVE_6_6 = WAVE_6_BASE.map(function (w_name) {
-  return w_name + "6";
-});
-var WAVE_6_7 = WAVE_6_BASE.map(function (w_name) {
-  return w_name + "7";
-});
-var WAVES_1 = [WAVE_1_0, WAVE_1_1, WAVE_1_2, WAVE_1_3, WAVE_1_4, WAVE_1_5, WAVE_1_6, WAVE_1_7];
-var WAVES_2 = [WAVE_2_0, WAVE_2_1, WAVE_2_2, WAVE_2_3, WAVE_2_4, WAVE_2_5, WAVE_2_6, WAVE_2_7];
-var WAVES_3 = [WAVE_2_0, WAVE_2_1, WAVE_2_2, WAVE_2_3, WAVE_2_4, WAVE_2_5, WAVE_2_6, WAVE_2_7];
-var WAVES_4 = [WAVE_3_0, WAVE_3_1, WAVE_3_2, WAVE_3_3, WAVE_3_4, WAVE_3_5, WAVE_3_6, WAVE_3_7];
-var WAVES_5 = [WAVE_4_0, WAVE_4_1, WAVE_4_2, WAVE_4_3, WAVE_4_4, WAVE_4_5, WAVE_4_6, WAVE_4_7];
-var WAVES_6 = [WAVE_5_0, WAVE_5_1, WAVE_5_2, WAVE_5_3, WAVE_5_4, WAVE_5_5, WAVE_5_6, WAVE_5_7];
-var WAVES_7 = [WAVE_6_0, WAVE_6_1, WAVE_6_2, WAVE_6_3, WAVE_6_4, WAVE_6_5, WAVE_6_6, WAVE_6_7];
-var WAVES_SHOW = [].concat(WAVES_1, WAVES_2, WAVES_3, WAVES_4, WAVES_5, WAVES_6, WAVES_7);
-
-//      '+00~-01,NN:0'
-
-function offsetWaves(x_offset, z_offset) {
-  var moved_waves = [];
-  console.log("offsets", x_offset, z_offset);
-  for (var i = 0; i < WAVES_SHOW.length; i++) {
-    // for (let i = 0; i < 2; i++) {
-    var a_wave = WAVES_SHOW[i];
-    var wave_set = [];
-    for (var j = 0; j < a_wave.length; j++) {
-      //for (let j = 0; j < 2; j++) {
-      var w_name = a_wave[j];
-      var _w_name$split = w_name.split(","),
-        _w_name$split2 = _slicedToArray(_w_name$split, 2),
-        xz_coord = _w_name$split2[0],
-        tilt_angle = _w_name$split2[1];
-      var _xz_coord$split = xz_coord.split("~"),
-        _xz_coord$split2 = _slicedToArray(_xz_coord$split, 2),
-        x_origin_str = _xz_coord$split2[0],
-        z_origin_str = _xz_coord$split2[1];
-      var x_int = parseInt(x_origin_str);
-      var z_int = parseInt(z_origin_str);
-      var x_moved = x_int + x_offset;
-      var z_moved = z_int + z_offset;
-      var moved_zx = "".concat(x_moved, "~").concat(z_moved);
-      var new_wave = moved_zx + "," + tilt_angle;
-      wave_set.push(new_wave);
-    }
-    moved_waves.push(wave_set);
-  }
-  return moved_waves;
-}
-function makeWave(x_offset, z_offset) {
-  var wave_index = 0;
-  var last_waves = [];
-  var WAVES_MOVED = offsetWaves(x_offset, z_offset);
-  function doWaves() {
-    //console.log("turn off these waves", last_waves);
-    last_waves = WAVES_MOVED[wave_index];
-    var current_waves = WAVES_MOVED[wave_index];
-    if (wave_index >= WAVES_MOVED.length) {
-      wave_index = 0;
-    } else {
-      wave_index++;
-    }
-    // console.log("turn on these waves", current_waves);
-    // console.log("new index", wave_index);
-  }
-  return doWaves;
-}
-
-},{}]},{},[10]);
+},{}]},{},[11]);
