@@ -125,7 +125,7 @@ const outline_color2 = 0x88ff88; // bronze   https://htmlcolorcodes.com/colors/s
 const tile_colors2 = [top_color2, outline_color2];
 
 let xx = crissCross([0, 0, 10, 10], [0, 1, 1, 0]);
-console.log("criss xx", xx);
+
 
 const the_ramp = [
     // ["001", "02.0", "001"],
@@ -139,8 +139,19 @@ const the_ramp = [
 
     // ["000", "04.0", "000", "NN", 1],
     // ["000", "03.0", "001", "NN", 1],
-     ["000", "02.0", "002", "NN", 1],
-    ["000", "01.0", "003", "NN", 1],
+
+
+       ["001", "01.0", "001", "NW", 0.25],     
+       ["001", "01.0", "002", "NE", 0.5],     
+       ["001", "01.0", "003", "SE", 0.75],     
+       ["001", "01.0", "004", "SW", 1],     
+       // ["001", "01.0", "003"],     
+
+//    ["000", "02.0", "002", "NN", 2],       //aa
+//    ["000", "01.0", "003", "NN", 1],       //aa
+//    ["000", "01.0", "004"],                //aa
+//    ["000", "01.0", "005", "SS", 1],       //aa
+//    ["000", "02.0", "006", "SS", 1],       //aa
     
     
     // ["004", "00.0", "000"],
@@ -174,9 +185,9 @@ for (var i = 0; i < the_ramp.length; i++) {
         );
     }
 }
-console.log("g_stair_meshes", g_stair_meshes); // stair_meshes
-console.log("g_stair_tiles", g_stair_tiles); // stair_tiles
-console.log("g_stair_overlaps", g_stair_overlaps); // stair_overlaps
+//console.log("g_stair_meshes", g_stair_meshes); // stair_meshes
+//console.log("g_stair_tiles", g_stair_tiles); // stair_tiles
+//console.log("g_stair_overlaps", g_stair_overlaps); // stair_overlaps
 [g_stair_meshes, g_angled_water] = hexfield(g_stair_meshes, g_angled_water, the_scene, -10, 10, 0x3366ee, 0x33ee66);
 
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -270,6 +281,28 @@ const tick = () => {
     const elapsedTime = clock.getElapsedTime();
     const cam_pos = persp_camera.position;
 
+    let cam_pos_t =  {x: 1.1, y: 2.3, z: 5.8}; // positive line side
+  //  let cam_pos_t =  {x: 1.9, y: 2.3, z: 6.8}; // negative line side
+
+    let  stair_tile_t={angle_incline:1,
+                    tile_positions:[[1, 1.5, 6.928203230275509],
+                                    [2, 1, 6.928203230275509],
+                                    [2.5, 1, 6.06217782649107],
+                                    [2, 1.5, 5.196152422706632],
+                                    [1, 2, 5.196152422706632],
+                                    [0.5, 2, 6.06217782649107]],
+                    tilt_up: "SE",
+                    x_center:1.5,
+                    x_z:"1,3",
+                    y_position: 1,
+                    accross_length:1.7320508075688772,
+                    z_center:6.06217782649107};
+
+    //let new_cam_y_test =findIncline(cam_pos_t, stair_tile_t);
+    //console.log("new_cam_y_test", new_cam_y_test)
+    //return;
+
+
     // if (cam_pos.x != last_x || cam_pos.z != last_z){
     //  //   console.log("cam pos changed", cam_pos.x, cam_pos.z);
     //     last_x = cam_pos.x;
@@ -283,31 +316,22 @@ const tick = () => {
     const xz_key = `${trunc_cam_x},${trunc_cam_z}`;
     let highest_y_tile = 0;
     let highest_xyz_tile = "";
+             console.log("XXXXXXXXXXXX  vccc");
     if (g_stair_overlaps.has(xz_key)) {
+                console.log("ZZZZZZZZZZZZZZZ");
         let poss_aboves = g_stair_overlaps.get(xz_key);
-        //console.log("possible_aboves", xz_key, poss_aboves);
         for (var i = 0; i < poss_aboves.length; i++) {
             let x_y_z_str = poss_aboves[i];
-        
+          console.log("x_y_z_str", x_y_z_str);
             let [xx, yy, zz] = x_y_z_str.split(","); 
             let stair_tile = g_stair_tiles.get(x_y_z_str);
-
-             // console.log("stair_tile ", stair_tile)
-
-            if (xx>=0 && xx<4 && zz>=0 && zz<6){
-           // console.log("try2", x_y_z_str)
-
+//            if (xx>=0 && xx<10 && zz>=0 && zz<10){
+            if (1){
                 if (cam_y >= yy) {
-                               
-          //  console.log("try3", x_y_z_str)
                     highest_y_tile = yy;
                     highest_xyz_tile = x_y_z_str;
                     const point_in = pointInHex(cam_pos.x, cam_pos.z, stair_tile);
                     if (point_in) {
-                      //      console.log("poss_aboves", point_in, x_y_z_str,i)
-                     //      if (cam_pos.x != last_x || cam_pos.z != last_z){
-                       // console.log("point IN", x_y_z_str, stair_tile)
-                         //  }
                         let new_cam_y =findIncline(cam_pos, stair_tile);
                         cam_pos.y= new_cam_y;
                     // break;
@@ -324,6 +348,8 @@ const tick = () => {
 
 
         }
+    }else {
+        cam_pos.y =cam_pos.y-0.02;
     }
    //   console.log("cam_pos.y",  cam_pos.y)
     XyzDot(the_scene, cam_pos.x, cam_pos.y, cam_pos.z, 0xff6666);

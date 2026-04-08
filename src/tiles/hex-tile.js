@@ -160,11 +160,11 @@ function hexPoints(tile_radius, y_height, up_direction, angled_height) {
         bot_rght = [bot_rght_x, top_height, bot_rght_z];
         left_tip = [left_tip_x, mid_height, left_tip_z];
         rght_tip = [rght_tip_x, mid_height, rght_tip_z];
-    } else if (up_direction === "SE") {
-        top_left = [top_left_x, bot_height, top_left_z];
-        bot_left = [bot_left_x, mid_height, bot_left_z];
-        top_rght = [top_rght_x, mid_height, top_rght_z];
-        bot_rght = [bot_rght_x, top_height, bot_rght_z];
+    } else if (up_direction === "SE") {          
+        top_left = [top_left_x, mid_height, top_left_z];
+        bot_left = [bot_left_x, bot_height, bot_left_z];
+        top_rght = [top_rght_x, top_height, top_rght_z];
+        bot_rght = [bot_rght_x, mid_height, bot_rght_z];
         left_tip = [left_tip_x, bot_height, left_tip_z];
         rght_tip = [rght_tip_x, top_height, rght_tip_z];
     } else {
@@ -223,11 +223,10 @@ function possibleAboves(stair_overlaps, x_y_z) {
 
 // x_y_z      xyz_tile
 function offsetTilePoints(stair_tiles, x_y_z, incline_and_dir, tile_points) {
+    let [ tilt_up, angle_incline]=  incline_and_dir;
     const [x_index, y_index, z_index] = x_y_z;
     const xyz_index = `${x_index},${y_index},${z_index}`;
     let [x_center, z_center] = tilePosition(x_index, z_index);
-
-    console.log("tile,", tile_points);
     let tile_positions = [];
     for (let i = 0; i < tile_points.length; i++) {
         let tile_point = tile_points[i];
@@ -237,20 +236,40 @@ function offsetTilePoints(stair_tiles, x_y_z, incline_and_dir, tile_points) {
         tile_positions.push([x, y, z]);
     }
 
+    let accross_length=0;
+    if (tilt_up == "NW") {
+        let bottom_point=tile_positions[1]; 
+        let top_point=tile_positions[5];
+        accross_length = distance2hexpoints(bottom_point, top_point);
+        //     console.log('nw, accross_length', accross_length)
+    }else if (tilt_up == "NE") {        
+         let bottom_point=tile_positions[0]; 
+        let top_point=tile_positions[2];
+        accross_length = distance2hexpoints(bottom_point, top_point);
+     //   console.log('NE, tile_positions', tile_positions)
+     }else if (tilt_up == "SW") {        
+         let bottom_point=tile_positions[0]; 
+        let top_point=tile_positions[2];
+        accross_length = distance2hexpoints(bottom_point, top_point);
+        //console.log('se, tile_positions', tile_positions)
+    
+    }else if (tilt_up == "SE") {        
+         let bottom_point=tile_positions[0]; 
+        let top_point=tile_positions[2];
+        accross_length = distance2hexpoints(bottom_point, top_point);
+        //console.log('se, tile_positions', tile_positions)
+    }
     var tile_obj = {
         x_center: x_center,
         y_position: y_index,
         z_center: z_center,
-        tilt_up: incline_and_dir[0],
-        angle_incline: incline_and_dir[1],
-        //  tile_points: tile_points,
-        tile_positions: tile_positions
+        tilt_up: tilt_up,
+        angle_incline: angle_incline,
+        accross_length: accross_length,
+        tile_positions: tile_positions,
+        x_z:  `${x_index},${z_index}`
     };
-    console.log("tile_obj", tile_obj);
-
     stair_tiles.set(xyz_index, tile_obj);
-    //stair_tiles.set(xyz_index, [x_center, z_center]);
-
     return stair_tiles;
 }
 
@@ -364,6 +383,7 @@ function pointInHex(x_point, z_point, stair_tile) {
             const sw_z1 = tile_positions[5][2];
             const sw_x2 = tile_positions[0][0];
             const sw_z2 = tile_positions[0][2];
+             //  sw_d = dotsSideOfLine([x_point, z_point] cam_x_z, tile_positions[5], tile_positions[0]); // MO BETTER WAY
             const sw_d = (x_point - sw_x1) * (sw_z2 - sw_z1) - (z_point - sw_z1) * (sw_x2 - sw_x1);
             //   console.log("SW d", sw_d);
             if (sw_d < 0) {
@@ -418,39 +438,135 @@ function findIncline(cam_pos, stair_tile){
     let cam_x = cam_pos.x;
     let cam_y = cam_pos.y;
     let cam_z = cam_pos.z;
-    let {tilt_up, angle_incline, y_position, tile_positions}=stair_tile;
+      let cam_x_z = [cam_x, cam_z];
+    let {tilt_up, angle_incline, y_position, tile_positions,accross_length}=stair_tile;
+           //  console.log("findInclines", tilt_up);
     if (tilt_up=='NN'){
-       console.log("stair_tile ", stair_tile);
-
         let highest_z = tile_positions[0][Z_INDX];
         let lowest_z = tile_positions[3][Z_INDX];
         let total_z_width = highest_z - lowest_z;
         let z_distance_traveled = highest_z - cam_z;
         let height_increase = z_distance_traveled/total_z_width * angle_incline;
-            console.log("z_distance_traveled", z_distance_traveled);        
-                 let new_cam_y2 = y_position + height_increase+1;
+        let new_cam_y2 = y_position + height_increase+1;
         return new_cam_y2;
+    }else if (tilt_up=='SS'){
+        let highest_z = tile_positions[0][Z_INDX];
+        let lowest_z = tile_positions[3][Z_INDX];
+        let total_z_width = highest_z - lowest_z;
+        let z_distance_traveled = cam_z- highest_z;
+        let height_increase = z_distance_traveled/total_z_width * angle_incline;
+        let new_cam_y2 = y_position + height_increase+2;
+        return new_cam_y2;
+    }else if (tilt_up=='NW'){
+        let swivel_a=tile_positions[0]; 
+        let swivel_b=tile_positions[3];
+        let swivel_intercept = swivelIntercept(swivel_a, swivel_b, cam_x_z);
+        let length_from_swivel2=intercept2cam(swivel_intercept, cam_x_z );
+        const nw_side_2 = dotsSideOfLine(cam_x_z, swivel_a, swivel_b);
+        let pixel_size = 0;
+        if (nw_side_2 < 0) {
+            pixel_size = accross_length/2-length_from_swivel2;
+        }else{
+            pixel_size = accross_length/2+length_from_swivel2;
+        }
+        let height_increase =angle_incline * (pixel_size/accross_length);
+        let new_cam_y2 = y_position + height_increase+0.52;
+        return new_cam_y2;
+    }else if (tilt_up=='NE'){
 
-
-        let ss_bottom = tile_positions[0][Z_INDX];
-        let bottom_upto_cam = ss_bottom - cam_z;
-        let incline_percent = bottom_upto_cam/2.5 ;  //         / 1.7320508075688772;
-
-        let highest_point = tile_positions[5][Y_INDX];     // this is wrong, just a guess
-
-      //  console.log("angle_incline+y_position", angle_incline+y_position);
-
-       // console.log("highest_point", highest_point);
-
-        let current_tile_height = highest_point * incline_percent;
-//        let new_cam_y = current_tile_height +2;
-// qbert
-        let new_cam_y = current_tile_height +2 ; // +2 for 0,3,   +w3 for 0,2
-     //   console.log("NN", new_cam_y)
-        return new_cam_y;
+        let swivel_a=tile_positions[1]; 
+        let swivel_b=tile_positions[4];
+        let swivel_intercept = swivelIntercept(swivel_a, swivel_b, cam_x_z);
+        let length_from_swivel2=intercept2cam(swivel_intercept, cam_x_z );
+        const nw_side_2 = dotsSideOfLine(cam_x_z, swivel_a, swivel_b);
+        let pixel_size = 0;
+        if (nw_side_2 > 0) {
+            pixel_size = accross_length/2-length_from_swivel2;
+        }else{
+            pixel_size = accross_length/2+length_from_swivel2;
+        }
+        let height_increase =angle_incline * (pixel_size/accross_length);
+        let new_cam_y2 = y_position + height_increase+0.52;
+        return new_cam_y2;
+    }else if (tilt_up=='SE'){
+      //  console.log("se find tile_positions", tile_positions);
+        let swivel_a=tile_positions[0]; 
+        let swivel_b=tile_positions[3];
+        let swivel_intercept = swivelIntercept(swivel_a, swivel_b, cam_x_z);
+        let length_from_swivel2=intercept2cam(swivel_intercept, cam_x_z );
+        const nw_side_2 = dotsSideOfLine(cam_x_z, swivel_a, swivel_b);
+        let pixel_size = 0;
+        if (nw_side_2 > 0) {
+            pixel_size = accross_length/2-length_from_swivel2;
+        }else{
+            pixel_size = accross_length/2+length_from_swivel2;
+        }
+        let height_increase =angle_incline * (pixel_size/accross_length);
+        let new_cam_y2 = y_position + height_increase+0.52;
+        //console.log("swwwwwwwwwwwwwwww", new_cam_y2)
+        return new_cam_y2;
+    }else if (tilt_up=='SW'){
+      //  console.log("sw find tile_positions", tile_positions);
+        let swivel_a=tile_positions[1]; 
+        let swivel_b=tile_positions[4];
+        let swivel_intercept = swivelIntercept(swivel_a, swivel_b, cam_x_z);
+        let length_from_swivel2=intercept2cam(swivel_intercept, cam_x_z );
+        const nw_side_2 = dotsSideOfLine(cam_x_z, swivel_a, swivel_b);
+        let pixel_size = 0;
+        if (nw_side_2 < 0) {
+            pixel_size = accross_length/2-length_from_swivel2;
+        }else{
+            pixel_size = accross_length/2+length_from_swivel2;
+        }
+        let height_increase =angle_incline * (pixel_size/accross_length);
+        let new_cam_y2 = y_position + height_increase+0.52;
+        //console.log("swwwwwwwwwwwwwwww", new_cam_y2)
+        return new_cam_y2;
     }
-   //  console.log("??", cam_y)
+    new_cam_y2 =cam_y- 0.1;
     return cam_y;
+}
+
+function distance2hexpoints(hex_point_1, hex_point_2){
+    let x_diff = hex_point_2[0] - hex_point_1[0];
+    let z_diff = hex_point_2[2] - hex_point_1[2];
+    let length = Math.sqrt(x_diff * x_diff + z_diff * z_diff);
+    return length;
+}
+
+function dotsSideOfLine(cam_x_z, line_point_a, line_point_b){
+        let [cam_x, cam_z   ]=  cam_x_z
+            const nw_x1 = line_point_a[0];
+            const nw_z1 = line_point_a[2];
+            const nw_x2 = line_point_b[0];
+            const nw_z2 = line_point_b[2];
+            const pos_or_neg = (cam_x - nw_x1) * (nw_z2 - nw_z1) - (cam_z - nw_z1) * (nw_x2 - nw_x1);
+            return pos_or_neg;
+}
+
+function intercept2cam(swivel_intercept, cam_x_z){
+    let [cam_x, cam_z] = cam_x_z;
+       let x_diff = cam_x - swivel_intercept[0];
+       let z_diff = cam_z - swivel_intercept[1];        
+       let length_from_swivel = Math.sqrt(x_diff*x_diff + z_diff*z_diff);
+        return length_from_swivel;
+}
+
+function swivelIntercept(swivel_a, swivel_b, cam_x_z){
+        let [cam_x, cam_z] = cam_x_z;
+        let x1=swivel_a[X_INDX];
+        let z1=swivel_a[Z_INDX];
+        let x2=swivel_b[X_INDX];    
+        let z2=swivel_b[Z_INDX];
+        let dx=x2-x1;
+        let dz=z2-z1;
+        let dAB=(dx*dx)+(dz*dz);
+        let u_top = (cam_x-x1)*dx + (cam_z-z1)*dz;
+        let u = u_top/dAB;
+        let x=x1+ u*dx;
+        let z=z1+ u*dz;
+        let swivel_intercept = [x,z];
+        return swivel_intercept;
 }
 
 export {findIncline, crissCross, pointInHex, HexRamp, nearTile, hexNewColor, flatWater };
