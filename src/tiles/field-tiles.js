@@ -11,8 +11,8 @@ function hexfield(g_hex_tiles, g_angled_water, the_scene, start_x, end_x, base_c
 
 // row column
 function hexRow(g_hex_tiles, g_angled_water, the_scene, x_row, start_z, end_z, base_color) {
-    const top_color = 0x0000ff;
-    const outline_color = 0x8888ff; // bronze   https://htmlcolorcodes.com/colors/shades-of-brown/
+    const top_color = 0xff0000;
+    const outline_color = 0xff8888; // bronze   https://htmlcolorcodes.com/colors/shades-of-brown/
     //const six_side_colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffaaaa, 0xaaffaa, 0xaaaaff];
 
     const tile_colors = [top_color, outline_color];

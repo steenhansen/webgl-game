@@ -19,32 +19,14 @@ import { X_INDX, Y_INDX, Z_INDX  } from "../constants.js";
 /*
  ----------------RED-X-LINE------------------------
 |
-|
-|
 |            nn
 |         /--------\
 |    nw /          \ n_e
 |       /            \
 |       \            /
-|    sw \          / se         no w nor e, named from like storms
+|    sw \          / se     
 |         \--------/
 |             ss
-|
-B
-L
-U
-E
-|
-Z
-|
-L         sw not working?
-I
-N
-E
-|
-|
-|
-|
 |
 
 */
@@ -174,13 +156,6 @@ function hexPoints(tile_radius, y_height, up_direction, angled_height) {
     const stair_tiles = [top_left, top_rght, rght_tip, bot_rght, bot_left, left_tip];
     return stair_tiles;
 }
-
-//function possibleStairsXyz(x_center, y_index, z_center){
-/*
-A B C
-D E F
-G H I
-*/
 
 function pushXyz(stair_overlaps, xyz_key, xyz_index) {
     if (stair_overlaps.has(xyz_key)) {
@@ -319,12 +294,7 @@ function intTileIndex(x_float, z_float) {
           neg-z
             |
             |
-            |
-            |
-            |
 red--neg-x----------------------pos-x
-            |
-            |
             |
             |                nn
             | -0.5,-0.86/----------\0.5,-0.86
@@ -407,6 +377,15 @@ function pointInHex(x_point, z_point, stair_tile) {
 /*
     crissCross([0,0,10,10], [0,1,1,0]) == 0,1
     we need it to be perp to swivel/hinge line - root 3
+    https://search.brave.com/search?q=how+to+find+where+two+lines+intercept&summary=1&conversation=08dd524c9ed269cb47c84973d872341fb026
+
+x = (x1y2−y1x2)(x3−x4)−(x1−x2)(x3y4−y3x4)
+​    (x1−x2)(y3−y4)−(y1−y2)(x3−x4)
+​
+ 
+y = (x1​y2−y1x2)(y3−y4)−(y1−y2)(x3y4−y3x4)
+​    (x1-x2)(y3-y4)-(y1-y2)(x3-x4)
+
 */
 function crissCross(line_a, line_b) {
     const [x1, y1, x2, y2] = line_a;
@@ -422,16 +401,6 @@ function crissCross(line_a, line_b) {
 
     const y_ans = y_top / y_bot;
     return [x_ans, y_ans];
-    /*
-    https://search.brave.com/search?q=how+to+find+where+two+lines+intercept&summary=1&conversation=08dd524c9ed269cb47c84973d872341fb026
-
-x = (x1y2−y1x2)(x3−x4)−(x1−x2)(x3y4−y3x4)
-​    (x1−x2)(y3−y4)−(y1−y2)(x3−x4)
-​
- 
-y = (x1​y2−y1x2)(y3−y4)−(y1−y2)(x3y4−y3x4)
-​    (x1-x2)(y3-y4)-(y1-y2)(x3-x4)
-*/
 }
 
 function findIncline(cam_pos, stair_tile){
@@ -523,7 +492,7 @@ function findIncline(cam_pos, stair_tile){
         //console.log("swwwwwwwwwwwwwwww", new_cam_y2)
         return new_cam_y2;
     }
-    new_cam_y2 =cam_y- 0.1;
+   let new_cam_y2 =cam_y- 0.1;
     return cam_y;
 }
 
@@ -535,38 +504,38 @@ function distance2hexpoints(hex_point_1, hex_point_2){
 }
 
 function dotsSideOfLine(cam_x_z, line_point_a, line_point_b){
-        let [cam_x, cam_z   ]=  cam_x_z
-            const nw_x1 = line_point_a[0];
-            const nw_z1 = line_point_a[2];
-            const nw_x2 = line_point_b[0];
-            const nw_z2 = line_point_b[2];
-            const pos_or_neg = (cam_x - nw_x1) * (nw_z2 - nw_z1) - (cam_z - nw_z1) * (nw_x2 - nw_x1);
-            return pos_or_neg;
+    let [cam_x, cam_z]=  cam_x_z;
+    const nw_x1 = line_point_a[0];
+    const nw_z1 = line_point_a[2];
+    const nw_x2 = line_point_b[0];
+    const nw_z2 = line_point_b[2];
+    const pos_or_neg = (cam_x - nw_x1) * (nw_z2 - nw_z1) - (cam_z - nw_z1) * (nw_x2 - nw_x1);
+    return pos_or_neg;
 }
 
 function intercept2cam(swivel_intercept, cam_x_z){
     let [cam_x, cam_z] = cam_x_z;
-       let x_diff = cam_x - swivel_intercept[0];
-       let z_diff = cam_z - swivel_intercept[1];        
-       let length_from_swivel = Math.sqrt(x_diff*x_diff + z_diff*z_diff);
-        return length_from_swivel;
+    let x_diff = cam_x - swivel_intercept[0];
+    let z_diff = cam_z - swivel_intercept[1];        
+    let length_from_swivel = Math.sqrt(x_diff*x_diff + z_diff*z_diff);
+    return length_from_swivel;
 }
 
 function swivelIntercept(swivel_a, swivel_b, cam_x_z){
-        let [cam_x, cam_z] = cam_x_z;
-        let x1=swivel_a[X_INDX];
-        let z1=swivel_a[Z_INDX];
-        let x2=swivel_b[X_INDX];    
-        let z2=swivel_b[Z_INDX];
-        let dx=x2-x1;
-        let dz=z2-z1;
-        let dAB=(dx*dx)+(dz*dz);
-        let u_top = (cam_x-x1)*dx + (cam_z-z1)*dz;
-        let u = u_top/dAB;
-        let x=x1+ u*dx;
-        let z=z1+ u*dz;
-        let swivel_intercept = [x,z];
-        return swivel_intercept;
+    let [cam_x, cam_z] = cam_x_z;
+    let x1=swivel_a[X_INDX];
+    let z1=swivel_a[Z_INDX];
+    let x2=swivel_b[X_INDX];    
+    let z2=swivel_b[Z_INDX];
+    let dx=x2-x1;
+    let dz=z2-z1;
+    let dAB=(dx*dx)+(dz*dz);
+    let u_top = (cam_x-x1)*dx + (cam_z-z1)*dz;
+    let u = u_top/dAB;
+    let x=x1+ u*dx;
+    let z=z1+ u*dz;
+    let swivel_intercept = [x,z];
+    return swivel_intercept;
 }
 
 export {findIncline, crissCross, pointInHex, HexRamp, nearTile, hexNewColor, flatWater };

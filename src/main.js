@@ -80,20 +80,6 @@ import { moveKeys, makeControls } from "./controls/key-controls.js";
 
 import { XyzDot } from "./a-dot.js";
 
-//var doWaves = makeWave(-10, 20);
-
-//doWaves();
-// doWaves();
-// doWaves();
-// doWaves();
-// doWaves();
-// doWaves();
-// doWaves();
-// doWaves();
-// const X_INDX = 0
-// const Y_INDX = 1
-// const Z_INDX = 2
-//doWaves();
 
 const HI_DPI_ENABLE = Math.min(window.devicePixelRatio, 2);
 
@@ -106,10 +92,10 @@ const the_scene = AScene(dark_gray);
 const the_fov = 75;
 const width_height = [the_width, the_height];
 const nf_planes = [0.1, 1000];
-const xyz_camera = [0, 3, 6];
+const xyz_camera = [4, 3, 7]; /// these are xyz NOT hex indexes
 
 const persp_camera = PerspCamera(the_fov, width_height, nf_planes, xyz_camera);
-persp_camera.lookAt(0, 0, 0);
+persp_camera.lookAt(4,3,7); //0, 0, 0);
 
 the_scene.add(persp_camera);
 
@@ -128,37 +114,22 @@ let xx = crissCross([0, 0, 10, 10], [0, 1, 1, 0]);
 
 
 const the_ramp = [
-    // ["001", "02.0", "001"],
-    // ["002", "00.5", "001", "NW", 1.5],
-    // ["003", "00.0", "001", "NW", 0.5],
-
-    // need to have y_first for sorting?
-    // ["004", "00.0", "001"],
-    // ["004", "02.0", "001"],
-
-
-    // ["000", "04.0", "000", "NN", 1],
-    // ["000", "03.0", "001", "NN", 1],
-
-
-       ["001", "01.0", "001", "NW", 0.25],     
-       ["001", "01.0", "002", "NE", 0.5],     
-       ["001", "01.0", "003", "SE", 0.75],     
-       ["001", "01.0", "004", "SW", 1],     
-       // ["001", "01.0", "003"],     
-
-//    ["000", "02.0", "002", "NN", 2],       //aa
-//    ["000", "01.0", "003", "NN", 1],       //aa
-//    ["000", "01.0", "004"],                //aa
-//    ["000", "01.0", "005", "SS", 1],       //aa
-//    ["000", "02.0", "006", "SS", 1],       //aa
-    
-    
-    // ["004", "00.0", "000"],
-    // ["004", "00.0", "002"],
-    // ["003", "00.0", "002"],
-    // ["005", "00.0", "000"],
-    // ["005", "00.0", "001"]
+    ["001", "04.0", "002"],     
+    ["001", "04.0", "001"],     
+    ["001", "04.0", "000"],     
+    ["002", "04.0", "-01"],     
+    ["003", "04.0", "-01"],     
+    // x,     y,      z,  incline_dir, incline_amount
+    ["003", "03.0", "000", "NN", 1.0],     
+    ["003", "02.0", "001", "NN", 1.0],     
+    ["003", "01.0", "002", "NN", 1.0],     
+    ["003", "01.0", "003"],     
+    ["004", "01.0", "003", "SE", 0.5],     
+    ["005", "01.5", "003", "SE", 0.5],     
+    ["006", "02.0", "003", "SE", 0.5],     
+    ["002", "01.0", "004", "SW", 0.2],   
+    ["001", "01.2", "005", "SW", 0.2],   
+    ["000", "01.4", "006", "SW", 0.2],   
 ];
 
 for (var i = 0; i < the_ramp.length; i++) {
@@ -227,52 +198,6 @@ var rot = Math.PI / 6;
 const clock = new THREE.Clock();
 const vector = new THREE.Vector3(); // create once and reuse it!
 
-//            if (cam_y >= yy && yy > highest_y_tile) {
-/*
-  problem is that instead of choosing higher 0,2,   lower 0,3 is chosen
-  because of overlap
-
-  XyzDot 4 0 4.497338720318693 4.333200000002976
-    possible_aboves (2) ['0,2,2', '0,1,3']
-  
-    XyzDot 3 0 3.043484606211529 4.299999999999995
-   possible_aboves (2) ['0,2,2', '0,1,3']
-
-
-   if (x>=0 && x<1 && z>2 && z<6){
-            console.log("YES XyzDot",x,y,z)
-
-        }else {
-            console.log("NO XyzDot",x,y,z)
-
-        }
-
-
-possible_aboves ['0,1,3']
-main.js:260 try1 0,1,3
-main.js:262 try2 0,1,3
-main.js:264 try3 0,1,3
-main.js:269 point IN 0,1,3
-main.js:253 possible_aboves (2) ['0,2,2', '0,1,3']
-main.js:260 try1 0,2,2
-main.js:260 try1 0,1,3
-main.js:262 try2 0,1,3
-main.js:264 try3 0,1,3
-main.js:269 point IN 0,1,3
-
-
-possible_aboves (2) ['0,2,2', '0,1,3']
-main.js:260 try1 0,2,2
-main.js:260 try1 0,1,3
-main.js:262 try2 0,1,3
-main.js:264 try3 0,1,3
-main.js:274 point NOT IN 0,1,3
-                            should say point in 0,2,2 !!!!
-main.js:253 possible_aboves (2) ['0,2,2', '0,1,3']
-
-
-
-*/
 
 var last_x=0;
 var last_z=0;
@@ -280,49 +205,20 @@ const tick = () => {
     const delta = clock.getDelta();
     const elapsedTime = clock.getElapsedTime();
     const cam_pos = persp_camera.position;
-
+console.log("camp_pos", cam_pos)
     let cam_pos_t =  {x: 1.1, y: 2.3, z: 5.8}; // positive line side
   //  let cam_pos_t =  {x: 1.9, y: 2.3, z: 6.8}; // negative line side
 
-    let  stair_tile_t={angle_incline:1,
-                    tile_positions:[[1, 1.5, 6.928203230275509],
-                                    [2, 1, 6.928203230275509],
-                                    [2.5, 1, 6.06217782649107],
-                                    [2, 1.5, 5.196152422706632],
-                                    [1, 2, 5.196152422706632],
-                                    [0.5, 2, 6.06217782649107]],
-                    tilt_up: "SE",
-                    x_center:1.5,
-                    x_z:"1,3",
-                    y_position: 1,
-                    accross_length:1.7320508075688772,
-                    z_center:6.06217782649107};
-
-    //let new_cam_y_test =findIncline(cam_pos_t, stair_tile_t);
-    //console.log("new_cam_y_test", new_cam_y_test)
-    //return;
-
-
-    // if (cam_pos.x != last_x || cam_pos.z != last_z){
-    //  //   console.log("cam pos changed", cam_pos.x, cam_pos.z);
-    //     last_x = cam_pos.x;
-    //     last_z = cam_pos.z;
-    // }
-   
-
-    const trunc_cam_x = Math.trunc(cam_pos.x); 
+      const trunc_cam_x = Math.trunc(cam_pos.x); 
     const cam_y = cam_pos.y;
     const trunc_cam_z = Math.trunc(cam_pos.z);
     const xz_key = `${trunc_cam_x},${trunc_cam_z}`;
     let highest_y_tile = 0;
     let highest_xyz_tile = "";
-             console.log("XXXXXXXXXXXX  vccc");
     if (g_stair_overlaps.has(xz_key)) {
-                console.log("ZZZZZZZZZZZZZZZ");
         let poss_aboves = g_stair_overlaps.get(xz_key);
         for (var i = 0; i < poss_aboves.length; i++) {
             let x_y_z_str = poss_aboves[i];
-          console.log("x_y_z_str", x_y_z_str);
             let [xx, yy, zz] = x_y_z_str.split(","); 
             let stair_tile = g_stair_tiles.get(x_y_z_str);
 //            if (xx>=0 && xx<10 && zz>=0 && zz<10){
@@ -334,7 +230,6 @@ const tick = () => {
                     if (point_in) {
                         let new_cam_y =findIncline(cam_pos, stair_tile);
                         cam_pos.y= new_cam_y;
-                    // break;
                     } else {
               //           console.log("point NOT IN", x_y_z_str)
                     }
@@ -349,16 +244,16 @@ const tick = () => {
 
         }
     }else {
-        cam_pos.y =cam_pos.y-0.02;
+        if (cam_pos.y > 0.2){
+             cam_pos.y =cam_pos.y-0.02;
+        }
     }
-   //   console.log("cam_pos.y",  cam_pos.y)
-    XyzDot(the_scene, cam_pos.x, cam_pos.y, cam_pos.z, 0xff6666);
+    XyzDot(the_scene, cam_pos.x, cam_pos.y, cam_pos.z, 0x666666);
     persp_camera.getWorldDirection(vector);
     moveKeys(delta, controls);
     a_renderer.render(the_scene, persp_camera);
     window.requestAnimationFrame(tick);
         if (cam_pos.x != last_x || cam_pos.z != last_z){
-     //   console.log("cam pos changed", cam_pos.x, cam_pos.z);
         last_x = cam_pos.x;
         last_z = cam_pos.z;
     }

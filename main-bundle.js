@@ -21862,21 +21862,6 @@ var g_covered_tiles = new Map([]);
 
 //import { makeWave } from "./waves.js";
 
-//var doWaves = makeWave(-10, 20);
-
-//doWaves();
-// doWaves();
-// doWaves();
-// doWaves();
-// doWaves();
-// doWaves();
-// doWaves();
-// doWaves();
-// const X_INDX = 0
-// const Y_INDX = 1
-// const Z_INDX = 2
-//doWaves();
-
 var HI_DPI_ENABLE = Math.min(window.devicePixelRatio, 2);
 var the_width = window.innerWidth;
 var the_height = window.innerHeight;
@@ -21885,9 +21870,11 @@ var the_scene = (0, _aScene.AScene)(dark_gray);
 var the_fov = 75;
 var width_height = [the_width, the_height];
 var nf_planes = [0.1, 1000];
-var xyz_camera = [0, 3, 6];
+var xyz_camera = [4, 3, 7]; /// these are xyz NOT hex indexes
+
 var persp_camera = (0, _perspectiveCamera.PerspCamera)(the_fov, width_height, nf_planes, xyz_camera);
-persp_camera.lookAt(0, 0, 0);
+persp_camera.lookAt(4, 3, 7); //0, 0, 0);
+
 the_scene.add(persp_camera);
 var top_color = 0x8888ff;
 var outline_color = 0x8888ff; // bronze   https://htmlcolorcodes.com/colors/shades-of-brown/
@@ -21899,33 +21886,9 @@ var outline_color2 = 0x88ff88; // bronze   https://htmlcolorcodes.com/colors/sha
 
 var tile_colors2 = [top_color2, outline_color2];
 var xx = (0, _hexTile.crissCross)([0, 0, 10, 10], [0, 1, 1, 0]);
-var the_ramp = [
-// ["001", "02.0", "001"],
-// ["002", "00.5", "001", "NW", 1.5],
-// ["003", "00.0", "001", "NW", 0.5],
-
-// need to have y_first for sorting?
-// ["004", "00.0", "001"],
-// ["004", "02.0", "001"],
-
-// ["000", "04.0", "000", "NN", 1],
-// ["000", "03.0", "001", "NN", 1],
-
-["001", "01.0", "001", "NW", 0.25], ["001", "01.0", "002", "NE", 0.5], ["001", "01.0", "003", "SE", 0.75], ["001", "01.0", "004", "SW", 1]
-// ["001", "01.0", "003"],     
-
-//    ["000", "02.0", "002", "NN", 2],       //aa
-//    ["000", "01.0", "003", "NN", 1],       //aa
-//    ["000", "01.0", "004"],                //aa
-//    ["000", "01.0", "005", "SS", 1],       //aa
-//    ["000", "02.0", "006", "SS", 1],       //aa
-
-// ["004", "00.0", "000"],
-// ["004", "00.0", "002"],
-// ["003", "00.0", "002"],
-// ["005", "00.0", "000"],
-// ["005", "00.0", "001"]
-];
+var the_ramp = [["001", "04.0", "002"], ["001", "04.0", "001"], ["001", "04.0", "000"], ["002", "04.0", "-01"], ["003", "04.0", "-01"],
+// x,     y,      z,  incline_dir, incline_amount
+["003", "03.0", "000", "NN", 1.0], ["003", "02.0", "001", "NN", 1.0], ["003", "01.0", "002", "NN", 1.0], ["003", "01.0", "003"], ["004", "01.0", "003", "SE", 0.5], ["005", "01.5", "003", "SE", 0.5], ["006", "02.0", "003", "SE", 0.5], ["002", "01.0", "004", "SW", 0.2], ["001", "01.2", "005", "SW", 0.2], ["000", "01.4", "006", "SW", 0.2]];
 for (var i = 0; i < the_ramp.length; i++) {
   var ramp_piece = the_ramp[i];
   var _ramp_piece = _slicedToArray(ramp_piece, 3),
@@ -21989,59 +21952,13 @@ var rot = Math.PI / 6;
 var clock = new THREE.Clock();
 var vector = new THREE.Vector3(); // create once and reuse it!
 
-//            if (cam_y >= yy && yy > highest_y_tile) {
-/*
-  problem is that instead of choosing higher 0,2,   lower 0,3 is chosen
-  because of overlap
-
-  XyzDot 4 0 4.497338720318693 4.333200000002976
-    possible_aboves (2) ['0,2,2', '0,1,3']
-  
-    XyzDot 3 0 3.043484606211529 4.299999999999995
-   possible_aboves (2) ['0,2,2', '0,1,3']
-
-
-   if (x>=0 && x<1 && z>2 && z<6){
-            console.log("YES XyzDot",x,y,z)
-
-        }else {
-            console.log("NO XyzDot",x,y,z)
-
-        }
-
-
-possible_aboves ['0,1,3']
-main.js:260 try1 0,1,3
-main.js:262 try2 0,1,3
-main.js:264 try3 0,1,3
-main.js:269 point IN 0,1,3
-main.js:253 possible_aboves (2) ['0,2,2', '0,1,3']
-main.js:260 try1 0,2,2
-main.js:260 try1 0,1,3
-main.js:262 try2 0,1,3
-main.js:264 try3 0,1,3
-main.js:269 point IN 0,1,3
-
-
-possible_aboves (2) ['0,2,2', '0,1,3']
-main.js:260 try1 0,2,2
-main.js:260 try1 0,1,3
-main.js:262 try2 0,1,3
-main.js:264 try3 0,1,3
-main.js:274 point NOT IN 0,1,3
-                            should say point in 0,2,2 !!!!
-main.js:253 possible_aboves (2) ['0,2,2', '0,1,3']
-
-
-
-*/
-
 var last_x = 0;
 var last_z = 0;
 var _tick = function tick() {
   var delta = clock.getDelta();
   var elapsedTime = clock.getElapsedTime();
   var cam_pos = persp_camera.position;
+  console.log("camp_pos", cam_pos);
   var cam_pos_t = {
     x: 1.1,
     y: 2.3,
@@ -22049,40 +21966,16 @@ var _tick = function tick() {
   }; // positive line side
   //  let cam_pos_t =  {x: 1.9, y: 2.3, z: 6.8}; // negative line side
 
-  var stair_tile_t = {
-    angle_incline: 1,
-    tile_positions: [[1, 1.5, 6.928203230275509], [2, 1, 6.928203230275509], [2.5, 1, 6.06217782649107], [2, 1.5, 5.196152422706632], [1, 2, 5.196152422706632], [0.5, 2, 6.06217782649107]],
-    tilt_up: "SE",
-    x_center: 1.5,
-    x_z: "1,3",
-    y_position: 1,
-    accross_length: 1.7320508075688772,
-    z_center: 6.06217782649107
-  };
-
-  //let new_cam_y_test =findIncline(cam_pos_t, stair_tile_t);
-  //console.log("new_cam_y_test", new_cam_y_test)
-  //return;
-
-  // if (cam_pos.x != last_x || cam_pos.z != last_z){
-  //  //   console.log("cam pos changed", cam_pos.x, cam_pos.z);
-  //     last_x = cam_pos.x;
-  //     last_z = cam_pos.z;
-  // }
-
   var trunc_cam_x = Math.trunc(cam_pos.x);
   var cam_y = cam_pos.y;
   var trunc_cam_z = Math.trunc(cam_pos.z);
   var xz_key = "".concat(trunc_cam_x, ",").concat(trunc_cam_z);
   var highest_y_tile = 0;
   var highest_xyz_tile = "";
-  console.log("XXXXXXXXXXXX  vccc");
   if (g_stair_overlaps.has(xz_key)) {
-    console.log("ZZZZZZZZZZZZZZZ");
     var poss_aboves = g_stair_overlaps.get(xz_key);
     for (var i = 0; i < poss_aboves.length; i++) {
       var x_y_z_str = poss_aboves[i];
-      console.log("x_y_z_str", x_y_z_str);
       var _x_y_z_str$split = x_y_z_str.split(","),
         _x_y_z_str$split2 = _slicedToArray(_x_y_z_str$split, 3),
         _xx = _x_y_z_str$split2[0],
@@ -22098,7 +21991,6 @@ var _tick = function tick() {
           if (point_in) {
             var new_cam_y = (0, _hexTile.findIncline)(cam_pos, stair_tile);
             cam_pos.y = new_cam_y;
-            // break;
           } else {
             //           console.log("point NOT IN", x_y_z_str)
           }
@@ -22110,16 +22002,16 @@ var _tick = function tick() {
       }
     }
   } else {
-    cam_pos.y = cam_pos.y - 0.02;
+    if (cam_pos.y > 0.2) {
+      cam_pos.y = cam_pos.y - 0.02;
+    }
   }
-  //   console.log("cam_pos.y",  cam_pos.y)
-  (0, _aDot.XyzDot)(the_scene, cam_pos.x, cam_pos.y, cam_pos.z, 0xff6666);
+  (0, _aDot.XyzDot)(the_scene, cam_pos.x, cam_pos.y, cam_pos.z, 0x666666);
   persp_camera.getWorldDirection(vector);
   (0, _keyControls.moveKeys)(delta, controls);
   a_renderer.render(the_scene, persp_camera);
   window.requestAnimationFrame(_tick);
   if (cam_pos.x != last_x || cam_pos.z != last_z) {
-    //   console.log("cam pos changed", cam_pos.x, cam_pos.z);
     last_x = cam_pos.x;
     last_z = cam_pos.z;
   }
@@ -22280,8 +22172,8 @@ function hexfield(g_hex_tiles, g_angled_water, the_scene, start_x, end_x, base_c
 
 // row column
 function hexRow(g_hex_tiles, g_angled_water, the_scene, x_row, start_z, end_z, base_color) {
-  var top_color = 0x0000ff;
-  var outline_color = 0x8888ff; // bronze   https://htmlcolorcodes.com/colors/shades-of-brown/
+  var top_color = 0xff0000;
+  var outline_color = 0xff8888; // bronze   https://htmlcolorcodes.com/colors/shades-of-brown/
   //const six_side_colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffaaaa, 0xaaffaa, 0xaaaaff];
 
   var tile_colors = [top_color, outline_color];
@@ -23631,32 +23523,14 @@ var _colorsTiles = require("./colors-tiles.js");
 /*
  ----------------RED-X-LINE------------------------
 |
-|
-|
 |            nn
 |         /--------\
 |    nw /          \ n_e
 |       /            \
 |       \            /
-|    sw \          / se         no w nor e, named from like storms
+|    sw \          / se     
 |         \--------/
 |             ss
-|
-B
-L
-U
-E
-|
-Z
-|
-L         sw not working?
-I
-N
-E
-|
-|
-|
-|
 |
 
 */
@@ -23787,14 +23661,6 @@ function hexPoints(tile_radius, y_height, up_direction, angled_height) {
   var stair_tiles = [top_left, top_rght, rght_tip, bot_rght, bot_left, left_tip];
   return stair_tiles;
 }
-
-//function possibleStairsXyz(x_center, y_index, z_center){
-/*
-A B C
-D E F
-G H I
-*/
-
 function pushXyz(stair_overlaps, xyz_key, xyz_index) {
   if (stair_overlaps.has(xyz_key)) {
     var cur_arr = stair_overlaps.get(xyz_key);
@@ -23946,12 +23812,7 @@ function intTileIndex(x_float, z_float) {
           neg-z
             |
             |
-            |
-            |
-            |
 red--neg-x----------------------pos-x
-            |
-            |
             |
             |                nn
             | -0.5,-0.86/----------\0.5,-0.86
@@ -24035,6 +23896,15 @@ function pointInHex(x_point, z_point, stair_tile) {
 /*
     crissCross([0,0,10,10], [0,1,1,0]) == 0,1
     we need it to be perp to swivel/hinge line - root 3
+    https://search.brave.com/search?q=how+to+find+where+two+lines+intercept&summary=1&conversation=08dd524c9ed269cb47c84973d872341fb026
+
+x = (x1y2−y1x2)(x3−x4)−(x1−x2)(x3y4−y3x4)
+​    (x1−x2)(y3−y4)−(y1−y2)(x3−x4)
+​
+ 
+y = (x1​y2−y1x2)(y3−y4)−(y1−y2)(x3y4−y3x4)
+​    (x1-x2)(y3-y4)-(y1-y2)(x3-x4)
+
 */
 function crissCross(line_a, line_b) {
   var _line_a = _slicedToArray(line_a, 4),
@@ -24054,14 +23924,6 @@ function crissCross(line_a, line_b) {
   var y_bot = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
   var y_ans = y_top / y_bot;
   return [x_ans, y_ans];
-  /*
-  https://search.brave.com/search?q=how+to+find+where+two+lines+intercept&summary=1&conversation=08dd524c9ed269cb47c84973d872341fb026
-  x = (x1y2−y1x2)(x3−x4)−(x1−x2)(x3y4−y3x4)
-  ​    (x1−x2)(y3−y4)−(y1−y2)(x3−x4)
-  ​
-  y = (x1​y2−y1x2)(y3−y4)−(y1−y2)(x3y4−y3x4)
-  ​    (x1-x2)(y3-y4)-(y1-y2)(x3-x4)
-  */
 }
 function findIncline(cam_pos, stair_tile) {
   var cam_x = cam_pos.x;
@@ -24155,7 +24017,7 @@ function findIncline(cam_pos, stair_tile) {
     //console.log("swwwwwwwwwwwwwwww", new_cam_y2)
     return _new_cam_y6;
   }
-  new_cam_y2 = cam_y - 0.1;
+  var new_cam_y2 = cam_y - 0.1;
   return cam_y;
 }
 function distance2hexpoints(hex_point_1, hex_point_2) {
