@@ -1,4 +1,27 @@
 
+
+qbert
+
+
+//      camPoint3d / gridIndex2d
+//
+//  tileCenterCamPoint3d()
+function tileCenterCoord(x_tile, z_tile) {
+    const x_coord = (3 / 2) * x_tile;
+    const z_coord = (sqrt_3 / 2) * x_tile + sqrt_3 * z_tile;
+    return [x_coord, z_coord];
+}
+
+
+
+
+
+
+
+
+
+
+
 https://www.robscanlon.com/hexasphere/
 30
 3

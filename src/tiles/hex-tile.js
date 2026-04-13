@@ -18,16 +18,15 @@ import { X_INDX, Y_INDX, Z_INDX, N_N, S_S, N_W, N_E, S_E, S_W, FLAT } from "../c
 /*
  ----------------RED-X-LINE------------------------
 |
-|            nn
+|            n_n
 |         /--------\
-|    nw /          \ n_e
+|     n_w/          \ n_e
 |       /            \
 |       \            /
-|    sw \          / se     
+|     s_w\          / s_e     
 |         \--------/
-|             ss
+|             s_s
 |
-
 */
 
 import { geoMesh, addCoords } from "./mesh-tiles.js";
@@ -120,9 +119,6 @@ function offsetTilePoints(stair_tiles, x_y_z, incline_and_dir, tile_points) {
     return stair_tiles;
 }
 
-//      camPoint3d / gridIndex2d
-//
-//  tileCenterCamPoint3d()
 function tileCenterCoord(x_tile, z_tile) {
     const x_coord = (3 / 2) * x_tile;
     const z_coord = (sqrt_3 / 2) * x_tile + sqrt_3 * z_tile;
