@@ -30,7 +30,6 @@ import { X_INDX, Y_INDX, Z_INDX, N_N, S_S, N_W, N_E, S_E, S_W, FLAT } from "../c
 
 */
 
-import { nearTile } from "./hover-tiles.js";
 import { geoMesh, addCoords } from "./mesh-tiles.js";
 import { walkwayOverlaps, pointInsideTile } from "./walkway-overlaps.js";
 import { hexNewColor } from "./colors-tiles.js";
@@ -56,7 +55,7 @@ function HexTile(the_scene, walkway_meshes, walkway_tiles, walkway_overlaps, x_y
     }
     const [up_direction, angled_height] = incline_and_dir;
     let [top_color, outline_color] = tile_colors;
-    let [x_center, z_center] = tilePosition(x_index, z_index);
+    let [x_center, z_center] = tileCenterCoord(x_index, z_index);
     const tile_radius = 1;
     const a_tile = new Group();
     a_tile.position.set(x_center, 0, z_center);
@@ -80,7 +79,7 @@ function offsetTilePoints(stair_tiles, x_y_z, incline_and_dir, tile_points) {
     let [tilt_up, angle_incline] = incline_and_dir;
     const [x_index, y_index, z_index] = x_y_z;
     const xyz_index = `${x_index},${y_index},${z_index}`;
-    let [x_center, z_center] = tilePosition(x_index, z_index);
+    let [x_center, z_center] = tileCenterCoord(x_index, z_index);
     let tile_positions = [];
     for (let i = 0; i < tile_points.length; i++) {
         let tile_point = tile_points[i];
@@ -121,34 +120,13 @@ function offsetTilePoints(stair_tiles, x_y_z, incline_and_dir, tile_points) {
     return stair_tiles;
 }
 
-function tilePosition(x_tile, z_tile) {
+//      camPoint3d / gridIndex2d
+//
+//  tileCenterCamPoint3d()
+function tileCenterCoord(x_tile, z_tile) {
     const x_coord = (3 / 2) * x_tile;
-    const y_coord = (sqrt_3 / 2) * x_tile + sqrt_3 * z_tile;
-    return [x_coord, y_coord];
-}
-
-// function intTileIndex(x_float, z_float) {
-//     const int_x = Math.round(x_float);
-//     const int_z = Math.round(z_float);
-//     const tile_index = `${int_x},${int_z}`;
-//     return tile_index;
-// }
-
-function groundTile(hex_tiles, the_scene, x_y_z, tile_colors) {
-    const [x_index, y_height, z_index] = x_y_z;
-    let [top_color, outline_color] = tile_colors;
-    let [x_center, z_center] = tilePosition(x_index, z_index);
-    const tile_radius = 1;
-    const a_tile = new Group();
-    a_tile.position.set(x_center, 0, z_center);
-    const stair_tiles = hexPoints(tile_radius, y_height, FLAT, 0);
-    const top_triangles = tileTriangles(stair_tiles);
-    geoMesh(a_tile, top_triangles, top_color, outline_color);
-    the_scene.add(a_tile);
-    addCoords(a_tile, x_y_z, [0, ""]);
-    const xyz_index = `${x_index},${y_height},${z_index}`;
-    hex_tiles.set(xyz_index, a_tile);
-    return hex_tiles;
+    const z_coord = (sqrt_3 / 2) * x_tile + sqrt_3 * z_tile;
+    return [x_coord, z_coord];
 }
 
 function hexPoints(tile_radius, y_height, up_direction, angled_height) {
@@ -231,4 +209,4 @@ function hexPoints(tile_radius, y_height, up_direction, angled_height) {
     return stair_tiles;
 }
 
-export { tilePosition, pointInsideTile, HexTile, nearTile, hexNewColor, groundTile };
+export { pointInsideTile, HexTile, hexNewColor, hexPoints, tileTriangles, tileCenterCoord };

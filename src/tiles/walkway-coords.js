@@ -2,14 +2,14 @@ import { N_N, S_S, N_W, N_E, S_E, S_W } from "../constants.js";
 
 import { HexTile } from "./hex-tile.js";
 
+//
 const walkway_coords = [
+    // x,     y,      z,  incline_dir, incline_amount
     ["001", "04.0", "002"],
     ["001", "04.0", "001"],
     ["001", "04.0", "000"],
     ["002", "04.0", "-01"],
     ["003", "04.0", "-01"],
-    // x,     y,      z,  incline_dir, incline_amount
-
     ["003", "02.0", "-001"],
 
     ["002", "02.0", "-001"],

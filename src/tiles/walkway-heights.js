@@ -17,7 +17,7 @@ function inclineNW_NE_SE_SW(cam_pos, stair_tile, swivel_a, swivel_b) {
         }
     } else {
         if (dot_side_of_line > 0) {
-            pixel_size = accross_length / 2 - length_from_swivel2;
+            pixel_size = accross_length / 2 - length_from_swivel2; // N_E or S_E
         } else {
             pixel_size = accross_length / 2 + length_from_swivel2;
         }
@@ -37,7 +37,7 @@ function inclineNN_SS(cam_pos, stair_tile) {
         z_distance_traveled = highest_z - cam_pos.z;
         nn_ss_offset = ABOVE_WALKWAY;
     } else {
-        z_distance_traveled = cam_pos.z - highest_z;
+        z_distance_traveled = cam_pos.z - highest_z; // S_S
         nn_ss_offset = ABOVE_WALKWAY + 1.0;
     }
     let height_increase = (z_distance_traveled / total_z_width) * angle_incline;

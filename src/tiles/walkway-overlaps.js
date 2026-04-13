@@ -1,6 +1,6 @@
 import { X_INDX, Y_INDX, Z_INDX, N_N, S_S, N_W, N_E, S_E, S_W } from "../constants.js";
 
-import { tilePosition } from "./hex-tile.js";
+import { tileCenterCoord } from "./hex-tile.js";
 
 // AI: when we place a tile, we can calculate which other tiles could be above it,
 // and store that in stair_overlaps. then when we place a tile, we can check if there are any tiles
@@ -11,7 +11,7 @@ import { tilePosition } from "./hex-tile.js";
 function walkwayOverlaps(stair_overlaps, x_y_z) {
     const [x_index, y_index, z_index] = x_y_z;
     const xyz_index = `${x_index},${y_index},${z_index}`;
-    let [x_center, z_center] = tilePosition(x_index, z_index);
+    let [x_center, z_center] = tileCenterCoord(x_index, z_index);
 
     const x_mid = Math.floor(x_center);
     const x_low = x_mid - 1;

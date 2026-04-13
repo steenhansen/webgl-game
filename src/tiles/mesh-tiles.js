@@ -47,14 +47,10 @@ function addCoords(a_tile, x_y_z, incline_and_dir) {
     var text_mesh = new Mesh(textGeometry, textMaterial);
 
     if (y_index < 0) {
-        //   console.log("AAAAAAAAAAAAA", text_mesh.position.y);
-        text_mesh.position.y = 1.001;
+        text_mesh.position.y = -0.999;
     } else if (up_direction == FLAT) {
-        // console.log("BBBBBBBBBB");
         text_mesh.position.y = y_index + 0.001;
     } else {
-        //console.log("AAAAAAAAAAAAA");
-
         text_mesh.position.y = y_index + angled_height;
     }
 
@@ -81,11 +77,12 @@ function addCoords(a_tile, x_y_z, incline_and_dir) {
     } else if (up_direction == N_W) {
         x = -0.7;
         z = -0.25;
+    } else {
+        console.log(" addCoords() unknown up_direction", up_direction);
     }
 
     text_mesh.position.x = x;
     text_mesh.position.z = z;
-
     a_tile.add(text_mesh);
 }
 

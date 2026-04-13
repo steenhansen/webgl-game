@@ -1,7 +1,6 @@
 var g_walkway_meshes = new Map([]);
 var g_walkway_overlaps = new Map([]);
 var g_walkway_tiles = new Map([]);
-
 var g_ground_tiles = new Map([]);
 
 import * as THREE from "three";
@@ -11,14 +10,17 @@ import { PerspCamera, projMatrix } from "./perspective-camera.js";
 import { AScene } from "./a-scene.js";
 import { makeWalkway } from "./tiles/walkway-coords.js";
 import { walkwayCamera } from "./tiles/walkway-camera.js";
-import { ground_field } from "./tiles/ground-tiles.js";
+import { ground_field, groundTile } from "./tiles/ground-tiles.js";
 import { moveKeys, makeControls } from "./controls/key-controls.js";
 import { XyzDot } from "./a-dot.js";
+import { tileCenterCoord } from "./tiles/hex-tile.js";
+
+import { START_X_HEX, START_Y_HEX, START_Z_HEX, START_X_LOOK, START_Y_LOOK, START_Z_LOOK } from "./constants.js";
 
 const HI_DPI_ENABLE = Math.min(window.devicePixelRatio, 2);
 
-const the_width = window.innerWidth;
-const the_height = window.innerHeight;
+const the_width = window.innerWidth - 100;
+const the_height = window.innerHeight - 100;
 
 const dark_gray = 0x202025;
 const the_scene = AScene(dark_gray);
@@ -26,10 +28,14 @@ const the_scene = AScene(dark_gray);
 const the_fov = 75;
 const width_height = [the_width, the_height];
 const nf_planes = [0.1, 1000];
-const xyz_camera = [4, 3, 4];
+
+let [x_cam, z_cam] = tileCenterCoord(START_X_HEX, START_Z_HEX);
+const xyz_camera = [x_cam, START_Y_HEX, z_cam];
 
 const persp_camera = PerspCamera(the_fov, width_height, nf_planes, xyz_camera);
-persp_camera.lookAt(4, 2, 7);
+
+let [x_look, z_look] = tileCenterCoord(START_X_LOOK, START_Z_LOOK);
+persp_camera.lookAt(x_look, START_Y_LOOK, z_look);
 
 the_scene.add(persp_camera);
 

@@ -21667,7 +21667,13 @@ function AScene(background_color) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.Z_INDX = exports.Y_INDX = exports.X_INDX = exports.S_W = exports.S_S = exports.S_E = exports.N_W = exports.N_N = exports.N_E = exports.FLAT = void 0;
+exports.Z_INDX = exports.Y_INDX = exports.X_INDX = exports.S_W = exports.S_S = exports.S_E = exports.START_Z_LOOK = exports.START_Z_HEX = exports.START_Y_LOOK = exports.START_Y_HEX = exports.START_X_LOOK = exports.START_X_HEX = exports.N_W = exports.N_N = exports.N_E = exports.FLAT = void 0;
+var START_X_HEX = exports.START_X_HEX = 0;
+var START_Y_HEX = exports.START_Y_HEX = 1;
+var START_Z_HEX = exports.START_Z_HEX = 7;
+var START_X_LOOK = exports.START_X_LOOK = 3;
+var START_Y_LOOK = exports.START_Y_LOOK = 1;
+var START_Z_LOOK = exports.START_Z_LOOK = 3;
 var X_INDX = exports.X_INDX = 0;
 var Y_INDX = exports.Y_INDX = 1;
 var Z_INDX = exports.Z_INDX = 2;
@@ -21777,6 +21783,8 @@ var _walkwayCamera = require("./tiles/walkway-camera.js");
 var _groundTiles = require("./tiles/ground-tiles.js");
 var _keyControls = require("./controls/key-controls.js");
 var _aDot = require("./a-dot.js");
+var _hexTile = require("./tiles/hex-tile.js");
+var _constants = require("./constants.js");
 function _interopRequireDefault(e) {
   return e && e.__esModule ? e : {
     "default": e
@@ -21807,16 +21815,24 @@ var g_walkway_overlaps = new Map([]);
 var g_walkway_tiles = new Map([]);
 var g_ground_tiles = new Map([]);
 var HI_DPI_ENABLE = Math.min(window.devicePixelRatio, 2);
-var the_width = window.innerWidth;
-var the_height = window.innerHeight;
+var the_width = window.innerWidth - 100;
+var the_height = window.innerHeight - 100;
 var dark_gray = 0x202025;
 var the_scene = (0, _aScene.AScene)(dark_gray);
 var the_fov = 75;
 var width_height = [the_width, the_height];
 var nf_planes = [0.1, 1000];
-var xyz_camera = [4, 3, 4];
+var _ref = (0, _hexTile.tileCenterCoord)(_constants.START_X_HEX, _constants.START_Z_HEX),
+  _ref2 = _slicedToArray(_ref, 2),
+  x_cam = _ref2[0],
+  z_cam = _ref2[1];
+var xyz_camera = [x_cam, _constants.START_Y_HEX, z_cam];
 var persp_camera = (0, _perspectiveCamera.PerspCamera)(the_fov, width_height, nf_planes, xyz_camera);
-persp_camera.lookAt(4, 2, 7);
+var _ref3 = (0, _hexTile.tileCenterCoord)(_constants.START_X_LOOK, _constants.START_Z_LOOK),
+  _ref4 = _slicedToArray(_ref3, 2),
+  x_look = _ref4[0],
+  z_look = _ref4[1];
+persp_camera.lookAt(x_look, _constants.START_Y_LOOK, z_look);
 the_scene.add(persp_camera);
 var top_color = 0x8888ff;
 var outline_color = 0x8888ff;
@@ -21825,15 +21841,15 @@ var tile_colors = [top_color, outline_color, six_side_colors];
 var top_color2 = 0x88ee88;
 var outline_color2 = 0x88ff88;
 var tile_colors2 = [top_color2, outline_color2];
-var _ref = (0, _walkwayCoords.makeWalkway)(the_scene, g_walkway_meshes, g_walkway_tiles, g_walkway_overlaps, tile_colors2);
-var _ref2 = _slicedToArray(_ref, 3);
-g_walkway_meshes = _ref2[0];
-g_walkway_tiles = _ref2[1];
-g_walkway_overlaps = _ref2[2];
-var _ref3 = (0, _groundTiles.ground_field)(g_walkway_meshes, g_ground_tiles, the_scene, -10, 10, 0x3366ee, 0x33ee66);
-var _ref4 = _slicedToArray(_ref3, 2);
-g_walkway_meshes = _ref4[0];
-g_ground_tiles = _ref4[1];
+var _ref5 = (0, _walkwayCoords.makeWalkway)(the_scene, g_walkway_meshes, g_walkway_tiles, g_walkway_overlaps, tile_colors2);
+var _ref6 = _slicedToArray(_ref5, 3);
+g_walkway_meshes = _ref6[0];
+g_walkway_tiles = _ref6[1];
+g_walkway_overlaps = _ref6[2];
+var _ref7 = (0, _groundTiles.ground_field)(g_walkway_meshes, g_ground_tiles, the_scene, -10, 10, 0x3366ee, 0x33ee66);
+var _ref8 = _slicedToArray(_ref7, 2);
+g_walkway_meshes = _ref8[0];
+g_ground_tiles = _ref8[1];
 var ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 the_scene.add(ambientLight);
 var pointLight = new THREE.PointLight(0xffffff, 10);
@@ -21891,7 +21907,7 @@ a_renderer.setAnimationLoop(function (now) {
   return draw(now);
 });
 
-},{"./a-dot.js":7,"./a-scene.js":8,"./controls/key-controls.js":10,"./perspective-camera.js":12,"./tiles/ground-tiles.js":14,"./tiles/walkway-camera.js":19,"./tiles/walkway-coords.js":20,"gl-bench/dist/gl-bench.module":1,"three":3}],12:[function(require,module,exports){
+},{"./a-dot.js":7,"./a-scene.js":8,"./constants.js":9,"./controls/key-controls.js":10,"./perspective-camera.js":12,"./tiles/ground-tiles.js":14,"./tiles/hex-tile.js":16,"./tiles/walkway-camera.js":18,"./tiles/walkway-coords.js":19,"gl-bench/dist/gl-bench.module":1,"three":3}],12:[function(require,module,exports){
 "use strict";
 
 function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
@@ -21994,10 +22010,10 @@ function tileColor2(g_hex_tiles, xz_color, new_color) {
   }
 }
 function hexNewColor(g_hex_tiles, x, z, new_color) {
-  var _tilePosition = tilePosition(x, z),
-    _tilePosition2 = _slicedToArray(_tilePosition, 2),
-    xx = _tilePosition2[0],
-    zz = _tilePosition2[1];
+  var _tileCenterCoord = tileCenterCoord(x, z),
+    _tileCenterCoord2 = _slicedToArray(_tileCenterCoord, 2),
+    xx = _tileCenterCoord2[0],
+    zz = _tileCenterCoord2[1];
   var xz_index = intTileIndex(xx, zz);
   if (g_hex_tiles.has(xz_index)) {
     var recolor_tile = g_hex_tiles.get(xz_index);
@@ -22019,8 +22035,12 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.groundRow = groundRow;
+exports.groundTile = groundTile;
 exports.ground_field = ground_field;
+var _three = require("three");
+var _constants = require("../constants.js");
 var _hexTile = require("./hex-tile.js");
+var _meshTiles = require("./mesh-tiles.js");
 function ground_field(hex_tiles, ground_tiles, the_scene, start_x, end_x, base_color) {
   for (var x = start_x; x < end_x; x++) {
     var _groundRow = groundRow(hex_tiles, ground_tiles, the_scene, x, -10, 10, base_color);
@@ -22035,12 +22055,36 @@ function groundRow(hex_tiles, ground_tiles, the_scene, x_row, start_z, end_z, ba
   var outline_color = 0xff8888;
   var tile_colors = [top_color, outline_color];
   for (var z = start_z; z < end_z; z++) {
-    hex_tiles = (0, _hexTile.groundTile)(hex_tiles, the_scene, [x_row, -1, z], tile_colors);
+    hex_tiles = groundTile(hex_tiles, the_scene, [x_row, -1, z], tile_colors);
   }
   return [hex_tiles, ground_tiles];
 }
+function groundTile(hex_tiles, the_scene, x_y_z, tile_colors) {
+  var _x_y_z = _slicedToArray(x_y_z, 3),
+    x_index = _x_y_z[0],
+    y_height = _x_y_z[1],
+    z_index = _x_y_z[2];
+  var _tile_colors = _slicedToArray(tile_colors, 2),
+    top_color = _tile_colors[0],
+    outline_color = _tile_colors[1];
+  var _ref = (0, _hexTile.tileCenterCoord)(x_index, z_index),
+    _ref2 = _slicedToArray(_ref, 2),
+    x_center = _ref2[0],
+    z_center = _ref2[1];
+  var tile_radius = 1;
+  var a_tile = new _three.Group();
+  a_tile.position.set(x_center, 0, z_center);
+  var stair_tiles = (0, _hexTile.hexPoints)(tile_radius, y_height, _constants.FLAT, 0);
+  var top_triangles = (0, _hexTile.tileTriangles)(stair_tiles);
+  (0, _meshTiles.geoMesh)(a_tile, top_triangles, top_color, outline_color);
+  the_scene.add(a_tile);
+  (0, _meshTiles.addCoords)(a_tile, x_y_z, [_constants.FLAT, 0]);
+  var xyz_index = "".concat(x_index, ",").concat(y_height, ",").concat(z_index);
+  hex_tiles.set(xyz_index, a_tile);
+  return hex_tiles;
+}
 
-},{"./hex-tile.js":16}],15:[function(require,module,exports){
+},{"../constants.js":9,"./hex-tile.js":16,"./mesh-tiles.js":17,"three":3}],15:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23346,29 +23390,23 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.HexTile = HexTile;
-exports.groundTile = groundTile;
 Object.defineProperty(exports, "hexNewColor", {
   enumerable: true,
   get: function get() {
     return _colorsTiles.hexNewColor;
   }
 });
-Object.defineProperty(exports, "nearTile", {
-  enumerable: true,
-  get: function get() {
-    return _hoverTiles.nearTile;
-  }
-});
+exports.hexPoints = hexPoints;
 Object.defineProperty(exports, "pointInsideTile", {
   enumerable: true,
   get: function get() {
     return _walkwayOverlaps.pointInsideTile;
   }
 });
-exports.tilePosition = tilePosition;
+exports.tileCenterCoord = tileCenterCoord;
+exports.tileTriangles = tileTriangles;
 var _three = require("three");
 var _constants = require("../constants.js");
-var _hoverTiles = require("./hover-tiles.js");
 var _meshTiles = require("./mesh-tiles.js");
 var _walkwayOverlaps = require("./walkway-overlaps.js");
 var _colorsTiles = require("./colors-tiles.js");
@@ -23420,10 +23458,10 @@ function HexTile(the_scene, walkway_meshes, walkway_tiles, walkway_overlaps, x_y
   var _tile_colors = _slicedToArray(tile_colors, 2),
     top_color = _tile_colors[0],
     outline_color = _tile_colors[1];
-  var _tilePosition = tilePosition(x_index, z_index),
-    _tilePosition2 = _slicedToArray(_tilePosition, 2),
-    x_center = _tilePosition2[0],
-    z_center = _tilePosition2[1];
+  var _tileCenterCoord = tileCenterCoord(x_index, z_index),
+    _tileCenterCoord2 = _slicedToArray(_tileCenterCoord, 2),
+    x_center = _tileCenterCoord2[0],
+    z_center = _tileCenterCoord2[1];
   var tile_radius = 1;
   var a_tile = new _three.Group();
   a_tile.position.set(x_center, 0, z_center);
@@ -23451,10 +23489,10 @@ function offsetTilePoints(stair_tiles, x_y_z, incline_and_dir, tile_points) {
     y_index = _x_y_z2[1],
     z_index = _x_y_z2[2];
   var xyz_index = "".concat(x_index, ",").concat(y_index, ",").concat(z_index);
-  var _tilePosition3 = tilePosition(x_index, z_index),
-    _tilePosition4 = _slicedToArray(_tilePosition3, 2),
-    x_center = _tilePosition4[0],
-    z_center = _tilePosition4[1];
+  var _tileCenterCoord3 = tileCenterCoord(x_index, z_index),
+    _tileCenterCoord4 = _slicedToArray(_tileCenterCoord3, 2),
+    x_center = _tileCenterCoord4[0],
+    z_center = _tileCenterCoord4[1];
   var tile_positions = [];
   for (var i = 0; i < tile_points.length; i++) {
     var tile_point = tile_points[i];
@@ -23497,42 +23535,14 @@ function offsetTilePoints(stair_tiles, x_y_z, incline_and_dir, tile_points) {
   stair_tiles.set(xyz_index, tile_obj);
   return stair_tiles;
 }
-function tilePosition(x_tile, z_tile) {
+
+//      camPoint3d / gridIndex2d
+//
+//  tileCenterCamPoint3d()
+function tileCenterCoord(x_tile, z_tile) {
   var x_coord = 3 / 2 * x_tile;
-  var y_coord = sqrt_3 / 2 * x_tile + sqrt_3 * z_tile;
-  return [x_coord, y_coord];
-}
-
-// function intTileIndex(x_float, z_float) {
-//     const int_x = Math.round(x_float);
-//     const int_z = Math.round(z_float);
-//     const tile_index = `${int_x},${int_z}`;
-//     return tile_index;
-// }
-
-function groundTile(hex_tiles, the_scene, x_y_z, tile_colors) {
-  var _x_y_z3 = _slicedToArray(x_y_z, 3),
-    x_index = _x_y_z3[0],
-    y_height = _x_y_z3[1],
-    z_index = _x_y_z3[2];
-  var _tile_colors2 = _slicedToArray(tile_colors, 2),
-    top_color = _tile_colors2[0],
-    outline_color = _tile_colors2[1];
-  var _tilePosition5 = tilePosition(x_index, z_index),
-    _tilePosition6 = _slicedToArray(_tilePosition5, 2),
-    x_center = _tilePosition6[0],
-    z_center = _tilePosition6[1];
-  var tile_radius = 1;
-  var a_tile = new _three.Group();
-  a_tile.position.set(x_center, 0, z_center);
-  var stair_tiles = hexPoints(tile_radius, y_height, _constants.FLAT, 0);
-  var top_triangles = tileTriangles(stair_tiles);
-  (0, _meshTiles.geoMesh)(a_tile, top_triangles, top_color, outline_color);
-  the_scene.add(a_tile);
-  (0, _meshTiles.addCoords)(a_tile, x_y_z, [0, ""]);
-  var xyz_index = "".concat(x_index, ",").concat(y_height, ",").concat(z_index);
-  hex_tiles.set(xyz_index, a_tile);
-  return hex_tiles;
+  var z_coord = sqrt_3 / 2 * x_tile + sqrt_3 * z_tile;
+  return [x_coord, z_coord];
 }
 function hexPoints(tile_radius, y_height, up_direction, angled_height) {
   var hex_dist = tile_radius * Math.sqrt(3) / 2;
@@ -23609,115 +23619,7 @@ function hexPoints(tile_radius, y_height, up_direction, angled_height) {
   return stair_tiles;
 }
 
-},{"../constants.js":9,"./colors-tiles.js":13,"./hover-tiles.js":17,"./mesh-tiles.js":18,"./walkway-overlaps.js":22,"three":3}],17:[function(require,module,exports){
-"use strict";
-
-function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.nearTile = nearTile;
-function resetTiles(covered_tiles) {
-  var _iterator = _createForOfIteratorHelper(covered_tiles),
-    _step;
-  try {
-    for (_iterator.s(); !(_step = _iterator.n()).done;) {
-      var covered_tile = _step.value;
-      covered_tile.translateY(-0.5);
-      var old_color = covered_tile.userData.the_color;
-      tileColor(covered_tile, old_color);
-    }
-  } catch (err) {
-    _iterator.e(err);
-  } finally {
-    _iterator.f();
-  }
-}
-function settleTiles(covered_tiles) {
-  var _iterator2 = _createForOfIteratorHelper(covered_tiles),
-    _step2;
-  try {
-    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-      var covered_tile = _step2.value;
-      covered_tile.translateY(0.5);
-      tileColor(covered_tile, 0xffffff);
-    }
-  } catch (err) {
-    _iterator2.e(err);
-  } finally {
-    _iterator2.f();
-  }
-}
-function coverTile(g_hex_tiles, covered_tiles, xz_index, pressed_color) {
-  if (g_hex_tiles.has(xz_index)) {
-    var covered_tile = g_hex_tiles.get(xz_index);
-    covered_tiles.set(xz_index, pressed_color); // "12,34" => white
-  }
-  return covered_tiles;
-}
-function nearTile(g_hex_tiles, old_covered_tiles, x_float, z_float) {
-  //    resetTiles(old_covered_tiles);s
-
-  var new_covered_tiles = new Map([]);
-  var middle_x = Math.round(x_float);
-  var middle_z = Math.round(z_float);
-
-  //  covered_tiles = coverTile(g_hex_tiles, covered_tiles, `${middle_x},${middle_z}`);
-
-  new_covered_tiles = coverTile(g_hex_tiles, new_covered_tiles, "".concat(middle_x - 1, ",").concat(middle_z - 1), 0xff0000);
-  new_covered_tiles = coverTile(g_hex_tiles, new_covered_tiles, "".concat(middle_x, ",").concat(middle_z - 1), 0x00ff00);
-  new_covered_tiles = coverTile(g_hex_tiles, new_covered_tiles, "".concat(middle_x + 1, ",").concat(middle_z - 1), 0x0000ff);
-  new_covered_tiles = coverTile(g_hex_tiles, new_covered_tiles, "".concat(middle_x - 1, ",").concat(middle_z), 0xffff00);
-  new_covered_tiles = coverTile(g_hex_tiles, new_covered_tiles, "".concat(middle_x + 1, ",").concat(middle_z), 0x00ffff);
-  //
-  new_covered_tiles = coverTile(g_hex_tiles, new_covered_tiles, "".concat(middle_x - 1, ",").concat(middle_z + 1), 0xff00ff);
-  new_covered_tiles = coverTile(g_hex_tiles, new_covered_tiles, "".concat(middle_x, ",").concat(middle_z + 1), 0xffffff);
-  new_covered_tiles = coverTile(g_hex_tiles, new_covered_tiles, "".concat(middle_x + 1, ",").concat(middle_z + 1), 0x888888);
-  //// console.log("new_covered_tiles", new_covered_tiles);
-  // for olds
-  //    if not in new then reset to old color/height
-  //console.log("old_covered_tile", old_covered_tiles);
-  var _iterator3 = _createForOfIteratorHelper(old_covered_tiles),
-    _step3;
-  try {
-    for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-      var old_covered_tile = _step3.value;
-      if (!new_covered_tiles.has(old_covered_tile)) {
-        //  console.log("old_covered_tile", old_covered_tile, old_covered_tile[1]);
-        tileColor(g_hex_tiles, old_covered_tile, old_covered_tile[1]);
-      }
-    }
-
-    // for newssd
-    //     if not in old then pressed color/height
-
-    //console.log("new_covered_tiles", new_covered_tiles);
-  } catch (err) {
-    _iterator3.e(err);
-  } finally {
-    _iterator3.f();
-  }
-  var _iterator4 = _createForOfIteratorHelper(new_covered_tiles),
-    _step4;
-  try {
-    for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-      var new_covered_tile = _step4.value;
-      if (!old_covered_tiles.has(new_covered_tile)) {
-        // console.log("new_covered_tile", new_covered_tile);
-        tileColor2(g_hex_tiles, new_covered_tile, 0xffffff);
-      }
-    }
-  } catch (err) {
-    _iterator4.e(err);
-  } finally {
-    _iterator4.f();
-  }
-  return new_covered_tiles;
-}
-
-},{}],18:[function(require,module,exports){
+},{"../constants.js":9,"./colors-tiles.js":13,"./mesh-tiles.js":17,"./walkway-overlaps.js":21,"three":3}],17:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -23763,14 +23665,10 @@ function addCoords(a_tile, x_y_z, incline_and_dir) {
   });
   var text_mesh = new _three.Mesh(textGeometry, textMaterial);
   if (y_index < 0) {
-    //   console.log("AAAAAAAAAAAAA", text_mesh.position.y);
-    text_mesh.position.y = 1.001;
+    text_mesh.position.y = -0.999;
   } else if (up_direction == _constants.FLAT) {
-    // console.log("BBBBBBBBBB");
     text_mesh.position.y = y_index + 0.001;
   } else {
-    //console.log("AAAAAAAAAAAAA");
-
     text_mesh.position.y = y_index + angled_height;
   }
   text_mesh.rotation.x = -Math.PI / 2;
@@ -23796,6 +23694,8 @@ function addCoords(a_tile, x_y_z, incline_and_dir) {
   } else if (up_direction == _constants.N_W) {
     x = -0.7;
     z = -0.25;
+  } else {
+    console.log(" addCoords() unknown up_direction", up_direction);
   }
   text_mesh.position.x = x;
   text_mesh.position.z = z;
@@ -23834,7 +23734,7 @@ function geometricVertices(the_vertices) {
   return the_geometry;
 }
 
-},{"../constants.js":9,"./helvetiker_regular.typeface.js":15,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}],19:[function(require,module,exports){
+},{"../constants.js":9,"./helvetiker_regular.typeface.js":15,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}],18:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -23885,7 +23785,7 @@ function walkwayCamera(cam_pos, walkway_overlaps, walkway_tiles) {
   return cam_pos.y;
 }
 
-},{"./hex-tile.js":16,"./walkway-heights.js":21}],20:[function(require,module,exports){
+},{"./hex-tile.js":16,"./walkway-heights.js":20}],19:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -23900,10 +23800,10 @@ Object.defineProperty(exports, "__esModule", {
 exports.makeWalkway = makeWalkway;
 var _constants = require("../constants.js");
 var _hexTile = require("./hex-tile.js");
-var walkway_coords = [["001", "04.0", "002"], ["001", "04.0", "001"], ["001", "04.0", "000"], ["002", "04.0", "-01"], ["003", "04.0", "-01"],
+//
+var walkway_coords = [
 // x,     y,      z,  incline_dir, incline_amount
-
-["003", "02.0", "-001"], ["002", "02.0", "-001"], ["001", "02.0", "-001"], ["000", "02.0", "000"], ["000", "02.0", "001"], ["000", "02.0", "002"], ["000", "02.0", "003"], ["000", "02.0", "004"], ["000", "02.0", "005"], ["000", "02.0", "006"], ["000", "02.0", "007"], ["000", "02.0", "008"], ["003", "02.0", "000", _constants.S_S, 1.0], ["003", "02.0", "001", _constants.N_N, 1.0], ["003", "01.0", "002", _constants.N_N, 1.0], ["003", "01.0", "003"], ["004", "01.0", "003", _constants.S_E, 0.5], ["005", "01.5", "003", _constants.S_E, 0.5], ["006", "01.5", "003", _constants.N_W, 0.5], ["002", "01.0", "004", _constants.S_W, 0.2], ["001", "01.2", "005", _constants.S_W, 0.2], ["000", "01.0", "006", _constants.N_E, 0.4], ["000", "0.8", "007", _constants.N_E, 0.4]];
+["001", "04.0", "002"], ["001", "04.0", "001"], ["001", "04.0", "000"], ["002", "04.0", "-01"], ["003", "04.0", "-01"], ["003", "02.0", "-001"], ["002", "02.0", "-001"], ["001", "02.0", "-001"], ["000", "02.0", "000"], ["000", "02.0", "001"], ["000", "02.0", "002"], ["000", "02.0", "003"], ["000", "02.0", "004"], ["000", "02.0", "005"], ["000", "02.0", "006"], ["000", "02.0", "007"], ["000", "02.0", "008"], ["003", "02.0", "000", _constants.S_S, 1.0], ["003", "02.0", "001", _constants.N_N, 1.0], ["003", "01.0", "002", _constants.N_N, 1.0], ["003", "01.0", "003"], ["004", "01.0", "003", _constants.S_E, 0.5], ["005", "01.5", "003", _constants.S_E, 0.5], ["006", "01.5", "003", _constants.N_W, 0.5], ["002", "01.0", "004", _constants.S_W, 0.2], ["001", "01.2", "005", _constants.S_W, 0.2], ["000", "01.0", "006", _constants.N_E, 0.4], ["000", "0.8", "007", _constants.N_E, 0.4]];
 function makeWalkway(the_scene, walkway_meshes, walkway_tiles, walkway_overlaps, tile_colors2) {
   for (var i = 0; i < walkway_coords.length; i++) {
     var ramp_piece = walkway_coords[i];
@@ -23933,7 +23833,7 @@ function makeWalkway(the_scene, walkway_meshes, walkway_tiles, walkway_overlaps,
   return [walkway_meshes, walkway_tiles, walkway_overlaps];
 }
 
-},{"../constants.js":9,"./hex-tile.js":16}],21:[function(require,module,exports){
+},{"../constants.js":9,"./hex-tile.js":16}],20:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -23967,7 +23867,7 @@ function inclineNW_NE_SE_SW(cam_pos, stair_tile, swivel_a, swivel_b) {
     }
   } else {
     if (dot_side_of_line > 0) {
-      pixel_size = accross_length / 2 - length_from_swivel2;
+      pixel_size = accross_length / 2 - length_from_swivel2; // N_E or S_E
     } else {
       pixel_size = accross_length / 2 + length_from_swivel2;
     }
@@ -23989,7 +23889,7 @@ function inclineNN_SS(cam_pos, stair_tile) {
     z_distance_traveled = highest_z - cam_pos.z;
     nn_ss_offset = ABOVE_WALKWAY;
   } else {
-    z_distance_traveled = cam_pos.z - highest_z;
+    z_distance_traveled = cam_pos.z - highest_z; // S_S
     nn_ss_offset = ABOVE_WALKWAY + 1.0;
   }
   var height_increase = z_distance_traveled / total_z_width * angle_incline;
@@ -24052,7 +23952,7 @@ function swivelIntercept(cam_x_z, swivel_a, swivel_b) {
   return swivel_intercept;
 }
 
-},{"../constants.js":9}],22:[function(require,module,exports){
+},{"../constants.js":9}],21:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -24080,7 +23980,7 @@ function walkwayOverlaps(stair_overlaps, x_y_z) {
     y_index = _x_y_z[1],
     z_index = _x_y_z[2];
   var xyz_index = "".concat(x_index, ",").concat(y_index, ",").concat(z_index);
-  var _ref = (0, _hexTile.tilePosition)(x_index, z_index),
+  var _ref = (0, _hexTile.tileCenterCoord)(x_index, z_index),
     _ref2 = _slicedToArray(_ref, 2),
     x_center = _ref2[0],
     z_center = _ref2[1];
