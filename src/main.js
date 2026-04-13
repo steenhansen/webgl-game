@@ -26,10 +26,10 @@ const the_scene = AScene(dark_gray);
 const the_fov = 75;
 const width_height = [the_width, the_height];
 const nf_planes = [0.1, 1000];
-const xyz_camera = [4, 3, 7];
+const xyz_camera = [4, 3, 4];
 
 const persp_camera = PerspCamera(the_fov, width_height, nf_planes, xyz_camera);
-persp_camera.lookAt(4, 3, 7);
+persp_camera.lookAt(4, 2, 7);
 
 the_scene.add(persp_camera);
 
