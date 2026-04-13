@@ -15,6 +15,8 @@ import {
     RGB_ETC2_Format
 } from "three";
 
+import { X_INDX, Y_INDX, Z_INDX, N_N, S_S, N_W, N_E, S_E, S_W, FLAT } from "../constants.js";
+
 //import { FontLoader } from "three/addons/loaders/FontLoader.js";
 
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
@@ -45,34 +47,38 @@ function addCoords(a_tile, x_y_z, incline_and_dir) {
     var text_mesh = new Mesh(textGeometry, textMaterial);
 
     if (y_index < 0) {
-        text_mesh.position.y = 0.001;
-    } else if (up_direction == "") {
+        //   console.log("AAAAAAAAAAAAA", text_mesh.position.y);
+        text_mesh.position.y = 1.001;
+    } else if (up_direction == FLAT) {
+        // console.log("BBBBBBBBBB");
         text_mesh.position.y = y_index + 0.001;
     } else {
+        //console.log("AAAAAAAAAAAAA");
+
         text_mesh.position.y = y_index + angled_height;
     }
 
     text_mesh.rotation.x = -Math.PI / 2;
     let x, z;
-    if (up_direction == "") {
+    if (up_direction == FLAT) {
         x = -0.15;
         z = 0.1;
-    } else if (up_direction == "NN") {
+    } else if (up_direction == N_N) {
         x = -0.15;
         z = -0.55;
-    } else if (up_direction == "NE") {
+    } else if (up_direction == N_E) {
         x = 0.3;
         z = -0.25;
-    } else if (up_direction == "SE") {
+    } else if (up_direction == S_E) {
         x = 0.35;
         z = 0.4;
-    } else if (up_direction == "SS") {
+    } else if (up_direction == S_S) {
         x = -0.15;
         z = 0.8;
-    } else if (up_direction == "SW") {
+    } else if (up_direction == S_W) {
         x = -0.7;
         z = 0.4;
-    } else if (up_direction == "NW") {
+    } else if (up_direction == N_W) {
         x = -0.7;
         z = -0.25;
     }

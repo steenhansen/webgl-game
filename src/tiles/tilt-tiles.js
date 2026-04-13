@@ -28,19 +28,19 @@ function tiltTile(a_tile, lean_and_dir) {
     const lean_offset = lean_amount - 1; // 0 is flat, from 1-8 are leans
     //console.log("titleTiled", lean_amount, lean_direction);
     let x, y, z;
-    if (lean_direction === "NN") {
+    if (lean_direction === N_N) {
         x = XY_POS_ROTATION_FIX[lean_offset];
         y = 0;
         z = 0;
-    } else if (lean_direction === "SW") {
+    } else if (lean_direction === S_W) {
         x = X_NEG_ROTATION_FIX[lean_offset]; // BAD
         y = Y_ROTATION_FIX[lean_offset];
         z = Z_NEG_ROTATION_FIX[lean_offset];
-    } else if (lean_direction === "NE") {
+    } else if (lean_direction === N_E) {
         x = X_POS_ROTATION_FIX[lean_offset];
         y = Y_ROTATION_FIX[lean_offset];
         z = Z_POS_ROTATION_FIX[lean_offset];
-    } else if (lean_direction === "NW") {
+    } else if (lean_direction === N_W) {
         //         const X_POS_ROTATION_FIXq = XZ_ROTATION_AMOUNT.map((x) => Math.PI / (2 * 8.7 * x));
         // const Z_POS_ROTATION_FIXq = XZ_ROTATION_AMOUNT.map((z) => Math.PI / (3 * 3.4 * z));
 
@@ -59,12 +59,12 @@ function tiltTile(a_tile, lean_and_dir) {
         // x = Math.PI / 12;
         // y = 0;
         // z = 0;
-        console.log("NW");
-    } else if (lean_direction === "SS") {
+        console.log(N_W);
+    } else if (lean_direction === S_S) {
         x = -XY_POS_ROTATION_FIX[lean_offset];
         y = 0;
         z = 0;
-    } else if (lean_direction === "SE") {
+    } else if (lean_direction === S_E) {
         x = X_NEG_ROTATION_FIX[lean_offset]; // BAD
         y = -Y_ROTATION_FIX[lean_offset];
         z = Z_POS_ROTATION_FIX[lean_offset];
