@@ -19,7 +19,7 @@ import { START_X_HEX, START_Y_HEX, START_Z_HEX, START_X_LOOK, START_Y_LOOK, STAR
 
 const HI_DPI_ENABLE = Math.min(window.devicePixelRatio, 2);
 
-const the_width = window.innerWidth - 700;
+const the_width = window.innerWidth - 200;
 const the_height = window.innerHeight - 300;
 
 const dark_gray = 0x202025;

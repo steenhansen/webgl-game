@@ -12,28 +12,22 @@ import {
     DoubleSide,
     RGB_ETC2_Format
 } from "three";
-
-import { X_INDX, Y_INDX, Z_INDX, N_N, S_S, N_W, N_E, S_E, S_W, FLAT } from "../constants.js";
-
-/*
- ----------------RED-X-LINE------------------------
-|
-|            n_n
-|         /--------\
-|     n_w/          \ n_e
-|       /            \
-|       \            /
-|     s_w\          / s_e     
-|         \--------/
-|             s_s
-|
-*/
-
 import { geoMesh, addCoords } from "./mesh-tiles.js";
 import { walkwayOverlaps, pointInsideTile } from "./walkway-overlaps.js";
 import { hexNewColor } from "./colors-tiles.js";
-
+import { X_INDX, Y_INDX, Z_INDX, N_N, S_S, N_W, N_E, S_E, S_W, FLAT } from "../constants.js";
 const sqrt_3 = Math.sqrt(3);
+
+/*
+                          square_up_left
+                             /---------\
+                            / |      / |\       
+             triangle_left /  |    /   | \ triangle_right
+                           \  |  /     | /
+                            \ |/       |/      
+                             \---------/
+                               square_down_right   
+*/
 
 function tileTriangles(hex_points) {
     const [top_left, top_right, right_tip, bot_right, bot_left, left_tip] = hex_points;

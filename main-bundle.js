@@ -21815,7 +21815,7 @@ var g_walkway_overlaps = new Map([]);
 var g_walkway_tiles = new Map([]);
 var g_ground_tiles = new Map([]);
 var HI_DPI_ENABLE = Math.min(window.devicePixelRatio, 2);
-var the_width = window.innerWidth - 700;
+var the_width = window.innerWidth - 200;
 var the_height = window.innerHeight - 300;
 var dark_gray = 0x202025;
 var the_scene = (0, _aScene.AScene)(dark_gray);
@@ -23406,25 +23406,23 @@ Object.defineProperty(exports, "pointInsideTile", {
 exports.tileCenterCoord = tileCenterCoord;
 exports.tileTriangles = tileTriangles;
 var _three = require("three");
-var _constants = require("../constants.js");
 var _meshTiles = require("./mesh-tiles.js");
 var _walkwayOverlaps = require("./walkway-overlaps.js");
 var _colorsTiles = require("./colors-tiles.js");
+var _constants = require("../constants.js");
+var sqrt_3 = Math.sqrt(3);
+
 /*
- ----------------RED-X-LINE------------------------
-|
-|            n_n
-|         /--------\
-|     n_w/          \ n_e
-|       /            \
-|       \            /
-|     s_w\          / s_e     
-|         \--------/
-|             s_s
-|
+                          square_up_left
+                             /---------\
+                            / |      / |\       
+             triangle_left /  |    /   | \ triangle_right
+                           \  |  /     | /
+                            \ |/       |/      
+                             \---------/
+                               square_down_right   
 */
 
-var sqrt_3 = Math.sqrt(3);
 function tileTriangles(hex_points) {
   var _hex_points = _slicedToArray(hex_points, 6),
     top_left = _hex_points[0],
@@ -23633,10 +23631,6 @@ var _constants = require("../constants.js");
 var _FontLoader = require("three/examples/jsm/loaders/FontLoader.js");
 var _TextGeometry = require("three/examples/jsm/geometries/TextGeometry.js");
 var _helvetiker_regularTypeface = require("./helvetiker_regular.typeface.js");
-//import { FontLoader } from "three/addons/loaders/FontLoader.js";
-
-//import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
-
 var loader2 = new _FontLoader.FontLoader();
 var WHITE_LABELS = 0xffffff;
 var the_font = loader2.parse(_helvetiker_regularTypeface.type_face);
@@ -23699,7 +23693,6 @@ function addCoords(a_tile, x_y_z, incline_and_dir) {
 
 // only ramp needs to be double sided
 function geoMesh(group, vertices_set, a_color, outline_color) {
-  // console.log("geoMesh:::", group, vertices_set, a_color, outline_color);
   var side_geometry = geometricVertices(vertices_set);
   var side_material = new _three.MeshLambertMaterial({
     color: a_color,
@@ -23717,15 +23710,12 @@ function geoMesh(group, vertices_set, a_color, outline_color) {
   var edgeLines = new _three.LineSegments(edges, lineMaterial);
   hexagon_side.add(edgeLines);
   group.add(hexagon_side);
-
   //  return hexagon_side;       // so can change color later via hexagon_side.material.color.set(0xff0000);
 }
 function geometricVertices(the_vertices) {
   var float_vertices = new Float32Array(the_vertices);
   var the_geometry = new _three.BufferGeometry();
-  //  console.log("geometricVertices", the_vertices);
   the_geometry.setAttribute("position", new _three.Float32BufferAttribute(float_vertices, 3));
-  //console.log("geometricVertices", float_vertices);
   return the_geometry;
 }
 
@@ -23798,12 +23788,7 @@ var _hexTile = require("./hex-tile.js");
 //
 var walkway_coords = [
 // x,     y,      z,  incline_dir, incline_amount
-["001", "04.0", "002"], ["001", "04.0", "001"], ["001", "04.0", "000"], ["002", "04.0", "-01"], ["003", "04.0", "-01"], ["003", "02.0", "-001"], ["002", "02.0", "-001"], ["001", "02.0", "-001"], ["000", "02.0", "000"], ["000", "02.0", "001"], ["000", "02.0", "002"], ["000", "02.0", "003"], ["000", "02.0", "004"], ["000", "02.0", "005"], ["000", "02.0", "006"], ["000", "02.0", "007"], ["000", "02.0", "008"], ["003", "02.0", "000", _constants.S_S, 1.0], ["003", "02.0", "001", _constants.N_N, 1.0], ["003", "01.0", "002", _constants.N_N, 1.0], ["003", "01.0", "003"], ["004", "01.0", "003", _constants.S_E, 0.5], ["005", "01.5", "003", _constants.S_E, 0.5], ["006", "01.5", "003", _constants.N_W, 0.5], ["002", "01.0", "004", _constants.S_W, 0.2], ["001", "01.2", "005", _constants.S_W, 0.2], ["000", "01.0", "006", _constants.N_E, 0.4], ["000", "0.8", "007", _constants.N_E, 0.4], ["004", "0.8", "006", _constants.S_E, 1.0], ["003", "0.8", "007", _constants.S_S, 1.0], ["002", "0.8", "007", _constants.S_W, 1.0], ["002", "0.8", "006", _constants.N_W, 1.0],
-//
-["003", "0.8", "005", _constants.N_N, 1.0],
-//
-["004", "0.8", "005", _constants.N_E, 1.0] //
-];
+["001", "04.0", "002"], ["001", "04.0", "001"], ["001", "04.0", "000"], ["002", "04.0", "-01"], ["003", "04.0", "-01"], ["003", "02.0", "-001"], ["002", "02.0", "-001"], ["001", "02.0", "-001"], ["000", "02.0", "000"], ["000", "02.0", "001"], ["000", "02.0", "002"], ["000", "02.0", "003"], ["000", "02.0", "004"], ["000", "02.0", "005"], ["000", "02.0", "006"], ["000", "02.0", "007"], ["000", "02.0", "008"], ["003", "02.0", "000", _constants.S_S, 1.0], ["003", "02.0", "001", _constants.N_N, 1.0], ["003", "01.0", "002", _constants.N_N, 1.0], ["003", "01.0", "003"], ["004", "01.0", "003", _constants.S_E, 0.5], ["005", "01.5", "003", _constants.S_E, 0.5], ["006", "01.5", "003", _constants.N_W, 0.5], ["002", "01.0", "004", _constants.S_W, 0.2], ["001", "01.2", "005", _constants.S_W, 0.2], ["000", "01.0", "006", _constants.N_E, 0.4], ["000", "0.8", "007", _constants.N_E, 0.4], ["004", "0.8", "006", _constants.S_E, 1.0], ["003", "0.8", "007", _constants.S_S, 1.0], ["002", "0.8", "007", _constants.S_W, 1.0], ["002", "0.8", "006", _constants.N_W, 1.0], ["003", "0.8", "005", _constants.N_N, 1.0], ["004", "0.8", "005", _constants.N_E, 1.0]];
 function makeWalkway(the_scene, walkway_meshes, walkway_tiles, walkway_overlaps, tile_colors2) {
   for (var i = 0; i < walkway_coords.length; i++) {
     var ramp_piece = walkway_coords[i];
