@@ -21815,8 +21815,8 @@ var g_walkway_overlaps = new Map([]);
 var g_walkway_tiles = new Map([]);
 var g_ground_tiles = new Map([]);
 var HI_DPI_ENABLE = Math.min(window.devicePixelRatio, 2);
-var the_width = window.innerWidth - 100;
-var the_height = window.innerHeight - 100;
+var the_width = window.innerWidth - 700;
+var the_height = window.innerHeight - 300;
 var dark_gray = 0x202025;
 var the_scene = (0, _aScene.AScene)(dark_gray);
 var the_fov = 75;
@@ -23413,16 +23413,15 @@ var _colorsTiles = require("./colors-tiles.js");
 /*
  ----------------RED-X-LINE------------------------
 |
-|            nn
+|            n_n
 |         /--------\
-|    nw /          \ n_e
+|     n_w/          \ n_e
 |       /            \
 |       \            /
-|    sw \          / se     
+|     s_w\          / s_e     
 |         \--------/
-|             ss
+|             s_s
 |
-
 */
 
 var sqrt_3 = Math.sqrt(3);
@@ -23535,10 +23534,6 @@ function offsetTilePoints(stair_tiles, x_y_z, incline_and_dir, tile_points) {
   stair_tiles.set(xyz_index, tile_obj);
   return stair_tiles;
 }
-
-//      camPoint3d / gridIndex2d
-//
-//  tileCenterCamPoint3d()
 function tileCenterCoord(x_tile, z_tile) {
   var x_coord = 3 / 2 * x_tile;
   var z_coord = sqrt_3 / 2 * x_tile + sqrt_3 * z_tile;
@@ -23803,7 +23798,12 @@ var _hexTile = require("./hex-tile.js");
 //
 var walkway_coords = [
 // x,     y,      z,  incline_dir, incline_amount
-["001", "04.0", "002"], ["001", "04.0", "001"], ["001", "04.0", "000"], ["002", "04.0", "-01"], ["003", "04.0", "-01"], ["003", "02.0", "-001"], ["002", "02.0", "-001"], ["001", "02.0", "-001"], ["000", "02.0", "000"], ["000", "02.0", "001"], ["000", "02.0", "002"], ["000", "02.0", "003"], ["000", "02.0", "004"], ["000", "02.0", "005"], ["000", "02.0", "006"], ["000", "02.0", "007"], ["000", "02.0", "008"], ["003", "02.0", "000", _constants.S_S, 1.0], ["003", "02.0", "001", _constants.N_N, 1.0], ["003", "01.0", "002", _constants.N_N, 1.0], ["003", "01.0", "003"], ["004", "01.0", "003", _constants.S_E, 0.5], ["005", "01.5", "003", _constants.S_E, 0.5], ["006", "01.5", "003", _constants.N_W, 0.5], ["002", "01.0", "004", _constants.S_W, 0.2], ["001", "01.2", "005", _constants.S_W, 0.2], ["000", "01.0", "006", _constants.N_E, 0.4], ["000", "0.8", "007", _constants.N_E, 0.4]];
+["001", "04.0", "002"], ["001", "04.0", "001"], ["001", "04.0", "000"], ["002", "04.0", "-01"], ["003", "04.0", "-01"], ["003", "02.0", "-001"], ["002", "02.0", "-001"], ["001", "02.0", "-001"], ["000", "02.0", "000"], ["000", "02.0", "001"], ["000", "02.0", "002"], ["000", "02.0", "003"], ["000", "02.0", "004"], ["000", "02.0", "005"], ["000", "02.0", "006"], ["000", "02.0", "007"], ["000", "02.0", "008"], ["003", "02.0", "000", _constants.S_S, 1.0], ["003", "02.0", "001", _constants.N_N, 1.0], ["003", "01.0", "002", _constants.N_N, 1.0], ["003", "01.0", "003"], ["004", "01.0", "003", _constants.S_E, 0.5], ["005", "01.5", "003", _constants.S_E, 0.5], ["006", "01.5", "003", _constants.N_W, 0.5], ["002", "01.0", "004", _constants.S_W, 0.2], ["001", "01.2", "005", _constants.S_W, 0.2], ["000", "01.0", "006", _constants.N_E, 0.4], ["000", "0.8", "007", _constants.N_E, 0.4], ["004", "0.8", "006", _constants.S_E, 1.0], ["003", "0.8", "007", _constants.S_S, 1.0], ["002", "0.8", "007", _constants.S_W, 1.0], ["002", "0.8", "006", _constants.N_W, 1.0],
+//
+["003", "0.8", "005", _constants.N_N, 1.0],
+//
+["004", "0.8", "005", _constants.N_E, 1.0] //
+];
 function makeWalkway(the_scene, walkway_meshes, walkway_tiles, walkway_overlaps, tile_colors2) {
   for (var i = 0; i < walkway_coords.length; i++) {
     var ramp_piece = walkway_coords[i];
@@ -23849,6 +23849,44 @@ exports.walkwayIncline = walkwayIncline;
 var _constants = require("../constants.js");
 var ABOVE_WALKWAY = 0.52; // Base offset for camera height above surface
 
+function swivelIntercept(cam_x_z, swivel_a, swivel_b) {
+  var _cam_x_z = _slicedToArray(cam_x_z, 2),
+    cam_x = _cam_x_z[0],
+    cam_z = _cam_x_z[1];
+  var x1 = swivel_a[_constants.X_INDX];
+  var z1 = swivel_a[_constants.Z_INDX];
+  var x2 = swivel_b[_constants.X_INDX];
+  var z2 = swivel_b[_constants.Z_INDX];
+  var dx = x2 - x1;
+  var dz = z2 - z1;
+  var dAB = dx * dx + dz * dz;
+  var u_top = (cam_x - x1) * dx + (cam_z - z1) * dz;
+  var u = u_top / dAB;
+  var x = x1 + u * dx;
+  var z = z1 + u * dz;
+  var swivel_intercept = [x, z];
+  return swivel_intercept;
+}
+function intercept2cam(cam_x_z, swivel_intercept) {
+  var _cam_x_z2 = _slicedToArray(cam_x_z, 2),
+    cam_x = _cam_x_z2[0],
+    cam_z = _cam_x_z2[1];
+  var x_diff = cam_x - swivel_intercept[0];
+  var z_diff = cam_z - swivel_intercept[1];
+  var length_from_swivel = Math.sqrt(x_diff * x_diff + z_diff * z_diff);
+  return length_from_swivel;
+}
+function dotsSideOfLine(cam_x_z, line_point_a, line_point_b) {
+  var _cam_x_z3 = _slicedToArray(cam_x_z, 2),
+    cam_x = _cam_x_z3[0],
+    cam_z = _cam_x_z3[1];
+  var nw_x1 = line_point_a[0];
+  var nw_z1 = line_point_a[2];
+  var nw_x2 = line_point_b[0];
+  var nw_z2 = line_point_b[2];
+  var pos_or_neg = (cam_x - nw_x1) * (nw_z2 - nw_z1) - (cam_z - nw_z1) * (nw_x2 - nw_x1);
+  return pos_or_neg;
+}
 function inclineNW_NE_SE_SW(cam_pos, stair_tile, swivel_a, swivel_b) {
   var tilt_up = stair_tile.tilt_up,
     accross_length = stair_tile.accross_length,
@@ -23912,44 +23950,6 @@ function walkwayIncline(cam_pos, stair_tile) {
     return inclineNN_SS(cam_pos, stair_tile);
   }
   return y_position + ABOVE_WALKWAY;
-}
-function dotsSideOfLine(cam_x_z, line_point_a, line_point_b) {
-  var _cam_x_z = _slicedToArray(cam_x_z, 2),
-    cam_x = _cam_x_z[0],
-    cam_z = _cam_x_z[1];
-  var nw_x1 = line_point_a[0];
-  var nw_z1 = line_point_a[2];
-  var nw_x2 = line_point_b[0];
-  var nw_z2 = line_point_b[2];
-  var pos_or_neg = (cam_x - nw_x1) * (nw_z2 - nw_z1) - (cam_z - nw_z1) * (nw_x2 - nw_x1);
-  return pos_or_neg;
-}
-function intercept2cam(cam_x_z, swivel_intercept) {
-  var _cam_x_z2 = _slicedToArray(cam_x_z, 2),
-    cam_x = _cam_x_z2[0],
-    cam_z = _cam_x_z2[1];
-  var x_diff = cam_x - swivel_intercept[0];
-  var z_diff = cam_z - swivel_intercept[1];
-  var length_from_swivel = Math.sqrt(x_diff * x_diff + z_diff * z_diff);
-  return length_from_swivel;
-}
-function swivelIntercept(cam_x_z, swivel_a, swivel_b) {
-  var _cam_x_z3 = _slicedToArray(cam_x_z, 2),
-    cam_x = _cam_x_z3[0],
-    cam_z = _cam_x_z3[1];
-  var x1 = swivel_a[_constants.X_INDX];
-  var z1 = swivel_a[_constants.Z_INDX];
-  var x2 = swivel_b[_constants.X_INDX];
-  var z2 = swivel_b[_constants.Z_INDX];
-  var dx = x2 - x1;
-  var dz = z2 - z1;
-  var dAB = dx * dx + dz * dz;
-  var u_top = (cam_x - x1) * dx + (cam_z - z1) * dz;
-  var u = u_top / dAB;
-  var x = x1 + u * dx;
-  var z = z1 + u * dz;
-  var swivel_intercept = [x, z];
-  return swivel_intercept;
 }
 
 },{"../constants.js":9}],21:[function(require,module,exports){
