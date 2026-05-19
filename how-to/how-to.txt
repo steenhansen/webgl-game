@@ -1,3 +1,71 @@
+
+
+
+
+x_ind, level_y, z_ind
+
+
+x_pos, level_y,  z_pos
+ { move_result, level_y };
+
+
+coord => pos
+
+
+
+
+    let y_index = y_100_index / 100;
+
+GOTO DIR               
+	cd C:\Users\16043\Documents\GitHub\aaa
+
+
+
+
+
+
+
+
+WEB SERVER
+	create
+		npm create vite@latest
+
+THREE.JS
+	npm install --save three
+
+	web server 
+		npx vite
+		OR
+		npm run dev
+		http://localhost:5173/index-dev.html
+
+
+
+COMPRESS TO SINGLE FILE
+	create
+		npm install -g browserify
+		npm install -g watchify
+		npm install -g terser 
+
+		npm install --save-dev babelify       
+		npm install --save-dev babelify @babel/plugin-transform-class-properties
+		npm install --save-dev babelify @babel/preset-env
+		npm install --save-dev babelify @babel/preset-react
+		npm install --save-dev babelify @babel/core
+
+		
+
+	compile
+		npm run compile2-bundle
+			For  --> file:///C:/Users/16043/Documents/GitHub/aaa/index-bundled.html
+
+	compress	
+		npm run compress-bundle
+			For  --> file:///C:/Users/16043/Documents/GitHub/aaa/index.html
+
+
+
+
 tile_positions => tile_vertexs
 
 
@@ -103,42 +171,5 @@ def is_point_in_hexagon(x, y,         cx, cy, radius):
 dwd
 
 
-GOTO DIR               
-	cd C:\Users\16043\Documents\GitHub\aaa
 
-WEB SERVER
-	create
-		npm create vite@latest
-
-THREE.JS
-	npm install --save three
-
-	web server 
-		npx vite
-		OR
-		npm run dev
-		http://localhost:5173/index-dev.html
-
-
-
-COMPRESS TO SINGLE FILE
-	create
-		npm install -g browserify
-		npm install -g watchify
-		npm install -g terser 
-
-		npm install --save-dev babelify       
-		npm install --save-dev babelify @babel/plugin-transform-class-properties
-		npm install --save-dev babelify @babel/preset-env
-		npm install --save-dev babelify @babel/preset-react
-		npm install --save-dev babelify @babel/core
-
-		
-
-	compile
-		npm run compile2-bundle
-			For  --> file:///C:/Users/16043/Documents/GitHub/aaa/index-bundled.html
-
-	compress	
-		npm run compress-bundle
-			For  --> file:///C:/Users/16043/Documents/GitHub/aaa/index.html
+doing south ....

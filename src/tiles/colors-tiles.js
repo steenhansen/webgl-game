@@ -21,7 +21,6 @@ const colorRight = (hex) => {
 };
 
 function tileColor(g_hex_tiles, xz_color, new_color) {
-    // console.log("OLD", xz_color, new_color);
     const xz_index = xz_color[0];
     if (g_hex_tiles.has(xz_index)) {
         const recolor_tile = g_hex_tiles.get(xz_index);

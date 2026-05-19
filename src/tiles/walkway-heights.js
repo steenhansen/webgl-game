@@ -1,13 +1,19 @@
-import { X_INDX, Y_INDX, Z_INDX, N_N, S_S, N_W, N_E, S_E, S_W } from "../constants.js";
+import { X_INDX, Y_INDX, Z_INDX, TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
 
-const ABOVE_WALKWAY = 0.52; // Base offset for camera height above surface
+import { distance2hexpoints, axial_round, coords2HexIndexes, tileCenterCoord } from "../maths.js";
+function hexIndex(x_hex_ind, y_height, z_hex_ind) {
+    let y_fixed_to_10ths = Math.trunc(y_height * 10) / 10;
+
+    let hex_index = `${x_hex_ind},${y_fixed_to_10ths},${z_hex_ind}`;
+    return hex_index;
+}
 
 function swivelIntercept(cam_x_z, swivel_a, swivel_b) {
     let [cam_x, cam_z] = cam_x_z;
-    let x1 = swivel_a[X_INDX];
-    let z1 = swivel_a[Z_INDX];
-    let x2 = swivel_b[X_INDX];
-    let z2 = swivel_b[Z_INDX];
+    let x1 = swivel_a[0];
+    let z1 = swivel_a[2];
+    let x2 = swivel_b[0];
+    let z2 = swivel_b[2];
     let dx = x2 - x1;
     let dz = z2 - z1;
     let dAB = dx * dx + dz * dz;
@@ -44,7 +50,7 @@ function inclineNW_NE_SE_SW(cam_pos, stair_tile, swivel_a, swivel_b) {
     const length_from_swivel2 = intercept2cam(cam_x_z, swivel_intercept);
     const dot_side_of_line = dotsSideOfLine(cam_x_z, swivel_a, swivel_b);
     let pixel_size;
-    if (tilt_up == N_W || tilt_up == S_W) {
+    if (tilt_up == TILT_NW || tilt_up == TILT_SW) {
         if (dot_side_of_line < 0) {
             pixel_size = accross_length / 2 - length_from_swivel2;
         } else {
@@ -52,48 +58,69 @@ function inclineNW_NE_SE_SW(cam_pos, stair_tile, swivel_a, swivel_b) {
         }
     } else {
         if (dot_side_of_line > 0) {
-            pixel_size = accross_length / 2 - length_from_swivel2; // N_E or S_E
+            pixel_size = accross_length / 2 - length_from_swivel2; // TILT_NE or TILT_SE
         } else {
             pixel_size = accross_length / 2 + length_from_swivel2;
         }
     }
     const height_increase = angle_incline * (pixel_size / accross_length);
-    const new_cam = y_position + height_increase + ABOVE_WALKWAY;
-    return new_cam;
+    const new_cam = y_position + height_increase + 0; //ABOVE_WALKWAY;
+    return height_increase; //new_cam;
 }
 
-function inclineNN_SS(cam_pos, stair_tile) {
-    let { tilt_up, angle_incline, y_position, tile_positions } = stair_tile;
-    const highest_z = tile_positions[0][Z_INDX];
-    const lowest_z = tile_positions[3][Z_INDX];
+const ABOVE_WALKWAY = 0.52; // Base offset for camera height above surface
+const ABOVE_WALKWAY_SS = 1.52;
+
+function inclineNN(cam_pos, current_tile) {
+    let { angle_incline, tile_positions } = current_tile;
+    const highest_z = tile_positions[0][2];
+    const lowest_z = tile_positions[3][2];
     let total_z_width = highest_z - lowest_z;
     let z_distance_traveled, nn_ss_offset;
-    if (tilt_up == N_N) {
-        z_distance_traveled = highest_z - cam_pos.z;
-        nn_ss_offset = ABOVE_WALKWAY;
-    } else {
-        z_distance_traveled = cam_pos.z - highest_z; // S_S
-        nn_ss_offset = ABOVE_WALKWAY + 1.0;
-    }
+    z_distance_traveled = highest_z - cam_pos.z;
+    nn_ss_offset = 0; //ABOVE_WALKWAY;
     let height_increase = (z_distance_traveled / total_z_width) * angle_incline;
-    let new_cam_y2 = y_position + height_increase + nn_ss_offset;
+    let new_cam_y2 = height_increase + nn_ss_offset;
     return new_cam_y2;
 }
 
-function walkwayIncline(cam_pos, stair_tile) {
-    let { tilt_up, tile_positions, y_position } = stair_tile;
-    if (tilt_up == N_W) {
-        return inclineNW_NE_SE_SW(cam_pos, stair_tile, tile_positions[0], tile_positions[3]);
-    } else if (tilt_up == N_E) {
-        return inclineNW_NE_SE_SW(cam_pos, stair_tile, tile_positions[1], tile_positions[4]);
-    } else if (tilt_up == S_E) {
-        return inclineNW_NE_SE_SW(cam_pos, stair_tile, tile_positions[0], tile_positions[3]);
-    } else if (tilt_up == S_W) {
-        return inclineNW_NE_SE_SW(cam_pos, stair_tile, tile_positions[1], tile_positions[4]);
-    } else if (tilt_up == N_N || tilt_up == S_S) {
-        return inclineNN_SS(cam_pos, stair_tile);
+function inclineSS(cam_pos, current_tile) {
+    let { angle_incline, tile_positions } = current_tile;
+    const highest_z = tile_positions[0][2];
+    const lowest_z = tile_positions[3][2];
+    let total_z_width = highest_z - lowest_z;
+    let z_distance_traveled, nn_ss_offset;
+
+    z_distance_traveled = cam_pos.z - lowest_z;
+
+    nn_ss_offset = 0; // ABOVE_WALKWAY_SS; // qbert
+
+    let height_increase = (z_distance_traveled / total_z_width) * angle_incline;
+    let new_cam_y2 = height_increase + nn_ss_offset;
+    return new_cam_y2;
+}
+
+function walkwayIncline(walkway_tiles, cam_pos) {
+    let [x_hex_ind, z_hex_ind] = coords2HexIndexes(cam_pos.x, cam_pos.z);
+    let tile_index = hexIndex(x_hex_ind, cam_pos.y, z_hex_ind);
+    if (walkway_tiles.has(tile_index)) {
+        let current_tile = walkway_tiles.get(tile_index);
+        let { tilt_up, tile_positions } = current_tile;
+        if (tilt_up == TILT_NW) {
+            return inclineNW_NE_SE_SW(cam_pos, current_tile, tile_positions[0], tile_positions[3]);
+        } else if (tilt_up == TILT_NE) {
+            return inclineNW_NE_SE_SW(cam_pos, current_tile, tile_positions[1], tile_positions[4]);
+        } else if (tilt_up == TILT_SE) {
+            return inclineNW_NE_SE_SW(cam_pos, current_tile, tile_positions[0], tile_positions[3]);
+        } else if (tilt_up == TILT_SW) {
+            return inclineNW_NE_SE_SW(cam_pos, current_tile, tile_positions[1], tile_positions[4]);
+        } else if (tilt_up == TILT_NN) {
+            return inclineNN(cam_pos, current_tile);
+        } else if (tilt_up == TILT_SS) {
+            return inclineSS(cam_pos, current_tile);
+        }
     }
-    return y_position + ABOVE_WALKWAY;
+    return 0; // y_position + ABOVE_WALKWAY;
 }
 
 export { walkwayIncline };

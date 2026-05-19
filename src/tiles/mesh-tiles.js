@@ -15,19 +15,23 @@ import {
     RGB_ETC2_Format
 } from "three";
 
-import { X_INDX, Y_INDX, Z_INDX, N_N, S_S, N_W, N_E, S_E, S_W, FLAT } from "../constants.js";
+import { X_INDX, Y_INDX, Z_INDX, TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW, TILT_NONE } from "../constants.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
-import { type_face } from "./helvetiker_regular.typeface.js";
+import { type_face } from "../helvetiker_regular.typeface.js";
 
 var loader2 = new FontLoader();
 
 const WHITE_LABELS = 0xffffff;
 var the_font = loader2.parse(type_face);
 
-function addCoords(a_tile, x_y_z, incline_and_dir) {
-    const [up_direction, angled_height] = incline_and_dir;
-    const [x_index, y_index, z_index] = x_y_z;
+//const Y_TO_ACTUAL_HEIGHT = 10;
+function addCoords(a_tile, x_y_z, slope_direction, incline_amount) {
+    // const [up_direction, angled_height] = incline_and_dir;
+    let [x_index, y_100_index, z_index] = x_y_z;
+
+    let y_index = y_100_index / 100;
+
     var textMaterial = new MeshLambertMaterial({
         emissive: 0xffffff,
         color: WHITE_LABELS
@@ -42,37 +46,46 @@ function addCoords(a_tile, x_y_z, incline_and_dir) {
 
     if (y_index < 0) {
         text_mesh.position.y = -0.999;
-    } else if (up_direction == FLAT) {
+    } else if (slope_direction == TILT_NONE) {
+        //        text_mesh.position.y = y_index / Y_TO_ACTUAL_HEIGHT + 0.001;
         text_mesh.position.y = y_index + 0.001;
+        //text_mesh.position.y = y_index + 0.05;
     } else {
-        text_mesh.position.y = y_index + angled_height;
+        //        text_mesh.position.y = y_index / Y_TO_ACTUAL_HEIGHT + incline_amount;
+        text_mesh.position.y = y_index + incline_amount + 0.05; // qbert hard to see
     }
 
     text_mesh.rotation.x = -Math.PI / 2;
+
+    if (slope_direction != TILT_NONE) {
+        text_mesh.rotation.y = -Math.PI / 2;
+        text_mesh.rotation.z = -Math.PI / 2;
+    }
     let x, z;
-    if (up_direction == FLAT) {
+    if (slope_direction == TILT_NONE) {
         x = -0.15;
         z = 0.1;
-    } else if (up_direction == N_N) {
+    } else if (slope_direction == TILT_NN) {
         x = -0.15;
         z = -0.55;
-    } else if (up_direction == N_E) {
+    } else if (slope_direction == TILT_NE) {
         x = 0.3;
         z = -0.25;
-    } else if (up_direction == S_E) {
-        x = 0.35;
+    } else if (slope_direction == TILT_SE) {
+        x = 1;
         z = 0.4;
-    } else if (up_direction == S_S) {
+        //text_mesh.position.y -= 0.1;
+    } else if (slope_direction == TILT_SS) {
         x = -0.15;
-        z = 0.8;
-    } else if (up_direction == S_W) {
+        z = 0.48;
+    } else if (slope_direction == TILT_SW) {
         x = -0.7;
         z = 0.4;
-    } else if (up_direction == N_W) {
+    } else if (slope_direction == TILT_NW) {
         x = -0.7;
         z = -0.25;
     } else {
-        console.log(" addCoords() unknown up_direction", up_direction);
+        ee(" addCoords() unknown slope_direction", slope_direction);
     }
 
     text_mesh.position.x = x;
@@ -80,26 +93,4 @@ function addCoords(a_tile, x_y_z, incline_and_dir) {
     a_tile.add(text_mesh);
 }
 
-// only ramp needs to be double sided
-function geoMesh(group, vertices_set, a_color, outline_color) {
-    const side_geometry = geometricVertices(vertices_set);
-    const side_material = new MeshLambertMaterial({ color: a_color, transparent: false, opacity: 1 });
-    const hexagon_side = new Mesh(side_geometry, side_material);
-    side_material.side = DoubleSide;
-    const edges = new EdgesGeometry(side_geometry);
-    const lineMaterial = new LineBasicMaterial({ color: outline_color, linewidth: 256 });
-    lineMaterial.side = DoubleSide;
-    const edgeLines = new LineSegments(edges, lineMaterial);
-    hexagon_side.add(edgeLines);
-    group.add(hexagon_side);
-    //  return hexagon_side;       // so can change color later via hexagon_side.material.color.set(0xff0000);
-}
-
-function geometricVertices(the_vertices) {
-    const float_vertices = new Float32Array(the_vertices);
-    const the_geometry = new BufferGeometry();
-    the_geometry.setAttribute("position", new Float32BufferAttribute(float_vertices, 3));
-    return the_geometry;
-}
-
-export { geoMesh, addCoords };
+export { addCoords };

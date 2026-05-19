@@ -51,10 +51,8 @@ var Hexasphere = function (radius, numDivisions, hexSize) {
 
     var getPointIfExists = function (point) {
         if (points[point]) {
-            // console.log("EXISTING!");
             return points[point];
         } else {
-            // console.log("NOT EXISTING!");
             points[point] = point;
             return point;
         }
@@ -63,7 +61,6 @@ var Hexasphere = function (radius, numDivisions, hexSize) {
     var newFaces = [];
 
     for (var f = 0; f < faces.length; f++) {
-        // console.log("-0---");
         var prev = null;
         var bottom = [faces[f].points[0]];
         var left = faces[f].points[0].subdivide(faces[f].points[1], numDivisions, getPointIfExists);

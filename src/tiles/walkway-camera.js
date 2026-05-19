@@ -1,35 +1,42 @@
-import { pointInsideTile } from "./hex-tile.js";
-import { walkwayIncline } from "./walkway-heights.js";
+import { pointInsideTile } from "./walkway-overlaps.js";
+import { coords2HexIndexes } from "./hex-tile.js";
+import { DROP_PER_TICK_FLOAT } from "../constants.js";
 
-function walkwayCamera(cam_pos, walkway_overlaps, walkway_tiles) {
-    const trunc_cam_x = Math.trunc(cam_pos.x);
-    const cam_y = cam_pos.y;
-    const trunc_cam_z = Math.trunc(cam_pos.z);
-    const xz_key = `${trunc_cam_x},${trunc_cam_z}`;
-    let highest_y_tile = 0;
-    let highest_xyz_tile = "";
-    if (walkway_overlaps.has(xz_key)) {
-        let poss_aboves = walkway_overlaps.get(xz_key);
-        for (var i = 0; i < poss_aboves.length; i++) {
-            let x_y_z_str = poss_aboves[i];
-            let [xx, yy, zz] = x_y_z_str.split(",");
-            let stair_tile = walkway_tiles.get(x_y_z_str);
-            if (cam_y >= yy) {
-                highest_y_tile = yy;
-                highest_xyz_tile = x_y_z_str;
-                const point_in = pointInsideTile(cam_pos.x, cam_pos.z, stair_tile);
-                if (point_in) {
-                    let new_cam_y = walkwayIncline(cam_pos, stair_tile);
-                    cam_pos.y = new_cam_y;
-                    break;
-                }
+// hex_column_ac='1,3'   imagine testing this .... so no memorizing
+
+// NEW qbert    MAYBE HAVE A GROUND_ZERO_TILES, WHICH HAVE TILE POSITIONS   TO CHECK FOR ...
+// hex_column_ac => hex_column_ac
+function walkwayCamera(cam_xyz, walkway_heights, walkway_bottoms, walkway_tiles, ground_tiles) {
+    //let [a_int, c_int] = hex_column_ac.split(",");
+    // const ground_ac_index = `${a_int},-1,${c_int}`;
+    let [a_hex_index, c_hex_index] = coords2HexIndexes(cam_xyz.x, cam_xyz.z);
+    let hex_column_ac = `${a_hex_index},${c_hex_index}`; // b is y height
+    let tile_column = walkway_heights.get(hex_column_ac);
+
+    let cam_inflated_y = Math.trunc(cam_xyz.y * 10);
+
+    if (tile_column == undefined) {
+        let dropped_y;
+        if (cam_xyz.y > DROP_PER_TICK_FLOAT) {
+            dropped_y = cam_xyz.y - DROP_PER_TICK_FLOAT; // NOT on walkway
+        } else {
+            dropped_y = cam_xyz.y;
+        }
+        return dropped_y;
+    } else {
+        if (cam_inflated_y in tile_column) {
+        } else {
+            let dropped_y = cam_xyz.y - DROP_PER_TICK_FLOAT;
+            let inflated_drop_y = Math.trunc(dropped_y * 10);
+            if (inflated_drop_y in tile_column) {
+                return dropped_y;
+            } else {
+                return dropped_y;
             }
         }
-    } else {
-        if (cam_pos.y > 0.2) {
-            cam_pos.y = cam_pos.y - 0.02;
-        }
     }
-    return cam_pos.y;
+
+    return cam_xyz.y;
 }
+
 export { walkwayCamera };

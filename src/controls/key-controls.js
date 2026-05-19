@@ -33,7 +33,6 @@ function makeControls(persp_camera) {
     };
 
     const onKeyUp = function (event) {
-        //console.log("keypup", event.code);
         switch (event.code) {
             case "ArrowUp":
             case "KeyW":
@@ -65,7 +64,6 @@ function makeControls(persp_camera) {
 }
 
 function moveKeys(delta, controls) {
-    //console.log("movekeys", moveForward);
     // const delta = clock.getDelta();
     //    const speed = 10 * delta;
     const speed = 2 * delta;

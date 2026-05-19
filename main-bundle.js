@@ -21624,16 +21624,9 @@ XyzDot 3 0 3.0431959310833934 4.30019999999552
 
 function XyzDot(the_scene, x, y, z, the_color) {
   var y_floor = Math.floor(y);
-  if (x >= 0 && x < 1 && z > 2 && z < 6) {
-    // console.log("YES XyzDot",x,y,z)
-  } else {
-    //   console.log("NO XyzDot",x,y,z)
-  }
-  //console.log("XyzDot", y_floor, x,y,z)
-
+  if (x >= 0 && x < 1 && z > 2 && z < 6) {} else {}
   var dotGeometry = new THREE.BufferGeometry();
   dotGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array([x, y - 0.5, z]), 3));
-  // console.log("xyDot", x, y, z);
   var dotMaterial = new THREE.PointsMaterial({
     size: 0.04,
     color: the_color
@@ -21664,28 +21657,217 @@ function AScene(background_color) {
 },{"three":3}],9:[function(require,module,exports){
 "use strict";
 
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.Z_INDX = exports.Y_INDX = exports.X_INDX = exports.S_W = exports.S_S = exports.S_E = exports.START_Z_LOOK = exports.START_Z_HEX = exports.START_Y_LOOK = exports.START_Y_HEX = exports.START_X_LOOK = exports.START_X_HEX = exports.N_W = exports.N_N = exports.N_E = exports.FLAT = void 0;
-var START_X_HEX = exports.START_X_HEX = 0;
-var START_Y_HEX = exports.START_Y_HEX = 1;
-var START_Z_HEX = exports.START_Z_HEX = 7;
+exports.buildListener = buildListener;
+exports.buildRenderer = buildRenderer;
+exports.buildScene = buildScene;
+exports.buildTiles = buildTiles;
+var _walkwayCoords = require("./tiles/walkway-coords.js");
+var _wallCoords = require("./walls/wall-coords.js");
+var _groundTiles = require("./tiles/ground-tiles.js");
+var _aScene = require("./a-scene.js");
+var _perspectiveCamera = require("./perspective-camera.js");
+var THREE = _interopRequireWildcard(require("three"));
+var _glBench = _interopRequireDefault(require("gl-bench/dist/gl-bench.module"));
+function _interopRequireDefault(e) {
+  return e && e.__esModule ? e : {
+    "default": e
+  };
+}
+function _interopRequireWildcard(e, t) {
+  if ("function" == typeof WeakMap) var r = new WeakMap(),
+    n = new WeakMap();
+  return (_interopRequireWildcard = function _interopRequireWildcard(e, t) {
+    if (!t && e && e.__esModule) return e;
+    var o,
+      i,
+      f = {
+        __proto__: null,
+        "default": e
+      };
+    if (null === e || "object" != _typeof(e) && "function" != typeof e) return f;
+    if (o = t ? n : r) {
+      if (o.has(e)) return o.get(e);
+      o.set(e, f);
+    }
+    for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]);
+    return f;
+  })(e, t);
+}
+function buildTiles(the_scene, GAME_WALLS, g_walkway_coords) {
+  var g_ground_tiles = new Map([]);
+  var g_walkway_meshes = new Map([]);
+  var g_walkway_tiles = new Map([]);
+  var g_wall_squares = new Map([]);
+  var g_walkway_columns = new Map([]);
+  var g_wall_columns = new Map([]);
+  var g_game_walls_coords = GAME_WALLS;
+  var _ref = (0, _walkwayCoords.makeWalkway)(the_scene, g_walkway_coords, g_walkway_meshes, g_walkway_tiles, g_walkway_columns);
+  var _ref2 = _slicedToArray(_ref, 3);
+  g_walkway_meshes = _ref2[0];
+  g_walkway_tiles = _ref2[1];
+  g_walkway_columns = _ref2[2];
+  var _ref3 = (0, _wallCoords.makeWalls)(the_scene, g_game_walls_coords, g_walkway_meshes, g_wall_squares, g_wall_columns);
+  var _ref4 = _slicedToArray(_ref3, 3);
+  g_walkway_meshes = _ref4[0];
+  g_wall_squares = _ref4[1];
+  g_wall_columns = _ref4[2];
+  var _ref5 = (0, _groundTiles.ground_field)(g_walkway_meshes, g_ground_tiles, the_scene, -10, 10, 0x3366ee, 0x33ee66);
+  var _ref6 = _slicedToArray(_ref5, 2);
+  g_walkway_meshes = _ref6[0];
+  g_ground_tiles = _ref6[1];
+  return {
+    g_walkway_meshes: g_walkway_meshes,
+    g_walkway_tiles: g_walkway_tiles,
+    g_walkway_columns: g_walkway_columns,
+    g_wall_squares: g_wall_squares,
+    g_wall_columns: g_wall_columns,
+    g_ground_tiles: g_ground_tiles
+  };
+}
+var HI_DPI_ENABLE = Math.min(window.devicePixelRatio, 2);
+function buildScene(test_xyz_camera) {
+  var the_width = window.innerWidth - 200;
+  var the_height = window.innerHeight - 300;
+  var dark_gray = 0x202025;
+  var the_scene = (0, _aScene.AScene)(dark_gray);
+  var the_fov = 75;
+  var width_height = [the_width, the_height];
+  var nf_planes = [0.1, 1000];
+  var persp_camera = (0, _perspectiveCamera.PerspCamera)(the_fov, width_height, nf_planes, test_xyz_camera);
+  return {
+    the_scene: the_scene,
+    persp_camera: persp_camera,
+    the_width: the_width,
+    the_height: the_height
+  };
+}
+function buildRenderer(the_scene, the_width, the_height) {
+  var ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+  the_scene.add(ambientLight);
+  var pointLight = new THREE.PointLight(0xffffff, 10);
+  pointLight.position.set(2, 3, 4);
+  the_scene.add(pointLight);
+  var axesHelper = new THREE.AxesHelper(5); // xyz -> rgb
+  the_scene.add(axesHelper);
+  var a_renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  a_renderer.setSize(the_width, the_height);
+  a_renderer.setPixelRatio(HI_DPI_ENABLE);
+  document.body.appendChild(a_renderer.domElement);
+  var bench = new _glBench["default"](a_renderer.getContext());
+  return {
+    a_renderer: a_renderer,
+    bench: bench
+  };
+}
+function buildListener(persp_camera) {
+  window.addEventListener("resize", function () {
+    var new_width = window.innerWidth;
+    var new_height = window.innerHeight;
+    projMatrix(persp_camera, [new_width, new_height]);
+    a_renderer.setSize(new_width, new_height);
+    a_renderer.setPixelRatio(HI_DPI_ENABLE);
+  });
+}
+
+},{"./a-scene.js":8,"./perspective-camera.js":19,"./tiles/ground-tiles.js":22,"./tiles/walkway-coords.js":39,"./walls/wall-coords.js":42,"gl-bench/dist/gl-bench.module":1,"three":3}],10:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Z_INDX = exports.Y_INDX = exports.X_INDX = exports.WALL_SW = exports.WALL_SS = exports.WALL_SE = exports.WALL_NW = exports.WALL_NN = exports.WALL_NE = exports.TILT_SW = exports.TILT_SS = exports.TILT_SE90 = exports.TILT_SE = exports.TILT_NW = exports.TILT_NONE = exports.TILT_NN90 = exports.TILT_NN = exports.TILT_NE = exports.TEST_TILE_MOVE = exports.TEST_SW = exports.TEST_SS = exports.TEST_SE = exports.TEST_PASSED = exports.TEST_NW = exports.TEST_NN = exports.TEST_NE = exports.TEST_FAILED = exports.TESTING_PRINT = exports.START_Z_LOOK = exports.START_Z_HEX = exports.START_Y_LOOK = exports.START_Y_HEX = exports.START_X_LOOK = exports.START_X_HEX = exports.START_XYZ = exports.SQRT_3 = exports.RUNNING_NO_PRINT = exports.PHYS_TILE_MOVE = exports.ON_OLD_TILE = exports.ON_NO_TILE = exports.ON_NEW_TILE = exports.MOVE_SW = exports.MOVE_STOP = exports.MOVE_SS = exports.MOVE_SE = exports.MOVE_SAME_TILE = exports.MOVE_NW = exports.MOVE_NO = exports.MOVE_NN = exports.MOVE_NEW_TILE = exports.MOVE_NE = exports.MOVE_GO = exports.MOVE_FALLING = exports.MOVE_BLOCKED = exports.HEIGHT_ABOVE_WALKWAY = exports.DROP_PER_TICK_FLOAT = exports.C______RED = exports.C_____BLUE = exports.C____GREEN = exports.C____BROWN = exports.C___YELLOW = exports.C___PURPLE = exports.C_NONE = exports.COL_2 = exports.COL_1 = void 0;
+var HEIGHT_ABOVE_WALKWAY = exports.HEIGHT_ABOVE_WALKWAY = 0.0;
 var START_X_LOOK = exports.START_X_LOOK = 3;
-var START_Y_LOOK = exports.START_Y_LOOK = 1;
+var START_Y_LOOK = exports.START_Y_LOOK = 1; // *10 !!!!!!!!!!!!
 var START_Z_LOOK = exports.START_Z_LOOK = 3;
+var START_X_HEX = exports.START_X_HEX = 0;
+var START_Y_HEX = exports.START_Y_HEX = 1 + HEIGHT_ABOVE_WALKWAY; //  *10  !!!!!!!!!!!!
+var START_Z_HEX = exports.START_Z_HEX = 0;
+var START_XYZ = exports.START_XYZ = "".concat(START_X_HEX, ",").concat(START_Y_HEX, ",").concat(START_Z_HEX);
 var X_INDX = exports.X_INDX = 0;
 var Y_INDX = exports.Y_INDX = 1;
 var Z_INDX = exports.Z_INDX = 2;
-var N_N = exports.N_N = "NN";
-var S_S = exports.S_S = "SS";
-var N_W = exports.N_W = "NW";
-var N_E = exports.N_E = "NE";
-var S_E = exports.S_E = "SE";
-var S_W = exports.S_W = "SW";
-var FLAT = exports.FLAT = "FLAT";
 
-},{}],10:[function(require,module,exports){
+//[top_left, top_rght, rght_tip, bot_rght, bot_left, left_tip];
+var TOP_LEFT_HEX_IND = 0;
+var TOP_RGHT_HEX_IND = 1;
+var RGHT_TIP_HEX_IND = 2;
+var BOT_RGHT_HEX_IND = 3;
+var BOT_LEFT_HEX_IND = 4;
+var LEFT_TIP_HEX_IND = 5;
+var MOVE_NN = exports.MOVE_NN = "MOVE_NN";
+var MOVE_SS = exports.MOVE_SS = "MOVE_SS";
+var MOVE_NW = exports.MOVE_NW = "MOVE_NW";
+var MOVE_NE = exports.MOVE_NE = "MOVE_NE";
+var MOVE_SE = exports.MOVE_SE = "MOVE_SE";
+var MOVE_SW = exports.MOVE_SW = "MOVE_SW";
+var MOVE_NO = exports.MOVE_NO = "MOVE_NO";
+var TILT_NN = exports.TILT_NN = "TILT_NN";
+var TILT_NN90 = exports.TILT_NN90 = "TILT_NN90";
+var WALL_NN = exports.WALL_NN = "WALL_NN";
+var WALL_SS = exports.WALL_SS = "WALL_SS";
+var WALL_NW = exports.WALL_NW = "WALL_NW";
+var WALL_NE = exports.WALL_NE = "WALL_NE";
+var WALL_SE = exports.WALL_SE = "WALL_SE";
+var WALL_SW = exports.WALL_SW = "WALL_SW";
+var TILT_SS = exports.TILT_SS = "TILT_SS";
+var TILT_NW = exports.TILT_NW = "TILT_NW";
+var TILT_NE = exports.TILT_NE = "TILT_NE";
+var TILT_SE = exports.TILT_SE = "TILT_SE";
+var TILT_SW = exports.TILT_SW = "TILT_SW";
+var TILT_NONE = exports.TILT_NONE = "TILT_NONE";
+var TILT_SE90 = exports.TILT_SE90 = "TILT_SE90";
+var TEST_NN = exports.TEST_NN = "TEST_NN";
+var TEST_SS = exports.TEST_SS = "TEST_SS";
+var TEST_NW = exports.TEST_NW = "TEST_NW";
+var TEST_NE = exports.TEST_NE = "TEST_NE";
+var TEST_SE = exports.TEST_SE = "TEST_SE";
+var TEST_SW = exports.TEST_SW = "TEST_SW";
+var TEST_NONE = "TEST_NONE";
+var HIGHEST_Y = 10;
+var DROP_PER_TICK_FLOAT = exports.DROP_PER_TICK_FLOAT = 0.05;
+var SQRT_3 = exports.SQRT_3 = Math.sqrt(3);
+var C______RED = exports.C______RED = "red";
+var C_____BLUE = exports.C_____BLUE = "blue";
+var C____GREEN = exports.C____GREEN = "green";
+var C___YELLOW = exports.C___YELLOW = "yellow";
+var C___PURPLE = exports.C___PURPLE = "purple";
+var C____BROWN = exports.C____BROWN = "brown";
+var C_NONE = exports.C_NONE = "pink";
+var COL_1 = exports.COL_1 = C___YELLOW;
+var COL_2 = exports.COL_2 = C___PURPLE;
+var TEST_PASSED = exports.TEST_PASSED = "pass";
+var TEST_FAILED = exports.TEST_FAILED = "FAIL !";
+var MOVE_GO = exports.MOVE_GO = "Go";
+var MOVE_STOP = exports.MOVE_STOP = "Stop";
+var TESTING_PRINT = exports.TESTING_PRINT = "TESTING_PRINT"; // print_moves
+var RUNNING_NO_PRINT = exports.RUNNING_NO_PRINT = "RUNNING_NO_PRINT"; // hide_moves
+
+var ON_NO_TILE = exports.ON_NO_TILE = "ON_NO_TILE"; //  kill
+var ON_OLD_TILE = exports.ON_OLD_TILE = "ON_OLD_TILE"; // kill tile_blocked
+var ON_NEW_TILE = exports.ON_NEW_TILE = "ON_NEW_TILE"; // kill tile_allowed
+
+var TEST_TILE_MOVE = exports.TEST_TILE_MOVE = "TEST_TILE_MOVE";
+var PHYS_TILE_MOVE = exports.PHYS_TILE_MOVE = "PHYS_TILE_MOVE";
+var MOVE_SAME_TILE = exports.MOVE_SAME_TILE = "MOVE_SAME_TILE";
+var MOVE_NEW_TILE = exports.MOVE_NEW_TILE = "MOVE_NEW_TILE";
+var MOVE_BLOCKED = exports.MOVE_BLOCKED = "MOVE_BLOCKED";
+var MOVE_FALLING = exports.MOVE_FALLING = "MOVE_FALLING";
+var MOVE_RISING = "MOVE_RISING";
+
+},{}],11:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21726,7 +21908,6 @@ function makeControls(persp_camera) {
     }
   };
   var onKeyUp = function onKeyUp(event) {
-    //console.log("keypup", event.code);
     switch (event.code) {
       case "ArrowUp":
       case "KeyW":
@@ -21754,7 +21935,6 @@ function makeControls(persp_camera) {
   return controls;
 }
 function moveKeys(delta, controls) {
-  //console.log("movekeys", moveForward);
   // const delta = clock.getDelta();
   //    const speed = 10 * delta;
   var speed = 2 * delta;
@@ -21764,7 +21944,7 @@ function moveKeys(delta, controls) {
   if (moveRight) controls.moveRight(speed);
 }
 
-},{"three/examples/jsm/controls/PointerLockControls.js":4}],11:[function(require,module,exports){
+},{"three/examples/jsm/controls/PointerLockControls.js":4}],12:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -21774,22 +21954,12 @@ function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length)
 function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-var THREE = _interopRequireWildcard(require("three"));
-var _glBench = _interopRequireDefault(require("gl-bench/dist/gl-bench.module"));
-var _perspectiveCamera = require("./perspective-camera.js");
-var _aScene = require("./a-scene.js");
-var _walkwayCoords = require("./tiles/walkway-coords.js");
-var _walkwayCamera = require("./tiles/walkway-camera.js");
-var _groundTiles = require("./tiles/ground-tiles.js");
-var _keyControls = require("./controls/key-controls.js");
-var _aDot = require("./a-dot.js");
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.gameLoop = gameLoop;
+var HEX_CONST = _interopRequireWildcard(require("./constants.js"));
 var _hexTile = require("./tiles/hex-tile.js");
-var _constants = require("./constants.js");
-function _interopRequireDefault(e) {
-  return e && e.__esModule ? e : {
-    "default": e
-  };
-}
 function _interopRequireWildcard(e, t) {
   if ("function" == typeof WeakMap) var r = new WeakMap(),
     n = new WeakMap();
@@ -21810,281 +21980,76 @@ function _interopRequireWildcard(e, t) {
     return f;
   })(e, t);
 }
-var g_walkway_meshes = new Map([]);
-var g_walkway_overlaps = new Map([]);
-var g_walkway_tiles = new Map([]);
-var g_ground_tiles = new Map([]);
-var HI_DPI_ENABLE = Math.min(window.devicePixelRatio, 2);
-var the_width = window.innerWidth - 200;
-var the_height = window.innerHeight - 300;
-var dark_gray = 0x202025;
-var the_scene = (0, _aScene.AScene)(dark_gray);
-var the_fov = 75;
-var width_height = [the_width, the_height];
-var nf_planes = [0.1, 1000];
-var _ref = (0, _hexTile.tileCenterCoord)(_constants.START_X_HEX, _constants.START_Z_HEX),
-  _ref2 = _slicedToArray(_ref, 2),
-  x_cam = _ref2[0],
-  z_cam = _ref2[1];
-var xyz_camera = [x_cam, _constants.START_Y_HEX, z_cam];
-var persp_camera = (0, _perspectiveCamera.PerspCamera)(the_fov, width_height, nf_planes, xyz_camera);
-var _ref3 = (0, _hexTile.tileCenterCoord)(_constants.START_X_LOOK, _constants.START_Z_LOOK),
-  _ref4 = _slicedToArray(_ref3, 2),
-  x_look = _ref4[0],
-  z_look = _ref4[1];
-persp_camera.lookAt(x_look, _constants.START_Y_LOOK, z_look);
-the_scene.add(persp_camera);
-var top_color = 0x8888ff;
-var outline_color = 0x8888ff;
-var six_side_colors = [0x0000cc];
-var tile_colors = [top_color, outline_color, six_side_colors];
-var top_color2 = 0x88ee88;
-var outline_color2 = 0x88ff88;
-var tile_colors2 = [top_color2, outline_color2];
-var _ref5 = (0, _walkwayCoords.makeWalkway)(the_scene, g_walkway_meshes, g_walkway_tiles, g_walkway_overlaps, tile_colors2);
-var _ref6 = _slicedToArray(_ref5, 3);
-g_walkway_meshes = _ref6[0];
-g_walkway_tiles = _ref6[1];
-g_walkway_overlaps = _ref6[2];
-var _ref7 = (0, _groundTiles.ground_field)(g_walkway_meshes, g_ground_tiles, the_scene, -10, 10, 0x3366ee, 0x33ee66);
-var _ref8 = _slicedToArray(_ref7, 2);
-g_walkway_meshes = _ref8[0];
-g_ground_tiles = _ref8[1];
-var ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-the_scene.add(ambientLight);
-var pointLight = new THREE.PointLight(0xffffff, 10);
-pointLight.position.set(2, 3, 4);
-the_scene.add(pointLight);
-var axesHelper = new THREE.AxesHelper(5); // xyz -> rgb
-the_scene.add(axesHelper);
-var a_renderer = new THREE.WebGLRenderer({
-  antialias: true
-});
-a_renderer.setSize(the_width, the_height);
-a_renderer.setPixelRatio(HI_DPI_ENABLE);
-document.body.appendChild(a_renderer.domElement);
-var bench = new _glBench["default"](a_renderer.getContext());
-window.addEventListener("resize", function () {
-  var the_width = window.innerWidth;
-  var the_height = window.innerHeight;
-  (0, _perspectiveCamera.projMatrix)(persp_camera, [the_width, the_height]);
-  a_renderer.setSize(the_width, the_height);
-  a_renderer.setPixelRatio(HI_DPI_ENABLE);
-});
-var controls = (0, _keyControls.makeControls)(persp_camera);
-var rot = Math.PI / 6;
-
-/**
- * 7. ANIMATION LOOP
- */
-var clock = new THREE.Clock();
-var vector = new THREE.Vector3(); // create once and reuse it!
-
-var last_x = 0;
-var last_z = 0;
-var _tick = function tick() {
-  var delta = clock.getDelta();
-  var cam_pos = persp_camera.position;
-  cam_pos.y = (0, _walkwayCamera.walkwayCamera)(cam_pos, g_walkway_overlaps, g_walkway_tiles);
-  (0, _aDot.XyzDot)(the_scene, cam_pos.x, cam_pos.y, cam_pos.z, 0x666666);
-  persp_camera.getWorldDirection(vector);
-  (0, _keyControls.moveKeys)(delta, controls);
-  a_renderer.render(the_scene, persp_camera);
-  window.requestAnimationFrame(_tick);
-  if (cam_pos.x != last_x || cam_pos.z != last_z) {
-    last_x = cam_pos.x;
-    last_z = cam_pos.z;
+function gameLoop(prev_pos, next_pos, cur_y_100_pos, tile_transition, cam_pos) {
+  var move_result = tile_transition.move_result,
+    level_y = tile_transition.level_y;
+  if (move_result == HEX_CONST.MOVE_SAME_TILE) {
+    prev_pos = next_pos;
+  } else if (move_result == HEX_CONST.MOVE_NEW_TILE) {
+    prev_pos = next_pos;
+    next_pos.y = level_y;
+    cur_y_100_pos = level_y;
+  } else if (move_result == HEX_CONST.MOVE_FALLING) {
+    prev_pos = next_pos;
+    // cur_y_100_pos = cur_y_100_pos - 5;
+  } else if (move_result == HEX_CONST.MOVE_BLOCKED) {
+    var _ref = (0, _hexTile.coords2HexIndexes)(prev_pos.x, prev_pos.z),
+      _ref2 = _slicedToArray(_ref, 2),
+      xx = _ref2[0],
+      zz = _ref2[1];
+    var _ref3 = (0, _hexTile.tileCenterCoord)(xx, zz),
+      _ref4 = _slicedToArray(_ref3, 2),
+      xc = _ref4[0],
+      zc = _ref4[1];
+    prev_pos.x = xc;
+    prev_pos.z = zc;
+    cam_pos.x = prev_pos.x;
+    cam_pos.y = prev_pos.y / 100;
+    cam_pos.z = prev_pos.z;
+    next_pos = prev_pos;
+  } else {
+    ee("move in gameLoop");
   }
-};
-_tick();
-function draw(now) {
-  bench.begin();
-  // monitored code
-  bench.end();
-  bench.nextFrame(now);
+  return [prev_pos, next_pos, cur_y_100_pos];
 }
-a_renderer.setAnimationLoop(function (now) {
-  return draw(now);
-});
 
-},{"./a-dot.js":7,"./a-scene.js":8,"./constants.js":9,"./controls/key-controls.js":10,"./perspective-camera.js":12,"./tiles/ground-tiles.js":14,"./tiles/hex-tile.js":16,"./tiles/walkway-camera.js":18,"./tiles/walkway-coords.js":19,"gl-bench/dist/gl-bench.module":1,"three":3}],12:[function(require,module,exports){
+},{"./constants.js":10,"./tiles/hex-tile.js":23}],13:[function(require,module,exports){
 "use strict";
 
-function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
-function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
-function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.PerspCamera = PerspCamera;
-exports.projMatrix = projMatrix;
+exports.geoMesh = geoMesh;
 var _three = require("three");
-function PerspCamera(the_fov, width_height, nf_planes, xyz_pos) {
-  var _persp_camera$positio;
-  var _width_height = _slicedToArray(width_height, 2),
-    camera_width = _width_height[0],
-    camera_height = _width_height[1];
-  var _nf_planes = _slicedToArray(nf_planes, 2),
-    near_plane = _nf_planes[0],
-    far_plane = _nf_planes[1];
-  var camera_aspect = camera_width / camera_height;
-  var persp_camera = new _three.PerspectiveCamera(the_fov, camera_aspect, near_plane, far_plane);
-  (_persp_camera$positio = persp_camera.position).set.apply(_persp_camera$positio, _toConsumableArray(xyz_pos));
-  persp_camera.lookAt(3, 2, 2);
-  persp_camera.lookAt(0, 0, 0);
-  return persp_camera;
+// only ramp needs to be double sided
+function geoMesh(group, vertices_set, a_color) {
+  var side_geometry = geometricVertices(vertices_set);
+  var side_material = new _three.MeshLambertMaterial({
+    color: a_color,
+    transparent: false,
+    opacity: 1
+  });
+  var hexagon_side = new _three.Mesh(side_geometry, side_material);
+  side_material.side = _three.DoubleSide;
+  var edges = new _three.EdgesGeometry(side_geometry);
+  var lineMaterial = new _three.LineBasicMaterial({
+    color: a_color,
+    linewidth: 256
+  });
+  lineMaterial.side = _three.DoubleSide;
+  var edgeLines = new _three.LineSegments(edges, lineMaterial);
+  hexagon_side.add(edgeLines);
+  group.add(hexagon_side);
+  //  return hexagon_side;       // so can change color later via hexagon_side.material.color.set(0xff0000);
 }
-function projMatrix(the_camera, width_height) {
-  var _width_height2 = _slicedToArray(width_height, 2),
-    camera_width = _width_height2[0],
-    camera_height = _width_height2[1];
-  var camera_aspect = camera_width / camera_height;
-  the_camera.aspect = camera_aspect;
-  the_camera.updateProjectionMatrix();
-}
-
-},{"three":3}],13:[function(require,module,exports){
-"use strict";
-
-function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.colorRight = exports.colorLeft = void 0;
-exports.hexNewColor = hexNewColor;
-var colorLeft = function colorLeft(hex) {
-  var r = hex & 0xff0000;
-  var g = hex & 0x00ff00;
-  var b = hex & 0x0000ff;
-  var r2 = r >> 16;
-  var g2 = g << 8;
-  var b2 = b << 8;
-  var color_left = r2 | g2 | b2;
-  return color_left;
-};
-exports.colorLeft = colorLeft;
-var colorRight = function colorRight(hex) {
-  var r = hex & 0xff0000;
-  var g = hex & 0x00ff00;
-  var b = hex & 0x0000ff;
-  var r2 = r >> 8;
-  var g2 = g >> 8;
-  var b2 = b << 16;
-  var color_right = r2 | g2 | b2;
-  return color_right;
-};
-exports.colorRight = colorRight;
-function tileColor(g_hex_tiles, xz_color, new_color) {
-  // console.log("OLD", xz_color, new_color);
-  var xz_index = xz_color[0];
-  if (g_hex_tiles.has(xz_index)) {
-    var recolor_tile = g_hex_tiles.get(xz_index);
-    var top_hex_group = recolor_tile.children[0];
-    var new_material = top_hex_group.material.clone();
-    new_material.color.setHex(new_color);
-    top_hex_group.material = new_material;
-    top_hex_group.material.needsUpdate = true;
-  }
-}
-function tileColor2(g_hex_tiles, xz_color, new_color) {
-  var xz_index = xz_color[0];
-  if (g_hex_tiles.has(xz_index)) {
-    var recolor_tile = g_hex_tiles.get(xz_index);
-    var top_hex_group = recolor_tile.children[0];
-    var new_material = top_hex_group.material.clone();
-    new_material.color.setHex(new_color);
-    top_hex_group.material = new_material;
-    top_hex_group.material.needsUpdate = true;
-  }
-}
-function hexNewColor(g_hex_tiles, x, z, new_color) {
-  var _tileCenterCoord = tileCenterCoord(x, z),
-    _tileCenterCoord2 = _slicedToArray(_tileCenterCoord, 2),
-    xx = _tileCenterCoord2[0],
-    zz = _tileCenterCoord2[1];
-  var xz_index = intTileIndex(xx, zz);
-  if (g_hex_tiles.has(xz_index)) {
-    var recolor_tile = g_hex_tiles.get(xz_index);
-    recolor_tile.userData.the_color = new_color;
-    tileColor(g_hex_tiles, recolor_tile, new_color);
-  }
+function geometricVertices(the_vertices) {
+  var float_vertices = new Float32Array(the_vertices);
+  var the_geometry = new _three.BufferGeometry();
+  the_geometry.setAttribute("position", new _three.Float32BufferAttribute(float_vertices, 3));
+  return the_geometry;
 }
 
-},{}],14:[function(require,module,exports){
-"use strict";
-
-function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.groundRow = groundRow;
-exports.groundTile = groundTile;
-exports.ground_field = ground_field;
-var _three = require("three");
-var _constants = require("../constants.js");
-var _hexTile = require("./hex-tile.js");
-var _meshTiles = require("./mesh-tiles.js");
-function ground_field(hex_tiles, ground_tiles, the_scene, start_x, end_x, base_color) {
-  for (var x = start_x; x < end_x; x++) {
-    var _groundRow = groundRow(hex_tiles, ground_tiles, the_scene, x, -10, 10, base_color);
-    var _groundRow2 = _slicedToArray(_groundRow, 2);
-    hex_tiles = _groundRow2[0];
-    ground_tiles = _groundRow2[1];
-  }
-  return [hex_tiles, ground_tiles];
-}
-function groundRow(hex_tiles, ground_tiles, the_scene, x_row, start_z, end_z, base_color) {
-  var top_color = 0xff0000;
-  var outline_color = 0xff8888;
-  var tile_colors = [top_color, outline_color];
-  for (var z = start_z; z < end_z; z++) {
-    hex_tiles = groundTile(hex_tiles, the_scene, [x_row, -1, z], tile_colors);
-  }
-  return [hex_tiles, ground_tiles];
-}
-function groundTile(hex_tiles, the_scene, x_y_z, tile_colors) {
-  var _x_y_z = _slicedToArray(x_y_z, 3),
-    x_index = _x_y_z[0],
-    y_height = _x_y_z[1],
-    z_index = _x_y_z[2];
-  var _tile_colors = _slicedToArray(tile_colors, 2),
-    top_color = _tile_colors[0],
-    outline_color = _tile_colors[1];
-  var _ref = (0, _hexTile.tileCenterCoord)(x_index, z_index),
-    _ref2 = _slicedToArray(_ref, 2),
-    x_center = _ref2[0],
-    z_center = _ref2[1];
-  var tile_radius = 1;
-  var a_tile = new _three.Group();
-  a_tile.position.set(x_center, 0, z_center);
-  var stair_tiles = (0, _hexTile.hexPoints)(tile_radius, y_height, _constants.FLAT, 0);
-  var top_triangles = (0, _hexTile.tileTriangles)(stair_tiles);
-  (0, _meshTiles.geoMesh)(a_tile, top_triangles, top_color, outline_color);
-  the_scene.add(a_tile);
-  (0, _meshTiles.addCoords)(a_tile, x_y_z, [_constants.FLAT, 0]);
-  var xyz_index = "".concat(x_index, ",").concat(y_height, ",").concat(z_index);
-  hex_tiles.set(xyz_index, a_tile);
-  return hex_tiles;
-}
-
-},{"../constants.js":9,"./hex-tile.js":16,"./mesh-tiles.js":17,"three":3}],15:[function(require,module,exports){
+},{"three":3}],14:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23373,7 +23338,1004 @@ var type_face = exports.type_face = {
   underlineThickness: 50
 };
 
-},{}],16:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
+"use strict";
+
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+var _miscFuncs = require("./misc-funcs.js");
+var THREE = _interopRequireWildcard(require("three"));
+var _constants = _interopRequireWildcard(require("./constants.js"));
+var HEX_CONST = _constants;
+var _circles = require("./maps/circles.js");
+var _walkwayHeights = require("./tiles/walkway-heights.js");
+var _hexTile = require("./tiles/hex-tile.js");
+var _camAdjust = require("./tiles/cam-adjust/camAdjust.js");
+var _liveTest = require("./tests/live-test.js");
+var _keyControls = require("./controls/key-controls.js");
+var _aDot = require("./a-dot.js");
+var _startTiles = require("./tiles/start-tiles.js");
+var _buildTiles = require("./build-tiles.js");
+var _gameLoop = require("./game-loop.js");
+var _miscFunc = require("./tiles/misc-func.js");
+function _interopRequireWildcard(e, t) {
+  if ("function" == typeof WeakMap) var r = new WeakMap(),
+    n = new WeakMap();
+  return (_interopRequireWildcard = function _interopRequireWildcard(e, t) {
+    if (!t && e && e.__esModule) return e;
+    var o,
+      i,
+      f = {
+        __proto__: null,
+        "default": e
+      };
+    if (null === e || "object" != _typeof(e) && "function" != typeof e) return f;
+    if (o = t ? n : r) {
+      if (o.has(e)) return o.get(e);
+      o.set(e, f);
+    }
+    for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]);
+    return f;
+  })(e, t);
+}
+// 2 misc-func.js  and misc-funcs.js
+
+var the_coords, test_xyz_camera, test_xyz_lookat, test_name;
+var g_walkway_coords = the_coords;
+var TEST_DIRECTION = HEX_CONST.TEST_SW; //
+var TEST_NUMBER_1_TO_11 = 0; // if 0 then none
+var GAME_WALKWAY = _circles.CIRCLE_WALKWAY;
+var GAME_WALLS = _circles.CIRCLE_WALLS;
+var GAME_TRAMPOLINES = _circles.CIRCLE_TRAMPOLINES;
+var GET_ABOVE_TILES = 1;
+if (TEST_NUMBER_1_TO_11 == 0) {
+  var _ref = (0, _startTiles.startGameTiles)(GAME_WALKWAY),
+    walkway_coords = _ref.walkway_coords,
+    start_xyz_camera = _ref.start_xyz_camera,
+    start_xyz_lookat = _ref.start_xyz_lookat;
+  the_coords = walkway_coords;
+  test_xyz_camera = start_xyz_camera;
+  test_xyz_lookat = start_xyz_lookat;
+  test_name = "";
+} else {
+  var _ref2 = (0, _liveTest.setUpLiveTests)(TEST_DIRECTION, TEST_NUMBER_1_TO_11);
+  var _ref3 = _slicedToArray(_ref2, 4);
+  the_coords = _ref3[0];
+  test_xyz_camera = _ref3[1];
+  test_xyz_lookat = _ref3[2];
+  test_name = _ref3[3];
+}
+var _ref4 = (0, _buildTiles.buildScene)(test_xyz_camera),
+  the_scene = _ref4.the_scene,
+  persp_camera = _ref4.persp_camera,
+  the_width = _ref4.the_width,
+  the_height = _ref4.the_height;
+
+//persp_camera.position.set(...test_xyz_camera);
+persp_camera.position.set(test_xyz_camera[0], test_xyz_camera[1] / 100, test_xyz_camera[2]);
+persp_camera.lookAt(test_xyz_lookat[0], test_xyz_lookat[1] / 100, test_xyz_lookat[2]);
+the_scene.add(persp_camera);
+var _ref5 = (0, _buildTiles.buildTiles)(the_scene, GAME_WALLS, the_coords),
+  g_walkway_meshes = _ref5.g_walkway_meshes,
+  g_walkway_tiles = _ref5.g_walkway_tiles,
+  g_walkway_columns = _ref5.g_walkway_columns,
+  g_wall_squares = _ref5.g_wall_squares,
+  g_wall_columns = _ref5.g_wall_columns,
+  g_ground_tiles = _ref5.g_ground_tiles;
+
+// const { g_walkway_meshes, g_walkway_tiles, g_walkway_columns, g_wall_squares, g_wall_columns, g_ground_tiles } = buildTrampolines(
+//     the_scene,
+//     GAME_TRAMPOLINES,
+//     the_coords
+// );
+
+(0, _liveTest.staticTests)();
+var _ref6 = (0, _buildTiles.buildRenderer)(the_scene, the_width, the_height),
+  a_renderer = _ref6.a_renderer,
+  bench = _ref6.bench;
+(0, _buildTiles.buildListener)(persp_camera);
+var key_controls = (0, _keyControls.makeControls)(persp_camera);
+
+/**
+ * 7. ANIMATION LOOP
+ */
+var clock = new THREE.Clock();
+var vector_3 = new THREE.Vector3(); // create once and reuse it!
+
+var cam_start = persp_camera.position;
+var prev_pos = {
+  x: cam_start.x,
+  y: cam_start.y,
+  z: cam_start.z
+};
+var cur_y_100_pos = cam_start.y * 100; // 1, 1.5, 2 ...
+var next_pos;
+
+// cur_y_100_pos = 600; since we minus 5
+var tile_transition = {
+  move_result: HEX_CONST.MOVE_FALLING,
+  level_y: cur_y_100_pos
+};
+var _tick = function tick() {
+  var clock_delta = clock.getDelta();
+  var cam_pos = persp_camera.position;
+  next_pos = {
+    x: cam_pos.x,
+    y: cur_y_100_pos,
+    z: cam_pos.z
+  };
+  if (tile_transition.move_result == HEX_CONST.MOVE_FALLING) {
+    var _ref7 = (0, _hexTile.coords2HexIndexes)(cam_pos.x, cam_pos.z),
+      _ref8 = _slicedToArray(_ref7, 2),
+      prev_x_ind = _ref8[0],
+      prev_z_ind = _ref8[1];
+    var tile_index = (0, _miscFunc.hexIndex)(prev_x_ind, cur_y_100_pos, prev_z_ind);
+    if (g_walkway_tiles.has(tile_index)) {
+      tile_transition = {
+        move_result: HEX_CONST.MOVE_SAME_TILE,
+        level_y: cur_y_100_pos
+      };
+    } else {
+      cur_y_100_pos = cur_y_100_pos - 5;
+    }
+  } else {
+    tile_transition = (0, _camAdjust.transition2Tile)(HEX_CONST.PHYS_TILE_MOVE, _constants.RUNNING_NO_PRINT, g_walkway_tiles, g_walkway_columns, g_wall_squares, g_wall_columns, prev_pos, next_pos);
+    if (tile_transition.move_result == HEX_CONST.MOVE_FALLING) {}
+  }
+  var _ref9 = (0, _gameLoop.gameLoop)(prev_pos, next_pos, cur_y_100_pos, tile_transition, cam_pos);
+  var _ref0 = _slicedToArray(_ref9, 3);
+  prev_pos = _ref0[0];
+  next_pos = _ref0[1];
+  cur_y_100_pos = _ref0[2];
+  persp_camera.getWorldDirection(vector_3);
+  (0, _keyControls.moveKeys)(clock_delta, key_controls);
+  var inc_y = (0, _walkwayHeights.walkwayIncline)(g_walkway_tiles, next_pos);
+  persp_camera.position.y = cur_y_100_pos / 100 + GET_ABOVE_TILES + inc_y;
+
+  // XyzDot(the_scene, cam_pos.x, persp_camera.position.y, cam_pos.z, 0x666666);
+
+  a_renderer.render(the_scene, persp_camera);
+  (0, _miscFuncs.tt)(cur_y_100_pos);
+  if (cur_y_100_pos <= 0) {
+    cur_y_100_pos = 1600;
+  }
+
+  // if (persp_camera.position.y > 0) {
+  //     //  persp_camera.position.y -= GET_ABOVE_TILES;
+  // }
+  window.requestAnimationFrame(_tick);
+};
+_tick();
+function draw(now) {
+  bench.begin();
+  // monitored code
+  bench.end();
+  bench.nextFrame(now);
+}
+a_renderer.setAnimationLoop(function (now) {
+  return draw(now);
+});
+
+},{"./a-dot.js":7,"./build-tiles.js":9,"./constants.js":10,"./controls/key-controls.js":11,"./game-loop.js":12,"./maps/circles.js":16,"./misc-funcs.js":18,"./tests/live-test.js":20,"./tiles/cam-adjust/camAdjust.js":21,"./tiles/hex-tile.js":23,"./tiles/misc-func.js":25,"./tiles/start-tiles.js":36,"./tiles/walkway-heights.js":40,"three":3}],16:[function(require,module,exports){
+"use strict";
+
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.CIRCLE_WALLS = exports.CIRCLE_WALKWAY = exports.CIRCLE_TRAMPOLINES = void 0;
+var HEX_CONST = _interopRequireWildcard(require("../constants.js"));
+function _interopRequireWildcard(e, t) {
+  if ("function" == typeof WeakMap) var r = new WeakMap(),
+    n = new WeakMap();
+  return (_interopRequireWildcard = function _interopRequireWildcard(e, t) {
+    if (!t && e && e.__esModule) return e;
+    var o,
+      i,
+      f = {
+        __proto__: null,
+        "default": e
+      };
+    if (null === e || "object" != _typeof(e) && "function" != typeof e) return f;
+    if (o = t ? n : r) {
+      if (o.has(e)) return o.get(e);
+      o.set(e, f);
+    }
+    for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]);
+    return f;
+  })(e, t);
+}
+var x_start = 2;
+var y_start = 1;
+var z_start = 7;
+var x_look = 3;
+var y_look = 1;
+var z_look = 3;
+
+// const CIRCLE_WALKWAY_ANGLED = [
+//     [x_start, y_start, z_start],
+//     [x_look, y_look, z_look],
+//     ["003", "0.2", "006", HEX_CONST.C_____BLUE, HEX_CONST.TILT_SE, 1.0],
+
+//     ["004", "1.2", "006", HEX_CONST.C____GREEN, HEX_CONST.TILT_SE, 1.0],
+//     ["003", "1.2", "007", HEX_CONST.C____GREEN, HEX_CONST.TILT_SS, 1.0],
+
+//     ["002", "1.2", "007", HEX_CONST.C____GREEN, HEX_CONST.TILT_SW, 1.0],
+//     ["002", y_start, "006", HEX_CONST.C____GREEN, HEX_CONST.TILT_NW, 1.0],
+//     ["003", "1.2", "005", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1.0],
+//     ["004", "1.2", "005", HEX_CONST.C____GREEN, HEX_CONST.TILT_NE, 1.0],
+//     ["001", "2.2", "006", HEX_CONST.C______RED, HEX_CONST.TILT_NW, 1.0]
+// ];
+
+// we don't do hexPoints, but instead 2 triangles vertical with no incline angles can also do a band, not meet at bottom
+
+var CIRCLE_WALKWAY_nn = [[x_start, y_start, z_start],
+// fix me
+[x_look, y_look, z_look], ["003", "1.0", "006"], ["004", "1.0", "006", HEX_CONST.C______RED], ["003", "1.0", "007", HEX_CONST.C___PURPLE], ["002", "1.0", "007", HEX_CONST.C____BROWN], ["002", "1.0", "006", HEX_CONST.C____GREEN], ["004", "1.0", "005", HEX_CONST.C___YELLOW], ["003", "2.0", "004", HEX_CONST.C_____BLUE], ["003", "1.0", "005", HEX_CONST.C_____BLUE, HEX_CONST.TILT_NN, 1]];
+var CIRCLE_WALKWAY_ne = [[x_start, y_start, z_start],
+// fix me
+[x_look, y_look, z_look], ["003", "1.0", "006"], ["004", "1.0", "006", HEX_CONST.C______RED], ["003", "1.0", "007", HEX_CONST.C___PURPLE], ["002", "1.0", "007", HEX_CONST.C____BROWN], ["002", "1.0", "006", HEX_CONST.C____GREEN], ["003", "2.0", "004", HEX_CONST.C_____BLUE], ["004", "1.0", "005", HEX_CONST.C___YELLOW], ["005", "1.0", "004", HEX_CONST.C___YELLOW, HEX_CONST.TILT_NE, 1], ["006", "2.0", "003", HEX_CONST.C___YELLOW]];
+var CIRCLE_WALKWAY_NW = [[x_start, y_start, z_start],
+// fix me
+[x_look, y_look, z_look], ["003", "1.0", "006"], ["004", "1.0", "006", HEX_CONST.C______RED], ["003", "1.0", "007", HEX_CONST.C___PURPLE], ["002", "1.0", "007", HEX_CONST.C____BROWN], ["002", "1.0", "006", HEX_CONST.C____GREEN], ["003", "2.0", "004", HEX_CONST.C_____BLUE], ["002", "1.0", "006", HEX_CONST.C___YELLOW], ["001", "1.0", "006", HEX_CONST.C___YELLOW, HEX_CONST.TILT_NW, 1], ["000", "2.0", "006", HEX_CONST.C___YELLOW]];
+var CIRCLE_WALKWAY__ss = [[x_start, y_start, z_start],
+// fix me
+[x_look, y_look, z_look], ["003", "1.0", "006"], ["004", "1.0", "006", HEX_CONST.C______RED], ["002", "1.0", "007", HEX_CONST.C____BROWN], ["002", "1.0", "006", HEX_CONST.C____GREEN], ["004", "1.0", "005", HEX_CONST.C___YELLOW], ["003", "1.0", "007", HEX_CONST.C___PURPLE], ["003", "1.0", "008", HEX_CONST.C___PURPLE, HEX_CONST.TILT_SS, 1], ["003", "2.0", "009", HEX_CONST.C___PURPLE]];
+var CIRCLE_WALKWAY_sw = [[x_start, y_start, z_start],
+// fix me
+[x_look, y_look, z_look], ["003", "1.0", "006"], ["004", "1.0", "006", HEX_CONST.C______RED],
+//   ["002", "1.0", "007", HEX_CONST.C____BROWN],
+["002", "1.0", "006", HEX_CONST.C____GREEN], ["004", "1.0", "005", HEX_CONST.C___YELLOW], ["002", "1.0", "007", HEX_CONST.C____BROWN], ["001", "1.0", "008", HEX_CONST.C____BROWN, HEX_CONST.TILT_SW, 1], ["000", "2.0", "009", HEX_CONST.C____BROWN]];
+var CIRCLE_WALKWAYse = [[x_start, y_start, z_start],
+// fix me
+[x_look, y_look, z_look], ["003", "1.0", "006"],
+// ["004", "1.0", "006", HEX_CONST.C______RED],
+//   ["002", "1.0", "007", HEX_CONST.C____BROWN],
+["002", "1.0", "006", HEX_CONST.C____GREEN], ["004", "1.0", "005", HEX_CONST.C___YELLOW], ["004", "1.0", "006", HEX_CONST.C______RED], ["005", "1.0", "006", HEX_CONST.C______RED, HEX_CONST.TILT_SE, 1], ["006", "2.0", "006", HEX_CONST.C______RED]];
+var CIRCLE_WALKWAY_smnp = [[x_start, y_start, z_start],
+// fix me
+[x_look, y_look, z_look], ["004", "1.2", "006", HEX_CONST.C____GREEN], ["003", "1.2", "007", HEX_CONST.C______RED], ["002", "1.2", "007", HEX_CONST.C___YELLOW], ["002", y_start, "006", HEX_CONST.C___PURPLE], ["003", "1.2", "005", HEX_CONST.C_____BLUE], ["004", "1.2", "005", HEX_CONST.C____BROWN]];
+var CIRCLE_WALKWAYttt = [[0, 2, 0],
+// fix me
+[0, 1, 0], ["000", "2.0", "000"], ["000", "1.0", "-01", HEX_CONST.C___YELLOW, HEX_CONST.TILT_SS, 1] //nnDownToFlat
+];
+var CIRCLE_WALKWAYFLOWER = [
+// FLOWER
+[x_start, y_start, z_start], [x_look, y_look, z_look],
+//    ["003", "0.2", "006", HEX_CONST.C_____BLUE, HEX_CONST.TILT_SE, 1.0],
+
+["004", "1", "006", HEX_CONST.C____GREEN, HEX_CONST.TILT_SE, 1.0], ["003", "1", "007", HEX_CONST.C____GREEN, HEX_CONST.TILT_SS, 1.0], ["002", "1", "007", HEX_CONST.C____GREEN, HEX_CONST.TILT_SW, 1.0], ["002", "1", "006", HEX_CONST.C____GREEN, HEX_CONST.TILT_NW, 1.0], ["003", "1", "005", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1.0], ["004", "1", "005", HEX_CONST.C____GREEN, HEX_CONST.TILT_NE, 1.0]
+//  ["001", "2.2", "006", HEX_CONST.C______RED, HEX_CONST.TILT_NW, 1.0]
+];
+var CIRCLE_WALKWAY_HAT = [
+// hat
+[x_start, y_start, z_start], [x_look, y_look, z_look],
+//    ["003", "0.2", "006", HEX_CONST.C_____BLUE, HEX_CONST.TILT_SE, 1.0],
+
+["004", "1", "006", HEX_CONST.C____GREEN, HEX_CONST.TILT_NW, 1.0], ["003", "1", "007", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1.0], ["002", "1", "007", HEX_CONST.C____GREEN, HEX_CONST.TILT_NE, 1.0], ["002", "1", "006", HEX_CONST.C____GREEN, HEX_CONST.TILT_SE, 1.0], ["003", "1", "005", HEX_CONST.C____GREEN, HEX_CONST.TILT_SS, 1.0], ["004", "1", "005", HEX_CONST.C____GREEN, HEX_CONST.TILT_SW, 1.0]
+//  ["001", "2.2", "006", HEX_CONST.C______RED, HEX_CONST.TILT_NW, 1.0]
+];
+var CIRCLE_WALLS_e = [
+  //  ["000", "3", "-03", HEX_CONST.C_____BLUE, HEX_CONST.WALL_SS, 1]
+  // ["003", "1.3", "008", HEX_CONST.C______RED, HEX_CONST.WALL_NN, 0.6],
+  // ["004", "1.4", "006", HEX_CONST.C____GREEN, HEX_CONST.WALL_NW, 0.9],
+  // ["001", "1.5", "006", HEX_CONST.C___PURPLE, HEX_CONST.WALL_SE, 2.0],
+  // ["005", "1.2", "004", HEX_CONST.C____BROWN, HEX_CONST.WALL_SW, 3.0],
+  // ["001", "1.2", "008", HEX_CONST.C___YELLOW, HEX_CONST.WALL_NE, 1.0]
+];
+var CIRCLE_WALKWAY_loop = [[0, 2, 0],
+// fix me
+[0, 1, 0], ["000", "2.0", "000"], ["000", "2.0", "-01", HEX_CONST.C_____BLUE],
+//nnFlatToFlat
+
+["000", "2.0", "-02", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1],
+// flattoUP
+
+["000", "4.0", "-02", HEX_CONST.C____GREEN, HEX_CONST.TILT_SS, 1],
+// flattoUP
+
+["000", "5.0", "-01", HEX_CONST.C_____BLUE] //nnFlatToFlat
+];
+var CIRCLE_WALKWAY_curvy = [
+//    [0, 2, 0], // start
+[0, 3, -6],
+// start
+[0, 1, -7],
+//[0, 1, 0],
+["000", "2.0", "000"], ["000", "2.0", "-01", HEX_CONST.C_____BLUE],
+//nnFlatToFlat
+
+["000", "2.0", "-02", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1],
+// flattoUP
+
+["000", "3.0", "-03", HEX_CONST.C___YELLOW, HEX_CONST.TILT_NN, 1],
+//UPtoflat
+
+["000", "4.0", "-04", HEX_CONST.C___PURPLE],
+// uptoFLAT
+
+["000", "3.0", "-05", HEX_CONST.C___YELLOW, HEX_CONST.TILT_SS, 1],
+//nnDownToFlat
+["000", "3.0", "-06", HEX_CONST.C______RED, HEX_CONST.TILT_NN, 1],
+//nnDownToFlat
+["000", "4.0", "-07", HEX_CONST.C______RED],
+//nnDownToFlat
+
+["100", "4.0", "-07", HEX_CONST.C______RED, HEX_CONST.TILT_NE, 1],
+//nnDownToFlat
+
+["000", "2.0", "1", HEX_CONST.C____GREEN, HEX_CONST.TILT_SS, 1],
+// flattoUP
+
+["000", "3.0", "2", HEX_CONST.C____GREEN],
+// flattoUP
+
+["-1", "3.0", "2", HEX_CONST.C____GREEN],
+// flattoUP
+["-1", "3.0", "1", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1],
+// flattoUP
+["-1", "4.0", "0", HEX_CONST.C____GREEN],
+// flattoUP
+["0", "4.0", "0", HEX_CONST.C____GREEN] // flattoUP
+];
+var CIRCLE_WALLS = exports.CIRCLE_WALLS = [["001", "200", "002", HEX_CONST.C_____BLUE, HEX_CONST.WALL_SW, 1.5],
+//["001", "2", "02", HEX_CONST.C_____BLUE, HEX_CONST.WALL_SW, 1.5],
+["001", "200", "003", HEX_CONST.C___YELLOW, HEX_CONST.WALL_NW, 0.5],
+//["001", "2", "3", HEX_CONST.C___YELLOW, HEX_CONST.WALL_NW, 0.5],
+
+["000", "200", "004", HEX_CONST.C______RED, HEX_CONST.WALL_NN, 1.5],
+//["00", "2", "004", HEX_CONST.C______RED, HEX_CONST.WALL_NN, 1.5],
+
+["-01", "200", "004", HEX_CONST.C___PURPLE, HEX_CONST.WALL_NE, 0.5],
+///  ["-1", "2", "004", HEX_CONST.C___PURPLE, HEX_CONST.WALL_NE, 0.5],
+["-01", "200", "003", HEX_CONST.C____BROWN, HEX_CONST.WALL_SE, 1.5] ///["-1", "2", "003", HEX_CONST.C____BROWN, HEX_CONST.WALL_SE, 1.5]
+];
+var CIRCLE_WALKWAY = exports.CIRCLE_WALKWAY = [[0, 605, 0],
+//[0, 900, -2], //  [0, 6, 0], // start
+[0, 500, -2],
+// [0, 1, 3],
+["000", "350", "003"],
+//["000", "3.5", "003"],
+
+["000", "200", "003"],
+//    ["000", "2.0", "003"],
+
+["000", "200", "002"],
+//   ["000", "2.0", "002"],
+["000", "200", "001"],
+//["000", "2.0", "001"],
+["000", "200", "000"],
+//["000", "2.0", "000"],
+
+["000", "200", "-01", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1],
+//["000", "2.0", "-01", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1],
+["000", "300", "-02"],
+//["000", "3.0", "-02"],
+["001", "300", "-02", HEX_CONST.C______RED, HEX_CONST.TILT_SE, 1],
+//    ["001", "3.0", "-02", HEX_CONST.C______RED, HEX_CONST.TILT_SE, 1],
+["002", "400", "-02"],
+//["002", "4.0", "-02"],
+["001", "400", "-01", HEX_CONST.C______RED, HEX_CONST.TILT_SW, 1],
+//["001", "4.0", "-01", HEX_CONST.C______RED, HEX_CONST.TILT_SW, 1],
+["000", "500", "000"],
+//["000", "5.0", "0"],
+["000", "500", "-01", HEX_CONST.C______RED, HEX_CONST.TILT_NN, 1],
+//["0", "5.0", "-01", HEX_CONST.C______RED, HEX_CONST.TILT_NN, 1],
+["000", "600", "-02"],
+//["000", "6.0", "-2"],
+["000", "600", "-03"],
+// ["000", "6.0", "-3"],
+["000", "600", "-04"],
+//["000", "6.0", "-4"],
+["001", "600", "-04"],
+//["001", "6.0", "-4"],
+["002", "600", "-04"] //["002", "6.0", "-4"]
+];
+// NB only 1.0  1.5
+
+var CIRCLE_TRAMPOLINES = exports.CIRCLE_TRAMPOLINES = [["-04", "200", "-04", HEX_CONST.C____GREEN]];
+
+},{"../constants.js":10}],17:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.axial_round = axial_round;
+exports.coords2HexIndexes = coords2HexIndexes;
+exports.distance2hexpoints = distance2hexpoints;
+exports.tileCenterCoord = tileCenterCoord;
+var sqrt_3 = Math.sqrt(3);
+function distance2hexpoints(hex_point_1, hex_point_2) {
+  var x_diff = hex_point_2[0] - hex_point_1[0];
+  var z_diff = hex_point_2[2] - hex_point_1[2];
+  var length = Math.sqrt(x_diff * x_diff + z_diff * z_diff);
+  return length;
+}
+
+// https://observablehq.com/@jrus/hexround
+function axial_round(x, y) {
+  var xgrid = Math.round(x),
+    ygrid = Math.round(y);
+  x -= xgrid, y -= ygrid; // remainder
+  var dx = Math.round(x + 0.5 * y) * (x * x >= y * y);
+  var dy = Math.round(y + 0.5 * x) * (x * x < y * y);
+  var not_neg_0_x = xgrid + dx + 0;
+  var not_neg_0y = ygrid + dy + 0;
+  return [not_neg_0_x, not_neg_0y];
+}
+
+//  https://www.redblobgames.com/grids/hexagons/#pixel-to-hex
+//function pixel_to_flat_he xMe(x_coord, z_coord) {
+//       camCoords2HexIndexes()
+function coords2HexIndexes(x_coord, z_coord) {
+  // invert the scaling
+  var x = x_coord / 1;
+  var y = z_coord / 1;
+  // cartesian to hex
+  var q = 2 / 3 * x;
+  var r = -1 / 3 * x + sqrt_3 / 3 * y;
+  var ar = axial_round(q, r);
+  return ar;
+}
+function tileCenterCoord(x_tile, z_tile) {
+  var x_coord = 3 / 2 * x_tile;
+  var z_coord = sqrt_3 / 2 * x_tile + sqrt_3 * z_tile;
+  coords2HexIndexes(x_coord, z_coord);
+  return [x_coord, z_coord];
+}
+
+},{}],18:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.tt = exports.ee = exports.TT = exports.EE = void 0;
+// 2 misc-func.js  and misc-funcs.js
+
+/*
+cons ole.log("hexPoints unknown  up_direction==", up_direction);
+ ee("hexPoints unknown  up_direction==", up_direction);
+ */
+
+var ee = function ee() {
+  var _window;
+  var prefix = "SYSTEM ERROR :";
+  for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
+  }
+  if (typeof args[0] === "string") {
+    args[0] = "".concat(prefix, " ").concat(args[0]);
+  } else {
+    args.unshift(prefix);
+  }
+  (_window = window["con" + "sole"]).log.apply(_window, args);
+};
+
+/*
+cons ole.log(`TEST allowed NW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
+tt(`allowed NW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
+*/
+exports.ee = ee;
+var tt = function tt() {
+  var _window2;
+  var prefix = "TEST ";
+  for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+    args[_key2] = arguments[_key2];
+  }
+  if (typeof args[0] === "string") {
+    args[0] = "".concat(prefix, " ").concat(args[0]);
+  } else {
+    args.unshift(prefix);
+  }
+  (_window2 = window["con" + "sole"]).log.apply(_window2, args);
+};
+exports.tt = tt;
+var TT = exports.TT = tt;
+var EE = exports.EE = ee;
+
+},{}],19:[function(require,module,exports){
+"use strict";
+
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.PerspCamera = PerspCamera;
+exports.projMatrix = projMatrix;
+var _three = require("three");
+function PerspCamera(the_fov, width_height, nf_planes, xyz_pos) {
+  var _width_height = _slicedToArray(width_height, 2),
+    camera_width = _width_height[0],
+    camera_height = _width_height[1];
+  var _nf_planes = _slicedToArray(nf_planes, 2),
+    near_plane = _nf_planes[0],
+    far_plane = _nf_planes[1];
+  var camera_aspect = camera_width / camera_height;
+  var persp_camera = new _three.PerspectiveCamera(the_fov, camera_aspect, near_plane, far_plane);
+  //    persp_camera.position.set(...xyz_pos);
+  persp_camera.position.set(xyz_pos.x, xyz_pos.y / 100, xyz_pos.z);
+  persp_camera.lookAt(3, 2, 2);
+  persp_camera.lookAt(0, 0, 0);
+  return persp_camera;
+}
+function projMatrix(the_camera, width_height) {
+  var _width_height2 = _slicedToArray(width_height, 2),
+    camera_width = _width_height2[0],
+    camera_height = _width_height2[1];
+  var camera_aspect = camera_width / camera_height;
+  the_camera.aspect = camera_aspect;
+  the_camera.updateProjectionMatrix();
+}
+
+},{"three":3}],20:[function(require,module,exports){
+"use strict";
+
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.setUpLiveTests = setUpLiveTests;
+exports.staticTests = staticTests;
+function setUpLiveTests(TEST_DIRECTION, TEST_NUMBER_1_TO_11) {
+  if (TEST_DIRECTION == HEX_CONST.TEST_SS) {
+    var _ss_load_test = ss_load_test(TEST_NUMBER_1_TO_11);
+    var _ss_load_test2 = _slicedToArray(_ss_load_test, 4);
+    the_coords = _ss_load_test2[0];
+    test_xyz_camera = _ss_load_test2[1];
+    test_xyz_lookat = _ss_load_test2[2];
+    test_name = _ss_load_test2[3];
+  } else if (TEST_DIRECTION == HEX_CONST.TEST_NN) {
+    var _nn_load_test = nn_load_test(TEST_NUMBER_1_TO_11);
+    var _nn_load_test2 = _slicedToArray(_nn_load_test, 4);
+    the_coords = _nn_load_test2[0];
+    test_xyz_camera = _nn_load_test2[1];
+    test_xyz_lookat = _nn_load_test2[2];
+    test_name = _nn_load_test2[3];
+  } else if (TEST_DIRECTION == HEX_CONST.TEST_NE) {
+    var _ne_load_test = ne_load_test(TEST_NUMBER_1_TO_11);
+    var _ne_load_test2 = _slicedToArray(_ne_load_test, 4);
+    the_coords = _ne_load_test2[0];
+    test_xyz_camera = _ne_load_test2[1];
+    test_xyz_lookat = _ne_load_test2[2];
+    test_name = _ne_load_test2[3];
+  } else if (TEST_DIRECTION == HEX_CONST.TEST_SW) {
+    var _sw_load_test = sw_load_test(TEST_NUMBER_1_TO_11);
+    var _sw_load_test2 = _slicedToArray(_sw_load_test, 4);
+    the_coords = _sw_load_test2[0];
+    test_xyz_camera = _sw_load_test2[1];
+    test_xyz_lookat = _sw_load_test2[2];
+    test_name = _sw_load_test2[3];
+  } else if (TEST_DIRECTION == HEX_CONST.TEST_NW) {
+    var _nw_load_test = nw_load_test(TEST_NUMBER_1_TO_11);
+    var _nw_load_test2 = _slicedToArray(_nw_load_test, 4);
+    the_coords = _nw_load_test2[0];
+    test_xyz_camera = _nw_load_test2[1];
+    test_xyz_lookat = _nw_load_test2[2];
+    test_name = _nw_load_test2[3];
+  } else if (TEST_DIRECTION == HEX_CONST.TEST_SE) {
+    var _se_load_test = se_load_test(TEST_NUMBER_1_TO_11);
+    var _se_load_test2 = _slicedToArray(_se_load_test, 4);
+    the_coords = _se_load_test2[0];
+    test_xyz_camera = _se_load_test2[1];
+    test_xyz_lookat = _se_load_test2[2];
+    test_name = _se_load_test2[3];
+  }
+  if (test_name !== "") {
+    ee("Physical mouse moving TEST NAME :: ".concat(test_name, " :: move forward to cause test"));
+  }
+  return [the_coords, test_xyz_camera, test_xyz_lookat, test_name];
+}
+function staticTests() {
+  var g_tests = new Map([]);
+
+  // g_tests = test_ss_move(g_tests);
+  //g_tests = test_sw_move(g_tests);
+  // g_tests = test_nn_move(g_tests);
+  // g_tests = test_ne_move(g_tests);
+  // g_tests = test_nw_move(g_tests);
+  // g_tests = test_se_move(g_tests);
+  //ee("the tests:", g_tests);
+}
+
+},{}],21:[function(require,module,exports){
+"use strict";
+
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.transition2Tile = transition2Tile;
+var HEX_CONST = _interopRequireWildcard(require("../../constants.js"));
+var _hexTile = require("../hex-tile.js");
+var _miscFunc = require("../misc-func.js");
+var _nnMove = require("../nn/nn-move.js");
+var _neMove = require("../ne/ne-move.js");
+var _nwMove = require("../nw/nw-move.js");
+var _ssMove = require("../ss/ss-move.js");
+var _swMove = require("../sw/sw-move.js");
+var _seMove = require("../se/se-move.js");
+var _miscFuncs = require("../../misc-funcs.js");
+function _interopRequireWildcard(e, t) {
+  if ("function" == typeof WeakMap) var r = new WeakMap(),
+    n = new WeakMap();
+  return (_interopRequireWildcard = function _interopRequireWildcard(e, t) {
+    if (!t && e && e.__esModule) return e;
+    var o,
+      i,
+      f = {
+        __proto__: null,
+        "default": e
+      };
+    if (null === e || "object" != _typeof(e) && "function" != typeof e) return f;
+    if (o = t ? n : r) {
+      if (o.has(e)) return o.get(e);
+      o.set(e, f);
+    }
+    for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]);
+    return f;
+  })(e, t);
+}
+function verticallyNearNN(x_ind, level_y, z_ind, current_data) {
+  var tile_index = (0, _miscFunc.hexIndex)(x_ind, level_y, z_ind);
+  current_data.new_index = tile_index;
+  var move_result = (0, _nnMove.moveToNn)(current_data);
+  return {
+    move_result: move_result,
+    level_y: level_y
+  };
+}
+
+//       cur_y_100_pos = cur_y_100_pos - 0.5;    wayyyy to fast !!!
+function nearTestNN(walkway_tiles, new_x_ind, cur_level_y_100, new_z_ind, current_data) {
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 100, new_z_ind)) {
+    return verticallyNearNN(new_x_ind, cur_level_y_100 + 100, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 50, new_z_ind)) {
+    return verticallyNearNN(new_x_ind, cur_level_y_100 + 50, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 50, new_z_ind)) {
+    return verticallyNearNN(new_x_ind, cur_level_y_100 - 50, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 100, new_z_ind)) {
+    return verticallyNearNN(new_x_ind, cur_level_y_100 - 100, new_z_ind, current_data);
+  }
+  return verticallyNearNN(new_x_ind, cur_level_y_100 + 0, new_z_ind, current_data);
+}
+function transition2Tile(run_or_test, print_allowed, walkway_tiles, walkway_columns, wall_squares, wall_columns, prev_pos, new_pos) {
+  var cur_level_y = new_pos.y;
+  ///////////////////////
+  var y_100_index = new_pos.y;
+  var y_index = y_100_index / 100;
+  var y_frac = y_index % 1;
+  var y_100_frac = y_frac * 100;
+  var on_meeting_hinge_height = y_frac == 5 || y_frac == 0;
+  if (!on_meeting_hinge_height) {
+    var falling_between_levels = {
+      move_result: HEX_CONST.MOVE_FALLING,
+      level_y: cur_level_y
+    };
+    return falling_between_levels;
+  }
+  var _ref = (0, _hexTile.coords2HexIndexes)(prev_pos.x, prev_pos.z),
+    _ref2 = _slicedToArray(_ref, 2),
+    prev_x_ind = _ref2[0],
+    prev_z_ind = _ref2[1];
+  var _ref3 = (0, _hexTile.coords2HexIndexes)(new_pos.x, new_pos.z),
+    _ref4 = _slicedToArray(_ref3, 2),
+    new_x_ind = _ref4[0],
+    new_z_ind = _ref4[1];
+  var move_dir = moveDirectionCoords2(prev_pos.x, prev_pos.z, new_pos.x, new_pos.z);
+  var prev_index = (0, _miscFunc.hexIndex)(prev_x_ind, prev_pos.y, prev_z_ind);
+  var new_index = (0, _miscFunc.hexIndex)(new_x_ind, new_pos.y, new_z_ind);
+  var no_old_new_tile;
+  var current_data = {
+    run_or_test: run_or_test,
+    print_allowed: print_allowed,
+    walkway_tiles: walkway_tiles,
+    walkway_columns: walkway_columns,
+    wall_squares: wall_squares,
+    wall_columns: wall_columns,
+    prev_index: prev_index,
+    new_index: new_index
+  };
+  if (move_dir == HEX_CONST.MOVE_NN) {
+    return nearTestNN(walkway_tiles, new_x_ind, cur_level_y, new_z_ind, current_data);
+  } else if (move_dir == HEX_CONST.MOVE_NE) {
+    return nearTestNE(walkway_tiles, new_x_ind, cur_level_y, new_z_ind, current_data);
+  } else if (move_dir == HEX_CONST.MOVE_SS) {
+    return nearTestSS(walkway_tiles, new_x_ind, cur_level_y, new_z_ind, current_data);
+  } else if (move_dir == HEX_CONST.MOVE_SW) {
+    return nearTestSW(walkway_tiles, new_x_ind, cur_level_y, new_z_ind, current_data);
+  } else if (move_dir == HEX_CONST.MOVE_NW) {
+    return nearTestNW(walkway_tiles, new_x_ind, cur_level_y, new_z_ind, current_data);
+  } else if (move_dir == HEX_CONST.MOVE_SE) {
+    return nearTestSE(walkway_tiles, new_x_ind, cur_level_y, new_z_ind, current_data);
+  } else {
+    //  tt("waht dircection??", move_dir);
+    no_old_new_tile = HEX_CONST.MOVE_NEW_TILE; //"unknown tile condition";
+    return {
+      move_result: no_old_new_tile,
+      level_y: cur_level_y
+    };
+  }
+}
+function isVerticallyNear(walkway_tiles, x_ind, level_y, z_ind) {
+  var tile_index = (0, _miscFunc.hexIndex)(x_ind, level_y, z_ind);
+  if (walkway_tiles.has(tile_index)) {
+    return true;
+  }
+  return false;
+}
+function verticallyNearSS(x_ind, level_y, z_ind, current_data) {
+  var tile_index = (0, _miscFunc.hexIndex)(x_ind, level_y, z_ind);
+  current_data.new_index = tile_index;
+  var move_result = (0, _ssMove.moveToSs)(current_data);
+  return {
+    move_result: move_result,
+    level_y: level_y
+  };
+}
+function verticallyNearNE(x_ind, level_y, z_ind, current_data) {
+  var tile_index = (0, _miscFunc.hexIndex)(x_ind, level_y, z_ind);
+  current_data.new_index = tile_index;
+  var move_result = (0, _neMove.moveToNe)(current_data);
+  return {
+    move_result: move_result,
+    level_y: level_y
+  };
+}
+function verticallyNearSE(x_ind, level_y, z_ind, current_data) {
+  var tile_index = (0, _miscFunc.hexIndex)(x_ind, level_y, z_ind);
+  current_data.new_index = tile_index;
+  var move_result = (0, _seMove.moveToSe)(current_data);
+  return {
+    move_result: move_result,
+    level_y: level_y
+  };
+}
+function verticallyNearSW(x_ind, level_y, z_ind, current_data) {
+  var tile_index = (0, _miscFunc.hexIndex)(x_ind, level_y, z_ind);
+  current_data.new_index = tile_index;
+  var move_result = (0, _swMove.moveToSw)(current_data);
+  return {
+    move_result: move_result,
+    level_y: level_y
+  };
+}
+function verticallyNearNW(x_ind, level_y, z_ind, current_data) {
+  var tile_index = (0, _miscFunc.hexIndex)(x_ind, level_y, z_ind);
+  current_data.new_index = tile_index;
+  var move_result = (0, _nwMove.moveToNw)(current_data);
+  return {
+    move_result: move_result,
+    level_y: level_y
+  };
+}
+function nearTestSS(walkway_tiles, new_x_ind, cur_level_y_100, new_z_ind, current_data) {
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 100, new_z_ind)) {
+    return verticallyNearSS(new_x_ind, cur_level_y_100 + 100, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 50, new_z_ind)) {
+    return verticallyNearSS(new_x_ind, cur_level_y_100 + 50, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 50, new_z_ind)) {
+    return verticallyNearSS(new_x_ind, cur_level_y_100 - 50, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 100, new_z_ind)) {
+    return verticallyNearSS(new_x_ind, cur_level_y_100 - 100, new_z_ind, current_data);
+  }
+  return verticallyNearSS(new_x_ind, cur_level_y_100 + 0, new_z_ind, current_data);
+}
+function nearTestNE(walkway_tiles, new_x_ind, cur_level_y_100, new_z_ind, current_data) {
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 100, new_z_ind)) {
+    return verticallyNearNE(new_x_ind, cur_level_y_100 + 100, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 50, new_z_ind)) {
+    return verticallyNearNE(new_x_ind, cur_level_y_100 + 50, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 50, new_z_ind)) {
+    return verticallyNearNE(new_x_ind, cur_level_y_100 - 50, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 100, new_z_ind)) {
+    return verticallyNearNE(new_x_ind, cur_level_y_100 - 100, new_z_ind, current_data);
+  }
+  return verticallyNearNE(new_x_ind, cur_level_y_100 + 0, new_z_ind, current_data);
+}
+function nearTestSW(walkway_tiles, new_x_ind, cur_level_y_100, new_z_ind, current_data) {
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 100, new_z_ind)) {
+    return verticallyNearSW(new_x_ind, cur_level_y_100 + 100, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 50, new_z_ind)) {
+    return verticallyNearSW(new_x_ind, cur_level_y_100 + 50, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 50, new_z_ind)) {
+    return verticallyNearSW(new_x_ind, cur_level_y_100 - 50, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 100, new_z_ind)) {
+    return verticallyNearSW(new_x_ind, cur_level_y_100 - 100, new_z_ind, current_data);
+  }
+  return verticallyNearSW(new_x_ind, cur_level_y_100 + 0, new_z_ind, current_data);
+}
+function nearTestNW(walkway_tiles, new_x_ind, cur_level_y_100, new_z_ind, current_data) {
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 100, new_z_ind)) {
+    return verticallyNearNW(new_x_ind, cur_level_y_100 + 100, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 50, new_z_ind)) {
+    return verticallyNearNW(new_x_ind, cur_level_y_100 + 50, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 50, new_z_ind)) {
+    return verticallyNearNW(new_x_ind, cur_level_y_100 - 50, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 100, new_z_ind)) {
+    return verticallyNearNW(new_x_ind, cur_level_y_100 - 100, new_z_ind, current_data);
+  }
+  return verticallyNearNW(new_x_ind, cur_level_y_100 + 0, new_z_ind, current_data);
+}
+function nearTestSE(walkway_tiles, new_x_ind, cur_level_y_100, new_z_ind, current_data) {
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 100, new_z_ind)) {
+    return verticallyNearSE(new_x_ind, cur_level_y_100 + 100, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 50, new_z_ind)) {
+    return verticallyNearSE(new_x_ind, cur_level_y_100 + 50, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 50, new_z_ind)) {
+    return verticallyNearSE(new_x_ind, cur_level_y_100 - 50, new_z_ind, current_data);
+  }
+  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 100, new_z_ind)) {
+    return verticallyNearSE(new_x_ind, cur_level_y_100 - 100, new_z_ind, current_data);
+  }
+  return verticallyNearSE(new_x_ind, cur_level_y_100 + 0, new_z_ind, current_data);
+}
+
+/*
+ z
+----------------------------------x
+ |
+ |
+ https://www.quora.com/How-would-you-find-the-angle-of-a-line-given-two-points-on-a-coordinate-plan
+Compute the vector components:
+dx = x2 − x1
+dy = y2 − y1
+Compute the angle in radians:
+θ = atan2(dy, dx)
+
+
+*/
+
+var NE_START_0D = 0;
+var NE_END_60D = Math.PI / 3;
+var NN_START_60D = Math.PI / 3;
+var NN_END_120D = 2 * Math.PI / 3;
+var NW_START_120D = 2 * Math.PI / 3;
+var NW_END_180D = 3 * Math.PI / 3;
+var SW_START_180D = -2 * Math.PI / 3;
+var SW_END_240D = -3 * Math.PI / 3;
+var SS_START_240D = -1 * Math.PI / 3;
+var SS_END_300D = -2 * Math.PI / 3;
+var SE_START_300D = 0 * Math.PI / 3;
+var SE_END_0D = -1 * Math.PI / 3;
+function moveDirectionCoords2(prev_x_coord, prev_z_coord, new_x_coord, new_z_coord) {
+  var dx = new_x_coord - prev_x_coord;
+  var dz = prev_z_coord - new_z_coord;
+  var theta = Math.atan2(dz, dx);
+  var move_direction;
+  if (new_x_coord == prev_x_coord && new_z_coord == prev_z_coord) {
+    move_direction = HEX_CONST.MOVE_NO;
+  } else {
+    if (theta >= NE_START_0D && theta < NE_END_60D) {
+      //    ee("*** NE");
+      move_direction = HEX_CONST.MOVE_NE;
+    } else if (theta >= NN_START_60D && theta < NN_END_120D) {
+      //  ee("*** NN");
+      move_direction = HEX_CONST.MOVE_NN;
+    } else if (theta >= NW_START_120D && theta <= NW_END_180D) {
+      //   ee("*** NW");
+      move_direction = HEX_CONST.MOVE_NW;
+    } else if (theta <= SW_START_180D && theta >= SW_END_240D) {
+      //   ee("*** SW");
+      move_direction = HEX_CONST.MOVE_SW;
+    } else if (theta <= SS_START_240D && theta > SS_END_300D) {
+      //   ee("*** SS");
+      move_direction = HEX_CONST.MOVE_SS;
+    } else if (theta <= SE_START_300D && theta > SE_END_0D) {
+      //    ee("*** SE");
+      move_direction = HEX_CONST.MOVE_SE;
+    } else {
+      ee("*** NOT SURE  THETA--=", theta);
+      move_direction = HEX_CONST.MOVE_NO;
+    }
+  }
+  return move_direction;
+}
+
+},{"../../constants.js":10,"../../misc-funcs.js":18,"../hex-tile.js":23,"../misc-func.js":25,"../ne/ne-move.js":27,"../nn/nn-move.js":29,"../nw/nw-move.js":31,"../se/se-move.js":33,"../ss/ss-move.js":35,"../sw/sw-move.js":38}],22:[function(require,module,exports){
+"use strict";
+
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.groundRow = groundRow;
+exports.groundTile = groundTile;
+exports.ground_field = ground_field;
+var _miscFuncs = require("../misc-funcs.js");
+var _three = require("three");
+var _constants = require("../constants.js");
+var _hexTile = require("./hex-tile.js");
+var _meshTiles = require("./mesh-tiles.js");
+var _geoMesh = require("../geo-mesh.js");
+function ground_field(hex_tiles, ground_tiles, the_scene, start_x, end_x, base_color) {
+  for (var x = start_x; x < end_x; x++) {
+    var _groundRow = groundRow(hex_tiles, ground_tiles, the_scene, x, -10, 10, base_color);
+    var _groundRow2 = _slicedToArray(_groundRow, 2);
+    hex_tiles = _groundRow2[0];
+    ground_tiles = _groundRow2[1];
+  }
+  return [hex_tiles, ground_tiles];
+}
+function groundRow(hex_tiles, ground_tiles, the_scene, x_row, start_z, end_z, base_color) {
+  var top_color = 0xff0000;
+  var outline_color = 0xff8888;
+  var tile_colors = [top_color, outline_color];
+  for (var z = start_z; z < end_z; z++) {
+    hex_tiles = groundTile(hex_tiles, the_scene, [x_row, -100, z], tile_colors);
+  }
+  return [hex_tiles, ground_tiles];
+}
+function groundTile(hex_tiles, the_scene, x_y_z, tile_colors) {
+  var _x_y_z = _slicedToArray(x_y_z, 3),
+    x_index = _x_y_z[0],
+    y_height = _x_y_z[1],
+    z_index = _x_y_z[2];
+  var _tile_colors = _slicedToArray(tile_colors, 2),
+    top_color = _tile_colors[0],
+    outline_color = _tile_colors[1];
+  var _ref = (0, _hexTile.tileCenterCoord)(x_index, z_index),
+    _ref2 = _slicedToArray(_ref, 2),
+    x_center = _ref2[0],
+    z_center = _ref2[1];
+  var tile_radius = 1;
+  var a_tile = new _three.Group();
+  a_tile.position.set(x_center, 0, z_center);
+  var stair_tiles = (0, _hexTile.hexPoints)(tile_radius, y_height, _constants.TILT_NONE, 0);
+  var top_triangles = (0, _hexTile.tileTriangles)(stair_tiles);
+  (0, _geoMesh.geoMesh)(a_tile, top_triangles, top_color, outline_color);
+  the_scene.add(a_tile);
+  (0, _meshTiles.addCoords)(a_tile, x_y_z, _constants.TILT_NONE, 0);
+  var xyz_index = "".concat(x_index, ",").concat(y_height, ",").concat(z_index);
+  hex_tiles.set(xyz_index, a_tile);
+  return hex_tiles;
+}
+
+},{"../constants.js":10,"../geo-mesh.js":13,"../misc-funcs.js":18,"./hex-tile.js":23,"./mesh-tiles.js":24,"three":3}],23:[function(require,module,exports){
 "use strict";
 
 function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
@@ -23390,30 +24352,29 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.HexTile = HexTile;
-Object.defineProperty(exports, "hexNewColor", {
+Object.defineProperty(exports, "coords2HexIndexes", {
   enumerable: true,
   get: function get() {
-    return _colorsTiles.hexNewColor;
+    return _maths.coords2HexIndexes;
   }
 });
 exports.hexPoints = hexPoints;
-Object.defineProperty(exports, "pointInsideTile", {
+Object.defineProperty(exports, "tileCenterCoord", {
   enumerable: true,
   get: function get() {
-    return _walkwayOverlaps.pointInsideTile;
+    return _maths.tileCenterCoord;
   }
 });
-exports.tileCenterCoord = tileCenterCoord;
 exports.tileTriangles = tileTriangles;
 var _three = require("three");
 var _meshTiles = require("./mesh-tiles.js");
-var _walkwayOverlaps = require("./walkway-overlaps.js");
-var _colorsTiles = require("./colors-tiles.js");
+var _geoMesh = require("../geo-mesh.js");
+var _maths = require("../maths.js");
 var _constants = require("../constants.js");
 var sqrt_3 = Math.sqrt(3);
 
 /*
-                          square_up_left
+                          square_up_left  
                              /---------\
                             / |      / |\       
              triangle_left /  |    /   | \ triangle_right
@@ -23438,106 +24399,125 @@ function tileTriangles(hex_points) {
   var hexagon_triangles = [].concat(_toConsumableArray(square_up_left), _toConsumableArray(square_down_right), _toConsumableArray(triangle_left), _toConsumableArray(triangle_right));
   return hexagon_triangles;
 }
-function HexTile(the_scene, walkway_meshes, walkway_tiles, walkway_overlaps, x_y_z, tile_colors, incline_and_dir) {
-  walkway_overlaps = (0, _walkwayOverlaps.walkwayOverlaps)(walkway_overlaps, x_y_z);
+
+//function HexTile(the_scene, walkway_meshes, walkway_tiles, walkway_overlaps, x_y_z, tile_color, slope_direction, incline_amount) {
+function HexTile(the_scene, walkway_meshes, walkway_tiles, x_y_z, tile_color, slope_direction, incline_amount) {
   var _x_y_z = _slicedToArray(x_y_z, 3),
     x_index = _x_y_z[0],
-    y_index = _x_y_z[1],
+    y_100_index = _x_y_z[1],
     z_index = _x_y_z[2];
-  var xyz_index = "".concat(x_index, ",").concat(y_index, ",").concat(z_index);
-  if (incline_and_dir == undefined) {
-    incline_and_dir = [_constants.FLAT, 0];
+  var xyz_index = "".concat(x_index, ",").concat(y_100_index, ",").concat(z_index);
+  if (slope_direction == undefined) {
+    slope_direction = _constants.TILT_NONE;
+    incline_amount = 0;
   }
-  var _incline_and_dir = incline_and_dir,
-    _incline_and_dir2 = _slicedToArray(_incline_and_dir, 2),
-    up_direction = _incline_and_dir2[0],
-    angled_height = _incline_and_dir2[1];
-  var _tile_colors = _slicedToArray(tile_colors, 2),
-    top_color = _tile_colors[0],
-    outline_color = _tile_colors[1];
-  var _tileCenterCoord = tileCenterCoord(x_index, z_index),
-    _tileCenterCoord2 = _slicedToArray(_tileCenterCoord, 2),
-    x_center = _tileCenterCoord2[0],
-    z_center = _tileCenterCoord2[1];
+  if (incline_amount == undefined) {
+    incline_amount[_constants.TILT_NONE, 0];
+  }
+  //const [up_direction, angled_height] = incline_and_dir;
+
+  var _ref = (0, _maths.tileCenterCoord)(x_index, z_index),
+    _ref2 = _slicedToArray(_ref, 2),
+    x_center = _ref2[0],
+    z_center = _ref2[1];
   var tile_radius = 1;
   var a_tile = new _three.Group();
   a_tile.position.set(x_center, 0, z_center);
-  var tile_points = hexPoints(tile_radius, y_index, up_direction, angled_height);
-  walkway_tiles = offsetTilePoints(walkway_tiles, x_y_z, incline_and_dir, tile_points);
+  var tile_points = hexPoints(tile_radius, y_100_index, slope_direction, incline_amount);
+  walkway_tiles = offsetTilePoints(walkway_tiles, x_y_z, slope_direction, incline_amount, tile_points);
   var top_triangles = tileTriangles(tile_points);
-  (0, _meshTiles.geoMesh)(a_tile, top_triangles, top_color, outline_color);
+  (0, _geoMesh.geoMesh)(a_tile, top_triangles, tile_color);
   the_scene.add(a_tile);
-  (0, _meshTiles.addCoords)(a_tile, x_y_z, incline_and_dir);
+  (0, _meshTiles.addCoords)(a_tile, x_y_z, slope_direction, incline_amount);
   walkway_meshes.set(xyz_index, a_tile);
-  return [walkway_meshes, walkway_tiles, walkway_overlaps];
+  return [walkway_meshes, walkway_tiles]; //, walkway_overlaps];
 }
-function distance2hexpoints(hex_point_1, hex_point_2) {
-  var x_diff = hex_point_2[0] - hex_point_1[0];
-  var z_diff = hex_point_2[2] - hex_point_1[2];
-  var length = Math.sqrt(x_diff * x_diff + z_diff * z_diff);
-  return length;
-}
-function offsetTilePoints(stair_tiles, x_y_z, incline_and_dir, tile_points) {
-  var _incline_and_dir3 = _slicedToArray(incline_and_dir, 2),
-    tilt_up = _incline_and_dir3[0],
-    angle_incline = _incline_and_dir3[1];
+
+//    ["000", "010", "000", "green", TILT_NN, 10], just the objects
+
+function offsetTilePoints(stair_tiles, x_y_z, slope_direction, incline_amount, tile_points) {
+  // let [tilt_up, angle_incline] = incline_and_dir;
   var _x_y_z2 = _slicedToArray(x_y_z, 3),
     x_index = _x_y_z2[0],
     y_index = _x_y_z2[1],
     z_index = _x_y_z2[2];
   var xyz_index = "".concat(x_index, ",").concat(y_index, ",").concat(z_index);
-  var _tileCenterCoord3 = tileCenterCoord(x_index, z_index),
-    _tileCenterCoord4 = _slicedToArray(_tileCenterCoord3, 2),
-    x_center = _tileCenterCoord4[0],
-    z_center = _tileCenterCoord4[1];
+  var _ref3 = (0, _maths.tileCenterCoord)(x_index, z_index),
+    _ref4 = _slicedToArray(_ref3, 2),
+    x_center = _ref4[0],
+    z_center = _ref4[1];
   var tile_positions = [];
   for (var i = 0; i < tile_points.length; i++) {
     var tile_point = tile_points[i];
-    var _tile_point = _slicedToArray(tile_point, 3),
-      x = _tile_point[0],
-      y = _tile_point[1],
-      z = _tile_point[2];
-    x = x + x_center;
-    z = z + z_center;
-    tile_positions.push([x, y, z]);
+    if (Array.isArray(tile_point)) {
+      var _tile_point = _slicedToArray(tile_point, 3),
+        x = _tile_point[0],
+        y = _tile_point[1],
+        z = _tile_point[2];
+      x = x + x_center;
+      z = z + z_center;
+      tile_positions.push([x, y, z]);
+    }
   }
   var accross_length = 0;
-  if (tilt_up == _constants.N_W) {
-    var bottom_point = tile_positions[1];
-    var top_point = tile_positions[5];
-    accross_length = distance2hexpoints(bottom_point, top_point);
-  } else if (tilt_up == _constants.N_E) {
-    var _bottom_point = tile_positions[0];
-    var _top_point = tile_positions[2];
-    accross_length = distance2hexpoints(_bottom_point, _top_point);
-  } else if (tilt_up == _constants.S_W) {
-    var _bottom_point2 = tile_positions[0];
-    var _top_point2 = tile_positions[2];
-    accross_length = distance2hexpoints(_bottom_point2, _top_point2);
-  } else if (tilt_up == _constants.S_E) {
-    var _bottom_point3 = tile_positions[0];
-    var _top_point3 = tile_positions[2];
-    accross_length = distance2hexpoints(_bottom_point3, _top_point3);
+  var top_point, bottom_point;
+  if (slope_direction == _constants.TILT_NW) {
+    bottom_point = tile_positions[1]; /// 22222222222? to match SE?
+    top_point = tile_positions[5];
+    accross_length = (0, _maths.distance2hexpoints)(bottom_point, top_point);
+  } else if (slope_direction == _constants.TILT_NE) {
+    bottom_point = tile_positions[0];
+    top_point = tile_positions[2];
+    accross_length = (0, _maths.distance2hexpoints)(bottom_point, top_point);
+  } else if (slope_direction == _constants.TILT_SW) {
+    bottom_point = tile_positions[2];
+    top_point = tile_positions[0];
+    accross_length = (0, _maths.distance2hexpoints)(bottom_point, top_point);
+  } else if (slope_direction == _constants.TILT_SE) {
+    bottom_point = tile_positions[5];
+    top_point = tile_positions[2]; //// 11111111111? to match NW?
+    accross_length = (0, _maths.distance2hexpoints)(bottom_point, top_point);
+  } else if (slope_direction == _constants.TILT_NN) {
+    bottom_point = tile_positions[0];
+    top_point = tile_positions[3];
+  } else if (slope_direction == _constants.TILT_SS) {
+    bottom_point = tile_positions[3];
+    top_point = tile_positions[0];
+  } else {
+    bottom_point = tile_positions[0];
+    top_point = bottom_point;
+  }
+  var top_point_y = top_point[1];
+  var bottom_point_y = bottom_point[1];
+  if (top_point_y === bottom_point_y) {
+    top_point_y = top_point_y; // * 10;
+    bottom_point_y = top_point_y;
+  } else {
+    top_point_y = top_point_y; // * 10; // - 0.0001;
+    bottom_point_y = bottom_point_y; // * 10; // + 0.0001;
   }
   var tile_obj = {
     x_center: x_center,
     y_position: y_index,
+    //
     z_center: z_center,
-    tilt_up: tilt_up,
-    angle_incline: angle_incline,
+    tilt_up: slope_direction,
+    angle_incline: incline_amount,
     accross_length: accross_length,
     tile_positions: tile_positions,
-    x_z: "".concat(x_index, ",").concat(z_index)
+    x_z: "".concat(x_index, ",").concat(z_index),
+    // a_c !!!
+    xyz_index: xyz_index,
+    high_y: top_point_y,
+    // high_y,
+    low_y: bottom_point_y // low_y
   };
   stair_tiles.set(xyz_index, tile_obj);
   return stair_tiles;
 }
-function tileCenterCoord(x_tile, z_tile) {
-  var x_coord = 3 / 2 * x_tile;
-  var z_coord = sqrt_3 / 2 * x_tile + sqrt_3 * z_tile;
-  return [x_coord, z_coord];
-}
-function hexPoints(tile_radius, y_height, up_direction, angled_height) {
+//                              y_100_height
+function hexPoints(tile_radius, y_100_height, up_direction, angled_height) {
+  var y_height = y_100_height / 100;
   var hex_dist = tile_radius * Math.sqrt(3) / 2;
   var half_radius = tile_radius / 2;
   var top_left, bot_left, top_rght, bot_rght, left_tip, rght_tip;
@@ -23556,63 +24536,79 @@ function hexPoints(tile_radius, y_height, up_direction, angled_height) {
   var bot_rght_z = 0 - hex_dist;
   var left_tip_z = 0;
   var rght_tip_z = 0;
-  if (up_direction === _constants.FLAT) {
+  if (up_direction === _constants.TILT_NONE) {
     top_left = [top_left_x, y_height, top_left_z];
     bot_left = [bot_left_x, y_height, bot_left_z];
     top_rght = [top_rght_x, y_height, top_rght_z];
     bot_rght = [bot_rght_x, y_height, bot_rght_z];
     left_tip = [left_tip_x, y_height, left_tip_z];
     rght_tip = [rght_tip_x, y_height, rght_tip_z];
-  } else if (up_direction === _constants.S_S) {
+  } else if (up_direction === _constants.TILT_SS) {
     top_left = [top_left_x, top_height, top_left_z];
     bot_left = [bot_left_x, bot_height, bot_left_z];
     top_rght = [top_rght_x, top_height, top_rght_z];
     bot_rght = [bot_rght_x, bot_height, bot_rght_z];
     left_tip = [left_tip_x, mid_height, left_tip_z];
     rght_tip = [rght_tip_x, mid_height, rght_tip_z];
-  } else if (up_direction === _constants.S_W) {
+  } else if (up_direction === _constants.TILT_SW) {
     top_left = [top_left_x, top_height, top_left_z];
     bot_left = [bot_left_x, mid_height, bot_left_z];
     top_rght = [top_rght_x, mid_height, top_rght_z];
     bot_rght = [bot_rght_x, bot_height, bot_rght_z];
     left_tip = [left_tip_x, top_height, left_tip_z];
     rght_tip = [rght_tip_x, bot_height, rght_tip_z];
-  } else if (up_direction === _constants.N_E) {
+  } else if (up_direction === _constants.TILT_NE) {
     top_left = [top_left_x, bot_height, top_left_z];
     bot_left = [bot_left_x, mid_height, bot_left_z];
     top_rght = [top_rght_x, mid_height, top_rght_z];
     bot_rght = [bot_rght_x, top_height, bot_rght_z];
     left_tip = [left_tip_x, bot_height, left_tip_z];
     rght_tip = [rght_tip_x, top_height, rght_tip_z];
-  } else if (up_direction === _constants.N_W) {
+  } else if (up_direction === _constants.TILT_NW) {
     top_left = [top_left_x, mid_height, top_left_z];
     bot_left = [bot_left_x, top_height, bot_left_z];
     top_rght = [top_rght_x, bot_height, top_rght_z];
     bot_rght = [bot_rght_x, mid_height, bot_rght_z];
     left_tip = [left_tip_x, top_height, left_tip_z];
     rght_tip = [rght_tip_x, bot_height, rght_tip_z];
-  } else if (up_direction === _constants.N_N) {
-    top_left = [top_left_x, bot_height, top_left_z];
-    bot_left = [bot_left_x, top_height, bot_left_z];
-    top_rght = [top_rght_x, bot_height, top_rght_z];
-    bot_rght = [bot_rght_x, top_height, bot_rght_z];
-    left_tip = [left_tip_x, mid_height, left_tip_z];
-    rght_tip = [rght_tip_x, mid_height, rght_tip_z];
-  } else if (up_direction === _constants.S_E) {
+  } else if (up_direction === _constants.TILT_SE) {
     top_left = [top_left_x, mid_height, top_left_z];
-    bot_left = [bot_left_x, bot_height, bot_left_z];
     top_rght = [top_rght_x, top_height, top_rght_z];
-    bot_rght = [bot_rght_x, mid_height, bot_rght_z];
-    left_tip = [left_tip_x, bot_height, left_tip_z];
     rght_tip = [rght_tip_x, top_height, rght_tip_z];
+    bot_rght = [bot_rght_x, mid_height, bot_rght_z];
+    bot_left = [bot_left_x, bot_height, bot_left_z];
+    left_tip = [left_tip_x, bot_height, left_tip_z];
+  } else if (up_direction === _constants.TILT_SE90) {
+    //        top_left = [top_left_x, mid_height, top_left_z];
+
+    top_left = [bot_left_x, mid_height, top_left_z];
+    bot_rght = [bot_rght_x, mid_height, bot_rght_z];
+    top_rght = [top_rght_x, top_height, top_rght_z];
+    rght_tip = [rght_tip_x, top_height, rght_tip_z];
+    bot_left = [bot_left_x, bot_height, bot_left_z];
+    left_tip = [left_tip_x, bot_height, left_tip_z];
+  } else if (up_direction === _constants.TILT_NN) {
+    top_left = [top_left_x, bot_height, top_left_z];
+    top_rght = [top_rght_x, bot_height, top_rght_z];
+    rght_tip = [rght_tip_x, mid_height, rght_tip_z];
+    left_tip = [left_tip_x, mid_height, left_tip_z];
+    bot_rght = [bot_rght_x, top_height, bot_rght_z];
+    bot_left = [bot_left_x, top_height, bot_left_z];
+  } else if (up_direction === _constants.TILT_NN90) {
+    top_left = [top_left_x, bot_height, top_left_z]; // bot_hkill the tips
+    top_rght = [top_rght_x, bot_height, top_rght_z];
+    rght_tip = [top_rght_x, mid_height, top_rght_z];
+    left_tip = [top_left_x, mid_height, top_left_z];
+    bot_rght = [top_rght_x, top_height, top_rght_z];
+    bot_left = [top_left_x, top_height, top_left_z];
   } else {
-    console.log("hexPoints unknown  up_direction==", up_direction);
+    ee("hexPoints unknown  up_direction==", up_direction);
   }
   var stair_tiles = [top_left, top_rght, rght_tip, bot_rght, bot_left, left_tip];
   return stair_tiles;
 }
 
-},{"../constants.js":9,"./colors-tiles.js":13,"./mesh-tiles.js":17,"./walkway-overlaps.js":21,"three":3}],17:[function(require,module,exports){
+},{"../constants.js":10,"../geo-mesh.js":13,"../maths.js":17,"./mesh-tiles.js":24,"three":3}],24:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -23625,23 +24621,23 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.addCoords = addCoords;
-exports.geoMesh = geoMesh;
 var _three = require("three");
 var _constants = require("../constants.js");
 var _FontLoader = require("three/examples/jsm/loaders/FontLoader.js");
 var _TextGeometry = require("three/examples/jsm/geometries/TextGeometry.js");
-var _helvetiker_regularTypeface = require("./helvetiker_regular.typeface.js");
+var _helvetiker_regularTypeface = require("../helvetiker_regular.typeface.js");
 var loader2 = new _FontLoader.FontLoader();
 var WHITE_LABELS = 0xffffff;
 var the_font = loader2.parse(_helvetiker_regularTypeface.type_face);
-function addCoords(a_tile, x_y_z, incline_and_dir) {
-  var _incline_and_dir = _slicedToArray(incline_and_dir, 2),
-    up_direction = _incline_and_dir[0],
-    angled_height = _incline_and_dir[1];
+
+//const Y_TO_ACTUAL_HEIGHT = 10;
+function addCoords(a_tile, x_y_z, slope_direction, incline_amount) {
+  // const [up_direction, angled_height] = incline_and_dir;
   var _x_y_z = _slicedToArray(x_y_z, 3),
     x_index = _x_y_z[0],
-    y_index = _x_y_z[1],
+    y_100_index = _x_y_z[1],
     z_index = _x_y_z[2];
+  var y_index = y_100_index / 100;
   var textMaterial = new _three.MeshLambertMaterial({
     emissive: 0xffffff,
     color: WHITE_LABELS
@@ -23655,71 +24651,51 @@ function addCoords(a_tile, x_y_z, incline_and_dir) {
   var text_mesh = new _three.Mesh(textGeometry, textMaterial);
   if (y_index < 0) {
     text_mesh.position.y = -0.999;
-  } else if (up_direction == _constants.FLAT) {
+  } else if (slope_direction == _constants.TILT_NONE) {
+    //        text_mesh.position.y = y_index / Y_TO_ACTUAL_HEIGHT + 0.001;
     text_mesh.position.y = y_index + 0.001;
+    //text_mesh.position.y = y_index + 0.05;
   } else {
-    text_mesh.position.y = y_index + angled_height;
+    //        text_mesh.position.y = y_index / Y_TO_ACTUAL_HEIGHT + incline_amount;
+    text_mesh.position.y = y_index + incline_amount + 0.05; // qbert hard to see
   }
   text_mesh.rotation.x = -Math.PI / 2;
+  if (slope_direction != _constants.TILT_NONE) {
+    text_mesh.rotation.y = -Math.PI / 2;
+    text_mesh.rotation.z = -Math.PI / 2;
+  }
   var x, z;
-  if (up_direction == _constants.FLAT) {
+  if (slope_direction == _constants.TILT_NONE) {
     x = -0.15;
     z = 0.1;
-  } else if (up_direction == _constants.N_N) {
+  } else if (slope_direction == _constants.TILT_NN) {
     x = -0.15;
     z = -0.55;
-  } else if (up_direction == _constants.N_E) {
+  } else if (slope_direction == _constants.TILT_NE) {
     x = 0.3;
     z = -0.25;
-  } else if (up_direction == _constants.S_E) {
-    x = 0.35;
+  } else if (slope_direction == _constants.TILT_SE) {
+    x = 1;
     z = 0.4;
-  } else if (up_direction == _constants.S_S) {
+    //text_mesh.position.y -= 0.1;
+  } else if (slope_direction == _constants.TILT_SS) {
     x = -0.15;
-    z = 0.8;
-  } else if (up_direction == _constants.S_W) {
+    z = 0.48;
+  } else if (slope_direction == _constants.TILT_SW) {
     x = -0.7;
     z = 0.4;
-  } else if (up_direction == _constants.N_W) {
+  } else if (slope_direction == _constants.TILT_NW) {
     x = -0.7;
     z = -0.25;
   } else {
-    console.log(" addCoords() unknown up_direction", up_direction);
+    ee(" addCoords() unknown slope_direction", slope_direction);
   }
   text_mesh.position.x = x;
   text_mesh.position.z = z;
   a_tile.add(text_mesh);
 }
 
-// only ramp needs to be double sided
-function geoMesh(group, vertices_set, a_color, outline_color) {
-  var side_geometry = geometricVertices(vertices_set);
-  var side_material = new _three.MeshLambertMaterial({
-    color: a_color,
-    transparent: false,
-    opacity: 1
-  });
-  var hexagon_side = new _three.Mesh(side_geometry, side_material);
-  side_material.side = _three.DoubleSide;
-  var edges = new _three.EdgesGeometry(side_geometry);
-  var lineMaterial = new _three.LineBasicMaterial({
-    color: outline_color,
-    linewidth: 256
-  });
-  lineMaterial.side = _three.DoubleSide;
-  var edgeLines = new _three.LineSegments(edges, lineMaterial);
-  hexagon_side.add(edgeLines);
-  group.add(hexagon_side);
-  //  return hexagon_side;       // so can change color later via hexagon_side.material.color.set(0xff0000);
-}
-function geometricVertices(the_vertices) {
-  var float_vertices = new Float32Array(the_vertices);
-  var the_geometry = new _three.BufferGeometry();
-  the_geometry.setAttribute("position", new _three.Float32BufferAttribute(float_vertices, 3));
-  return the_geometry;
-}
-
-},{"../constants.js":9,"./helvetiker_regular.typeface.js":15,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}],18:[function(require,module,exports){
+},{"../constants.js":10,"../helvetiker_regular.typeface.js":14,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}],25:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -23731,46 +24707,1673 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.walkwayCamera = walkwayCamera;
-var _hexTile = require("./hex-tile.js");
-var _walkwayHeights = require("./walkway-heights.js");
-function walkwayCamera(cam_pos, walkway_overlaps, walkway_tiles) {
-  var trunc_cam_x = Math.trunc(cam_pos.x);
-  var cam_y = cam_pos.y;
-  var trunc_cam_z = Math.trunc(cam_pos.z);
-  var xz_key = "".concat(trunc_cam_x, ",").concat(trunc_cam_z);
-  var highest_y_tile = 0;
-  var highest_xyz_tile = "";
-  if (walkway_overlaps.has(xz_key)) {
-    var poss_aboves = walkway_overlaps.get(xz_key);
-    for (var i = 0; i < poss_aboves.length; i++) {
-      var x_y_z_str = poss_aboves[i];
-      var _x_y_z_str$split = x_y_z_str.split(","),
-        _x_y_z_str$split2 = _slicedToArray(_x_y_z_str$split, 3),
-        xx = _x_y_z_str$split2[0],
-        yy = _x_y_z_str$split2[1],
-        zz = _x_y_z_str$split2[2];
-      var stair_tile = walkway_tiles.get(x_y_z_str);
-      if (cam_y >= yy) {
-        highest_y_tile = yy;
-        highest_xyz_tile = x_y_z_str;
-        var point_in = (0, _hexTile.pointInsideTile)(cam_pos.x, cam_pos.z, stair_tile);
-        if (point_in) {
-          var new_cam_y = (0, _walkwayHeights.walkwayIncline)(cam_pos, stair_tile);
-          cam_pos.y = new_cam_y;
-          break;
-        }
-      }
-    }
-  } else {
-    if (cam_pos.y > 0.2) {
-      cam_pos.y = cam_pos.y - 0.02;
-    }
-  }
-  return cam_pos.y;
+exports.hexIndex = hexIndex;
+exports.stripYindex = stripYindex;
+function hexIndex(x_hex_ind, y_height, z_hex_ind) {
+  var y_fixed_to_10ths = Math.trunc(y_height * 10) / 10;
+  var hex_index = "".concat(x_hex_ind, ",").concat(y_fixed_to_10ths, ",").concat(z_hex_ind);
+  return hex_index;
+}
+function stripYindex(hex_index) {
+  var _hex_index$split = hex_index.split(","),
+    _hex_index$split2 = _slicedToArray(_hex_index$split, 3),
+    x_hex_ind = _hex_index$split2[0],
+    _y_height = _hex_index$split2[1],
+    z_hex_ind = _hex_index$split2[2];
+  return "".concat(x_hex_ind, ",").concat(z_hex_ind);
 }
 
-},{"./hex-tile.js":16,"./walkway-heights.js":20}],19:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.NE_START_FINISHES = exports.NE_INTO_AIR = exports.NE_AIRBORNE = exports.NE_9_FLAT__DOWN = exports.NE_8_DOWN__FLAT = exports.NE_7_UP__FLAT = exports.NE_6_FLAT__UP = exports.NE_5_FLAT__FLAT = exports.NE_4_DOWN_DOWN_COUNTER = exports.NE_3_DOWN_DOWN_CLOCK = exports.NE_2_UP_UP_COUNTER = exports.NE_1_UP_UP_CLOCK = exports.NE_14_BLOCKED = exports.NE_13_DOWN__UP = exports.NE_12_UP__DOWN = exports.NE_11_DOWN__DOWN = exports.NE_10_UP__UP = void 0;
+var _constants = require("../../constants.js");
+var x_start = 0;
+var z_start = 0;
+var x_finish = 1;
+var z_finish = -1;
+var NE_INTO_AIR = exports.NE_INTO_AIR = "NE_INTO_AIR";
+var NE_AIRBORNE = exports.NE_AIRBORNE = "NE_AIRBORNE";
+var NE_1_UP_UP_CLOCK = exports.NE_1_UP_UP_CLOCK = "NE_1_UP_UP_CLOCK";
+var NE_2_UP_UP_COUNTER = exports.NE_2_UP_UP_COUNTER = "NE_2_UP_UP_COUNTER";
+var NE_3_DOWN_DOWN_CLOCK = exports.NE_3_DOWN_DOWN_CLOCK = "NE_3_DOWN_DOWN_CLOCK";
+var NE_4_DOWN_DOWN_COUNTER = exports.NE_4_DOWN_DOWN_COUNTER = "NE_4_DOWN_DOWN_COUNTER";
+var NE_5_FLAT__FLAT = exports.NE_5_FLAT__FLAT = "NE_5_FLAT__FLAT";
+var NE_6_FLAT__UP = exports.NE_6_FLAT__UP = "NE_6_FLAT__UP";
+var NE_7_UP__FLAT = exports.NE_7_UP__FLAT = "NE_7_UP__FLAT";
+var NE_8_DOWN__FLAT = exports.NE_8_DOWN__FLAT = "NE_8_DOWN__FLAT";
+var NE_9_FLAT__DOWN = exports.NE_9_FLAT__DOWN = "NE_9_FLAT__DOWN";
+var NE_10_UP__UP = exports.NE_10_UP__UP = "NE_10_UP__UP";
+var NE_11_DOWN__DOWN = exports.NE_11_DOWN__DOWN = "NE_11_DOWN__DOWN";
+var NE_12_UP__DOWN = exports.NE_12_UP__DOWN = "NE_12_UP__DOWN";
+var NE_13_DOWN__UP = exports.NE_13_DOWN__UP = "NE_13_DOWN__UP";
+var NE_14_BLOCKED = exports.NE_14_BLOCKED = "NE_14_BLOCKED";
+var NE_1_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], NE_1_UP_UP_CLOCK];
+var NE_222_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], NE_2_UP_UP_COUNTER];
+var NE_3_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], NE_3_DOWN_DOWN_CLOCK];
+var NE_4444_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], NE_4_DOWN_DOWN_COUNTER];
+var NE_5_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2], NE_5_FLAT__FLAT];
+var NE_6_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], NE_6_FLAT__UP];
+var NE_7_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 2, z_finish, _constants.COL_2], NE_7_UP__FLAT];
+var NE_8_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 2, z_finish, _constants.COL_2], NE_8_DOWN__FLAT];
+var NE_9_TEST = [[x_start, 2, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], NE_9_FLAT__DOWN];
+var NE_10_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 2, z_finish, _constants.COL_2, _constants.TILT_NE, 1], NE_10_UP__UP];
+var NE_11_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], NE_11_DOWN__DOWN];
+var NE_12_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], NE_12_UP__DOWN];
+var NE_13_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], NE_13_DOWN__UP];
+var NE_START_FINISHES = exports.NE_START_FINISHES = {
+  1: NE_1_TEST,
+  2: NE_222_TEST,
+  3: NE_3_TEST,
+  4: NE_4444_TEST,
+  5: NE_5_TEST,
+  6: NE_6_TEST,
+  7: NE_7_TEST,
+  8: NE_8_TEST,
+  9: NE_9_TEST,
+  10: NE_10_TEST,
+  11: NE_11_TEST,
+  12: NE_12_TEST,
+  13: NE_13_TEST
+};
+
+},{"../../constants.js":10}],27:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.moveToNe = moveToNe;
+var _constants = require("../../constants.js");
+var _miscFunc = require("../misc-func.js");
+var _neConstants = require("./ne-constants.js");
+function neAllow(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    ee("TEST allowed NE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_NEW_TILE;
+}
+function neBlock(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    ee("TEST blocked NE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_BLOCKED;
+}
+function neFall(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    ee("TEST airborne NE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_FALLING;
+}
+function neAirborne(run_or_test, print_allowed) {
+  var local_data = {
+    run_or_test: run_or_test,
+    print_allowed: print_allowed,
+    prev_tilt_up: _neConstants.NE_AIRBORNE,
+    new_tilt_up: _neConstants.NE_AIRBORNE
+  };
+  return neFall(local_data, _neConstants.NE_AIRBORNE);
+}
+function neInAir(walkway_columns, new_index) {
+  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_column = walkway_columns.get(current_xz_index);
+  if (current_xz_column == undefined) {
+    return true; // falling in a column with no tiles
+  }
+  var current_xyz_walkway_index = current_xz_column.get(new_index);
+  if (current_xyz_walkway_index == undefined) {
+    return true; // falling in a column with tiles, but no tile at this height
+  }
+  return false;
+}
+function neHitSsWall(wall_squares, wall_columns, new_index) {
+  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var cur_xz_wall_column = wall_columns.get(current_xz_index);
+  if (cur_xz_wall_column) {
+    var possible_wall = wall_squares.get(new_index);
+    if (possible_wall) {
+      return true;
+    }
+  }
+  return false;
+}
+function neTileData(walkway_tiles, prev_index, new_index) {
+  var current_walkway_tile = walkway_tiles.get(new_index);
+  var new_tilt_up = current_walkway_tile.tilt_up,
+    new_low_y = current_walkway_tile.low_y,
+    new_high_y = current_walkway_tile.high_y;
+  var prev_tilt_up, prev_low_y, prev_high_y;
+  var prev_walkway_tile = walkway_tiles.get(prev_index);
+  if (prev_walkway_tile) {
+    prev_tilt_up = prev_walkway_tile.tilt_up;
+    prev_low_y = prev_walkway_tile.low_y;
+    prev_high_y = prev_walkway_tile.high_y;
+  } else {
+    prev_tilt_up = new_tilt_up;
+    prev_low_y = new_low_y;
+    prev_high_y = new_high_y;
+  }
+  var low_to_low = prev_low_y == new_low_y;
+  var high_to_high = prev_high_y == new_high_y;
+  var lows_and_highs = low_to_low && high_to_high;
+  var high_to_low = prev_high_y == new_low_y;
+  var low_to_high = prev_low_y == new_high_y;
+  var prev_new_data = {
+    prev_tilt_up: prev_tilt_up,
+    prev_low_y: prev_low_y,
+    prev_high_y: prev_high_y,
+    new_tilt_up: new_tilt_up,
+    new_low_y: new_low_y,
+    new_high_y: new_high_y
+  };
+  var data = {
+    low_to_low: low_to_low,
+    high_to_high: high_to_high,
+    lows_and_highs: lows_and_highs,
+    high_to_low: high_to_low,
+    low_to_high: low_to_high
+  };
+  return {
+    prev_new_data: prev_new_data,
+    data: data
+  };
+}
+function moveToNe(current_data) {
+  var run_or_test = current_data.run_or_test,
+    print_allowed = current_data.print_allowed,
+    walkway_tiles = current_data.walkway_tiles,
+    walkway_columns = current_data.walkway_columns,
+    wall_squares = current_data.wall_squares,
+    wall_columns = current_data.wall_columns,
+    prev_index = current_data.prev_index,
+    new_index = current_data.new_index;
+  if (neHitSsWall(wall_squares, wall_columns, new_index)) {
+    return neBlock(run_or_test, print_allowed, prev_index, new_index, _neConstants.NE_14_BLOCKED);
+  }
+  if (neInAir(walkway_columns, new_index)) {
+    return neAirborne(run_or_test, print_allowed);
+  }
+  var _neTileData = neTileData(walkway_tiles, prev_index, new_index),
+    prev_new_data = _neTileData.prev_new_data,
+    data = _neTileData.data;
+  var prev_tilt_up = prev_new_data.prev_tilt_up,
+    new_tilt_up = prev_new_data.new_tilt_up;
+  var low_to_low = data.low_to_low,
+    high_to_high = data.high_to_high,
+    lows_and_highs = data.lows_and_highs,
+    high_to_low = data.high_to_low,
+    low_to_high = data.low_to_high;
+  var local_data = {
+    run_or_test: run_or_test,
+    print_allowed: print_allowed,
+    prev_tilt_up: prev_tilt_up,
+    new_tilt_up: new_tilt_up
+  };
+  if (neCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return neAllow(local_data, _neConstants.NE_1_UP_UP_CLOCK); //      ⭮
+  } else if (neCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return neAllow(local_data, _neConstants.NE_2_UP_UP_COUNTER); //      ⭯
+  } else if (neCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return neAllow(local_data, _neConstants.NE_3_DOWN_DOWN_CLOCK); //  ⭮
+  } else if (neCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return neAllow(local_data, _neConstants.NE_4_DOWN_DOWN_COUNTER); //  ⭯
+  } else if (neFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return neAllow(local_data, _neConstants.NE_5_FLAT__FLAT); // - -
+  } else if (neFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return neAllow(local_data, _neConstants.NE_6_FLAT__UP); //   _⭜
+  } else if (neUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return neAllow(local_data, _neConstants.NE_7_UP__FLAT); //   ↗¯¯
+  } else if (neDownToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return neAllow(local_data, _neConstants.NE_8_DOWN__FLAT); // ↘__
+  } else if (neFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return neAllow(local_data, _neConstants.NE_9_FLAT__DOWN); // ¯⭝
+  } else if (neUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
+    return neAllow(local_data, _neConstants.NE_10_UP__UP); //     ↗↗
+  } else if (neDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
+    return neAllow(local_data, _neConstants.NE_11_DOWN__DOWN); // ↘↘
+  } else if (neUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return neAllow(local_data, _neConstants.NE_12_UP__DOWN); //  ↗↘
+  } else if (neDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return neAllow(local_data, _neConstants.NE_13_DOWN__UP); //  ↘↗
+  } else if (prev_index == new_index) {
+    return _constants.MOVE_SAME_TILE;
+  }
+  return neAllow(local_data, _neConstants.NE_13_DOWN__UP); //  ↘↗
+}
+
+/*  curve_up__curve_up.png   like a flower */
+function neCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var NW_to_NN = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_NN;
+  if (NW_to_NN && lows_and_highs) {
+    ee("FLOWER CLOCK ne");
+    return true;
+  }
+  return false;
+}
+function neCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var SS_to_SE = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_SE;
+  if (SS_to_SE && lows_and_highs) {
+    ee("FLOWER COUNT ne");
+    return true;
+  }
+  return false;
+}
+
+/*  curve_down__curve_down.png  like a cap */
+function neCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var SE_to_SS = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_SS;
+  if (SE_to_SS && lows_and_highs) {
+    ee("hat CLOCK ne");
+    return true;
+  }
+  return false;
+}
+function neCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var NN_to_NW = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NW;
+  if (NN_to_NW && lows_and_highs) {
+    ee("hat COUNT ne");
+    return true;
+  }
+  return false;
+}
+function neFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NONE_to_NONE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NONE;
+  if (NONE_to_NONE && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function neFlatToUp(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NONE_to_NE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NE;
+  if (NONE_to_NE && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function neUpToFlat(prev_tilt_up, new_tilt_up, high_to_high) {
+  var NE_to_NONE = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_NONE;
+  if (NE_to_NONE && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function neDownToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
+  var SW_to_NONE = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_NONE;
+  if (SW_to_NONE && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function neFlatToDown(prev_tilt_up, new_tilt_up, high_to_high) {
+  var NONE_to_SW = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_SW;
+  if (NONE_to_SW && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function neUpToUp(prev_tilt_up, new_tilt_up, high_to_low) {
+  var NE_to_NE = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_NE;
+  if (NE_to_NE && high_to_low) {
+    return true;
+  }
+  return false;
+}
+function neDownToDown(prev_tilt_up, new_tilt_up, low_to_high) {
+  var SW_to_SW = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_SW;
+  if (SW_to_SW && low_to_high) {
+    return true;
+  }
+  return false;
+}
+function neUpToDown(prev_tilt_up, new_tilt_up, high_to_high) {
+  var NE_to_SW = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_SW;
+  if (NE_to_SW && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function neDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
+  var SW_to_NE = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_NE;
+  if (SW_to_NE && low_to_low) {
+    return true;
+  }
+  return false;
+}
+
+},{"../../constants.js":10,"../misc-func.js":25,"./ne-constants.js":26}],28:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.NN_START_FINISHES = exports.NN_INTO_AIR = exports.NN_AIRBORNE = exports.NN_9_FLAT__DOWN = exports.NN_8_DOWN__FLAT = exports.NN_7_UP__FLAT = exports.NN_6_FLAT__UP = exports.NN_5_FLAT__FLAT = exports.NN_4_DOWN_DOWN_COUNTER = exports.NN_3_DOWN_DOWN_CLOCK = exports.NN_2_UP_UP_COUNTER = exports.NN_1_UP_UP_CLOCK = exports.NN_14_BLOCKED = exports.NN_13_DOWN__UP = exports.NN_12_UP__DOWN = exports.NN_11_DOWN__DOWN = exports.NN_10_UP__UP = void 0;
+var _constants = require("../../constants.js");
+var x_start = 0;
+var z_start = 0;
+var x_finish = 0;
+var z_finish = -1;
+var NN_INTO_AIR = exports.NN_INTO_AIR = "NN_INTO_AIR";
+var NN_AIRBORNE = exports.NN_AIRBORNE = "NN_AIRBORNE";
+var NN_1_UP_UP_CLOCK = exports.NN_1_UP_UP_CLOCK = "NN_1_UP_UP_CLOCK";
+var NN_2_UP_UP_COUNTER = exports.NN_2_UP_UP_COUNTER = "NN_2_UP_UP_COUNTER";
+var NN_3_DOWN_DOWN_CLOCK = exports.NN_3_DOWN_DOWN_CLOCK = "NN_3_DOWN_DOWN_CLOCK";
+var NN_4_DOWN_DOWN_COUNTER = exports.NN_4_DOWN_DOWN_COUNTER = "NN_4_DOWN_DOWN_COUNTER";
+var NN_5_FLAT__FLAT = exports.NN_5_FLAT__FLAT = "NN_5_FLAT__FLAT";
+var NN_6_FLAT__UP = exports.NN_6_FLAT__UP = "NN_6_FLAT__UP";
+var NN_7_UP__FLAT = exports.NN_7_UP__FLAT = "NN_7_UP__FLAT";
+var NN_8_DOWN__FLAT = exports.NN_8_DOWN__FLAT = "NN_8_DOWN__FLAT";
+var NN_9_FLAT__DOWN = exports.NN_9_FLAT__DOWN = "NN_9_FLAT__DOWN";
+var NN_10_UP__UP = exports.NN_10_UP__UP = "NN_10_UP__UP";
+var NN_11_DOWN__DOWN = exports.NN_11_DOWN__DOWN = "NN_11_DOWN__DOWN";
+var NN_12_UP__DOWN = exports.NN_12_UP__DOWN = "NN_12_UP__DOWN";
+var NN_13_DOWN__UP = exports.NN_13_DOWN__UP = "NN_13_DOWN__UP";
+var NN_14_BLOCKED = exports.NN_14_BLOCKED = "NN_14_BLOCKED";
+var NN_1_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], NN_1_UP_UP_CLOCK];
+var NN_2_2_2_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], NN_2_UP_UP_COUNTER];
+var NN_3_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], NN_3_DOWN_DOWN_CLOCK];
+var NN_4_4_4_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], NN_4_DOWN_DOWN_COUNTER];
+var NN_5_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2], NN_5_FLAT__FLAT];
+var NN_6_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], NN_6_FLAT__UP];
+var NN_7_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 2, z_finish, _constants.COL_2], NN_7_UP__FLAT];
+var NN_8_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 2, z_finish, _constants.COL_2], NN_8_DOWN__FLAT];
+var NN_9_TEST = [[x_start, 2, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], NN_9_FLAT__DOWN];
+var NN_10_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], NN_10_UP__UP];
+var NN_11_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], NN_11_DOWN__DOWN];
+var NN_12_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], NN_12_UP__DOWN];
+var NN_13_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], NN_13_DOWN__UP];
+var NN_START_FINISHES = exports.NN_START_FINISHES = {
+  1: NN_1_TEST,
+  2: NN_2_2_2_TEST,
+  3: NN_3_TEST,
+  4: NN_4_4_4_TEST,
+  5: NN_5_TEST,
+  6: NN_6_TEST,
+  7: NN_7_TEST,
+  8: NN_8_TEST,
+  9: NN_9_TEST,
+  10: NN_10_TEST,
+  11: NN_11_TEST,
+  12: NN_12_TEST,
+  13: NN_13_TEST
+};
+
+},{"../../constants.js":10}],29:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.moveToNn = moveToNn;
+var _miscFuncs = require("../../misc-funcs.js");
+var _constants = require("../../constants.js");
+var _miscFunc = require("../misc-func.js");
+var _nnConstants = require("./nn-constants.js");
+function nnInAir(walkway_columns, new_index) {
+  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_column = walkway_columns.get(current_xz_index);
+  if (current_xz_column == undefined) {
+    return true; // falling in a column with no tiles
+  }
+  var current_xyz_walkway_index = current_xz_column.get(new_index);
+  if (current_xyz_walkway_index == undefined) {
+    return true; // falling in a column with tiles, but no tile at this height
+  }
+  return false;
+}
+function nnAllow(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    (0, _miscFuncs.ee)("TEST allowed NN :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_NEW_TILE;
+}
+function nnBlock(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    (0, _miscFuncs.ee)("TEST blocked NN :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_BLOCKED;
+}
+function nnFall(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    (0, _miscFuncs.ee)("TEST airborne NN :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_FALLING;
+}
+function nnAirborne(run_or_test, print_allowed) {
+  var local_data = {
+    run_or_test: run_or_test,
+    print_allowed: print_allowed,
+    prev_tilt_up: _nnConstants.NN_AIRBORNE,
+    new_tilt_up: _nnConstants.NN_AIRBORNE
+  };
+  return nnFall(local_data, _nnConstants.NN_AIRBORNE);
+}
+function nnHitSsWall(wall_squares, wall_columns, new_index) {
+  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var cur_xz_wall_column = wall_columns.get(current_xz_index);
+  if (cur_xz_wall_column) {
+    var possible_wall = wall_squares.get(new_index);
+    if (possible_wall) {
+      return true;
+    }
+  }
+  return false;
+}
+function nnTileData(walkway_tiles, prev_index, new_index) {
+  var current_walkway_tile = walkway_tiles.get(new_index);
+  var new_tilt_up = current_walkway_tile.tilt_up,
+    new_low_y = current_walkway_tile.low_y,
+    new_high_y = current_walkway_tile.high_y;
+  var prev_tilt_up, prev_low_y, prev_high_y;
+  var prev_walkway_tile = walkway_tiles.get(prev_index);
+  if (prev_walkway_tile) {
+    prev_tilt_up = prev_walkway_tile.tilt_up;
+    prev_low_y = prev_walkway_tile.low_y;
+    prev_high_y = prev_walkway_tile.high_y;
+  } else {
+    prev_tilt_up = new_tilt_up;
+    prev_low_y = new_low_y;
+    prev_high_y = new_high_y;
+  }
+  var low_to_low = prev_low_y == new_low_y;
+  var high_to_high = prev_high_y == new_high_y;
+  var lows_and_highs = low_to_low && high_to_high;
+  var high_to_low = prev_high_y == new_low_y;
+  var low_to_high = prev_low_y == new_high_y;
+  var prev_new_data = {
+    prev_tilt_up: prev_tilt_up,
+    prev_low_y: prev_low_y,
+    prev_high_y: prev_high_y,
+    new_tilt_up: new_tilt_up,
+    new_low_y: new_low_y,
+    new_high_y: new_high_y
+  };
+  var data = {
+    low_to_low: low_to_low,
+    high_to_high: high_to_high,
+    lows_and_highs: lows_and_highs,
+    high_to_low: high_to_low,
+    low_to_high: low_to_high
+  };
+  return {
+    prev_new_data: prev_new_data,
+    data: data
+  };
+}
+function moveToNn(current_data) {
+  var run_or_test = current_data.run_or_test,
+    print_allowed = current_data.print_allowed,
+    walkway_tiles = current_data.walkway_tiles,
+    walkway_columns = current_data.walkway_columns,
+    wall_squares = current_data.wall_squares,
+    wall_columns = current_data.wall_columns,
+    prev_index = current_data.prev_index,
+    new_index = current_data.new_index;
+  if (nnHitSsWall(wall_squares, wall_columns, new_index)) {
+    return nnBlock(run_or_test, print_allowed, prev_index, new_index, _nnConstants.NN_14_BLOCKED);
+  }
+  if (nnInAir(walkway_columns, new_index)) {
+    return nnAirborne(run_or_test, print_allowed);
+  }
+  var _nnTileData = nnTileData(walkway_tiles, prev_index, new_index),
+    prev_new_data = _nnTileData.prev_new_data,
+    data = _nnTileData.data;
+  var prev_tilt_up = prev_new_data.prev_tilt_up,
+    new_tilt_up = prev_new_data.new_tilt_up;
+  var low_to_low = data.low_to_low,
+    high_to_high = data.high_to_high,
+    lows_and_highs = data.lows_and_highs,
+    high_to_low = data.high_to_low,
+    low_to_high = data.low_to_high;
+  var local_data = {
+    run_or_test: run_or_test,
+    print_allowed: print_allowed,
+    prev_tilt_up: prev_tilt_up,
+    new_tilt_up: new_tilt_up
+  };
+  if (nnCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return nnAllow(local_data, _nnConstants.NN_1_UP_UP_CLOCK); //      ⭮
+  } else if (nnCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return nnAllow(local_data, _nnConstants.NN_2_UP_UP_COUNTER); //      ⭯
+  } else if (nnCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return nnAllow(local_data, _nnConstants.NN_3_DOWN_DOWN_CLOCK); //  ⭮
+  } else if (nnCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return nnAllow(local_data, _nnConstants.NN_4_DOWN_DOWN_COUNTER); //  ⭯
+  } else if (nnFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return nnAllow(local_data, _nnConstants.NN_5_FLAT__FLAT); // - -
+  } else if (nnFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return nnAllow(local_data, _nnConstants.NN_6_FLAT__UP); //   _⭜
+  } else if (nnUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return nnAllow(local_data, _nnConstants.NN_7_UP__FLAT); //   ↗¯¯
+  } else if (nnDownToFlat(prev_tilt_up, new_tilt_up, low_to_high)) {
+    return nnAllow(local_data, _nnConstants.NN_8_DOWN__FLAT); // ↘__
+  } else if (nnFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return nnAllow(local_data, _nnConstants.NN_9_FLAT__DOWN); // ¯⭝
+  } else if (nnUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
+    return nnAllow(local_data, _nnConstants.NN_10_UP__UP); //     ↗↗
+  } else if (nnDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
+    return nnAllow(local_data, _nnConstants.NN_11_DOWN__DOWN); // ↘↘
+  } else if (nnUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return nnAllow(local_data, _nnConstants.NN_12_UP__DOWN); //  ↗↘
+  } else if (nnDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return nnAllow(local_data, _nnConstants.NN_13_DOWN__UP); //  ↘↗
+  } else if (prev_index == new_index) {
+    return _constants.MOVE_SAME_TILE;
+  }
+  return nnAllow(local_data, _nnConstants.NN_14_BLOCKED);
+}
+function nnFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NONE_to_NONE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NONE;
+  if (NONE_to_NONE && low_to_low) {
+    return true;
+  }
+  return false;
+}
+
+/*  curve_up__curve_up.png   like a flower */
+function nnCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var SW_to_NW = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_NW;
+  if (SW_to_NW && lows_and_highs) {
+    return true;
+  }
+  return false;
+}
+function nnCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var SE_to_NE = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_NE;
+  if (SE_to_NE && lows_and_highs) {
+    return true;
+  }
+  return false;
+}
+
+/*  curve_down__curve_down.png  like a cap */
+function nnCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var NE_to_SE = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_SE;
+  if (NE_to_SE && lows_and_highs) {
+    return true;
+  }
+  return false;
+}
+function nnCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var NW_to_SW = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_SW;
+  if (NW_to_SW && lows_and_highs) {
+    return true;
+  }
+  return false;
+}
+function nnFlatToUp(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NONE_to_NN = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NN;
+  if (NONE_to_NN && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function nnUpToFlat(prev_tilt_up, new_tilt_up, high_to_high) {
+  var NN_to_NONE = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NONE;
+  if (NN_to_NONE && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function nnDownToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
+  var SS_to_NONE = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_NONE;
+  if (SS_to_NONE && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function nnFlatToDown(prev_tilt_up, new_tilt_up, high_to_high) {
+  var NONE_to_SS = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_SS;
+  if (NONE_to_SS && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function nnUpToUp(prev_tilt_up, new_tilt_up, high_to_low) {
+  var NN_to_NN = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NN;
+  if (NN_to_NN && high_to_low) {
+    return true;
+  }
+  return false;
+}
+function nnDownToDown(prev_tilt_up, new_tilt_up, low_to_high) {
+  var SS_to_SS = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_SS;
+  if (SS_to_SS && low_to_high) {
+    return true;
+  }
+  return false;
+}
+function nnUpToDown(prev_tilt_up, new_tilt_up, high_to_high) {
+  var NN_to_SS = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_SS;
+  if (NN_to_SS && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function nnDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
+  var SS_to_NN = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_NN;
+  if (SS_to_NN && low_to_low) {
+    return true;
+  }
+  return false;
+}
+
+},{"../../constants.js":10,"../../misc-funcs.js":18,"../misc-func.js":25,"./nn-constants.js":28}],30:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.NW_START_FINISHES = exports.NW_INTO_AIR = exports.NW_AIRBORNE = exports.NW_9_FLAT__DOWN = exports.NW_8_DOWN__FLAT = exports.NW_7_UP__FLAT = exports.NW_6_FLAT__UP = exports.NW_5_FLAT__FLAT = exports.NW_4_DOWN_DOWN_COUNTER = exports.NW_3_DOWN_DOWN_CLOCK = exports.NW_2_UP_UP_COUNTER = exports.NW_1_UP_UP_CLOCK = exports.NW_14_BLOCKED = exports.NW_13_DOWN__UP = exports.NW_12_UP__DOWN = exports.NW_11_DOWN__DOWN = exports.NW_10_UP__UP = void 0;
+var _constants = require("../../constants.js");
+var x_start = 0;
+var z_start = 0;
+var x_finish = -1;
+var z_finish = 0;
+var NW_INTO_AIR = exports.NW_INTO_AIR = "NW_INTO_AIR";
+var NW_AIRBORNE = exports.NW_AIRBORNE = "NW_AIRBORNE";
+var NW_1_UP_UP_CLOCK = exports.NW_1_UP_UP_CLOCK = "NW_1_UP_UP_CLOCK";
+var NW_2_UP_UP_COUNTER = exports.NW_2_UP_UP_COUNTER = "NW_2_UP_UP_COUNTER";
+var NW_3_DOWN_DOWN_CLOCK = exports.NW_3_DOWN_DOWN_CLOCK = "NW_3_DOWN_DOWN_CLOCK";
+var NW_4_DOWN_DOWN_COUNTER = exports.NW_4_DOWN_DOWN_COUNTER = "NW_4_DOWN_DOWN_COUNTER";
+var NW_5_FLAT__FLAT = exports.NW_5_FLAT__FLAT = "NW_5_FLAT__FLAT";
+var NW_6_FLAT__UP = exports.NW_6_FLAT__UP = "NW_6_FLAT__UP";
+var NW_7_UP__FLAT = exports.NW_7_UP__FLAT = "NW_7_UP__FLAT";
+var NW_8_DOWN__FLAT = exports.NW_8_DOWN__FLAT = "NW_8_DOWN__FLAT";
+var NW_9_FLAT__DOWN = exports.NW_9_FLAT__DOWN = "NW_9_FLAT__DOWN";
+var NW_10_UP__UP = exports.NW_10_UP__UP = "NW_10_UP__UP";
+var NW_11_DOWN__DOWN = exports.NW_11_DOWN__DOWN = "NW_11_DOWN__DOWN";
+var NW_12_UP__DOWN = exports.NW_12_UP__DOWN = "NW_12_UP__DOWN";
+var NW_13_DOWN__UP = exports.NW_13_DOWN__UP = "NW_13_DOWN__UP";
+var NW_14_BLOCKED = exports.NW_14_BLOCKED = "NW_14_BLOCKED";
+var NW_1_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], NW_1_UP_UP_CLOCK];
+var NW_222_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], NW_2_UP_UP_COUNTER];
+var NW_3_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], NW_3_DOWN_DOWN_CLOCK];
+var NW_444_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], NW_4_DOWN_DOWN_COUNTER];
+var NW_5_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2], NW_5_FLAT__FLAT];
+var NW_6_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], NW_6_FLAT__UP];
+var NW_7_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 2, z_finish, _constants.COL_2], NW_7_UP__FLAT];
+var NW_8_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 2, z_finish, _constants.COL_2], NW_8_DOWN__FLAT];
+var NW_9_TEST = [[x_start, 2, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], NW_9_FLAT__DOWN];
+var NW_10_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 2, z_finish, _constants.COL_2, _constants.TILT_NW, 1], NW_10_UP__UP];
+var NW_11_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], NW_11_DOWN__DOWN];
+var NW_12_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], NW_12_UP__DOWN];
+var NW_13_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], NW_13_DOWN__UP];
+var NW_START_FINISHES = exports.NW_START_FINISHES = {
+  1: NW_1_TEST,
+  2: NW_222_TEST,
+  3: NW_3_TEST,
+  4: NW_444_TEST,
+  5: NW_5_TEST,
+  6: NW_6_TEST,
+  7: NW_7_TEST,
+  8: NW_8_TEST,
+  9: NW_9_TEST,
+  10: NW_10_TEST,
+  11: NW_11_TEST,
+  12: NW_12_TEST,
+  13: NW_13_TEST
+};
+
+},{"../../constants.js":10}],31:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.moveToNw = moveToNw;
+var _constants = require("../../constants.js");
+var _miscFunc = require("../misc-func.js");
+var _nwConstants = require("./nw-constants.js");
+function nwAllow(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    ee("TEST allowed NW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_NEW_TILE;
+}
+function nwBlock(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    ee("TEST blocked NW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_BLOCKED;
+}
+function nwFall(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    ee("TEST airborne NW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_FALLING;
+}
+function nwAirborne(run_or_test, print_allowed) {
+  var local_data = {
+    run_or_test: run_or_test,
+    print_allowed: print_allowed,
+    prev_tilt_up: _nwConstants.NW_AIRBORNE,
+    new_tilt_up: _nwConstants.NW_AIRBORNE
+  };
+  return nwFall(local_data, _nwConstants.NW_AIRBORNE);
+}
+function nwInAir(walkway_columns, new_index) {
+  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_column = walkway_columns.get(current_xz_index);
+  if (current_xz_column == undefined) {
+    return true; // falling in a column with no tiles
+  }
+  var current_xyz_walkway_index = current_xz_column.get(new_index);
+  if (current_xyz_walkway_index == undefined) {
+    return true; // falling in a column with tiles, but no tile at this height
+  }
+  return false;
+}
+function nwHitSsWall(wall_squares, wall_columns, new_index) {
+  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var cur_xz_wall_column = wall_columns.get(current_xz_index);
+  if (cur_xz_wall_column) {
+    var possible_wall = wall_squares.get(new_index);
+    if (possible_wall) {
+      return true;
+    }
+  }
+  return false;
+}
+function nwTileData(walkway_tiles, prev_index, new_index) {
+  var current_walkway_tile = walkway_tiles.get(new_index);
+  var new_tilt_up = current_walkway_tile.tilt_up,
+    new_low_y = current_walkway_tile.low_y,
+    new_high_y = current_walkway_tile.high_y;
+  var prev_tilt_up, prev_low_y, prev_high_y;
+  var prev_walkway_tile = walkway_tiles.get(prev_index);
+  if (prev_walkway_tile) {
+    prev_tilt_up = prev_walkway_tile.tilt_up;
+    prev_low_y = prev_walkway_tile.low_y;
+    prev_high_y = prev_walkway_tile.high_y;
+  } else {
+    prev_tilt_up = new_tilt_up;
+    prev_low_y = new_low_y;
+    prev_high_y = new_high_y;
+  }
+  var low_to_low = prev_low_y == new_low_y;
+  var high_to_high = prev_high_y == new_high_y;
+  var lows_and_highs = low_to_low && high_to_high;
+  var high_to_low = prev_high_y == new_low_y;
+  var low_to_high = prev_low_y == new_high_y;
+  var prev_new_data = {
+    prev_tilt_up: prev_tilt_up,
+    prev_low_y: prev_low_y,
+    prev_high_y: prev_high_y,
+    new_tilt_up: new_tilt_up,
+    new_low_y: new_low_y,
+    new_high_y: new_high_y
+  };
+  var data = {
+    low_to_low: low_to_low,
+    high_to_high: high_to_high,
+    lows_and_highs: lows_and_highs,
+    high_to_low: high_to_low,
+    low_to_high: low_to_high
+  };
+  return {
+    prev_new_data: prev_new_data,
+    data: data
+  };
+}
+function moveToNw(current_data) {
+  var run_or_test = current_data.run_or_test,
+    print_allowed = current_data.print_allowed,
+    walkway_tiles = current_data.walkway_tiles,
+    walkway_columns = current_data.walkway_columns,
+    wall_squares = current_data.wall_squares,
+    wall_columns = current_data.wall_columns,
+    prev_index = current_data.prev_index,
+    new_index = current_data.new_index;
+  if (nwHitSsWall(wall_squares, wall_columns, new_index)) {
+    return nwBlock(run_or_test, print_allowed, prev_index, new_index, _nwConstants.NW_14_BLOCKED);
+  }
+  if (nwInAir(walkway_columns, new_index)) {
+    return nwAirborne(run_or_test, print_allowed);
+  }
+  var _nwTileData = nwTileData(walkway_tiles, prev_index, new_index),
+    prev_new_data = _nwTileData.prev_new_data,
+    data = _nwTileData.data;
+  var prev_tilt_up = prev_new_data.prev_tilt_up,
+    new_tilt_up = prev_new_data.new_tilt_up;
+  var low_to_low = data.low_to_low,
+    high_to_high = data.high_to_high,
+    lows_and_highs = data.lows_and_highs,
+    high_to_low = data.high_to_low,
+    low_to_high = data.low_to_high;
+  var local_data = {
+    run_or_test: run_or_test,
+    print_allowed: print_allowed,
+    prev_tilt_up: prev_tilt_up,
+    new_tilt_up: new_tilt_up
+  };
+  if (nwCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return nwAllow(local_data, _nwConstants.NW_1_UP_UP_CLOCK); //      ⭮
+  } else if (nwCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return nwAllow(local_data, _nwConstants.NW_2_UP_UP_COUNTER); //      ⭯
+  } else if (nwCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return nwAllow(local_data, _nwConstants.NW_3_DOWN_DOWN_CLOCK); //  ⭮
+  } else if (nwCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return nwAllow(local_data, _nwConstants.NW_4_DOWN_DOWN_COUNTER); //  ⭯
+  } else if (nwFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return nwAllow(local_data, _nwConstants.NW_5_FLAT__FLAT); // - -
+  } else if (nwFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return nwAllow(local_data, _nwConstants.NW_6_FLAT__UP); //   _⭜
+  } else if (nwUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return nwAllow(local_data, _nwConstants.NW_7_UP__FLAT); //   ↗¯¯
+  } else if (nwDownToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return nwAllow(local_data, _nwConstants.NW_8_DOWN__FLAT); // ↘__
+  } else if (nwFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return nwAllow(local_data, _nwConstants.NW_9_FLAT__DOWN); // ¯⭝
+  } else if (nwUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
+    return nwAllow(local_data, _nwConstants.NW_10_UP__UP); //     ↗↗
+  } else if (nwDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
+    return nwAllow(local_data, _nwConstants.NW_11_DOWN__DOWN); // ↘↘
+  } else if (nwUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return nwAllow(local_data, _nwConstants.NW_12_UP__DOWN); //  ↗↘
+  } else if (nwDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return nwAllow(local_data, _nwConstants.NW_13_DOWN__UP); //  ↘↗
+  } else if (prev_index == new_index) {
+    return _constants.MOVE_SAME_TILE;
+  }
+  return nwAllow(local_data, _nwConstants.NW_13_DOWN__UP); //  ↘↗
+}
+
+/*  curve_up__curve_up.png   like a flower */
+function nwCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var SS_to_SW = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_SW;
+  if (SS_to_SW && lows_and_highs) {
+    ee("FLOWER CLOCK nw");
+    return true;
+  }
+  return false;
+}
+function nwCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var NE_to_NN = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_NN;
+  if (NE_to_NN && lows_and_highs) {
+    ee("FLOWER COUNT nw");
+    return true;
+  }
+  return false;
+}
+
+/*  curve_down__curve_down.png  like a cap */
+function nwCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var NN_to_NE = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NE;
+  if (NN_to_NE && lows_and_highs) {
+    return true;
+  }
+  return false;
+}
+function nwCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var SW_to_SS = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_SS;
+  if (SW_to_SS && lows_and_highs) {
+    ee("hat COUNT nw");
+    return true;
+  }
+  return false;
+}
+function nwFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NONE_to_NONE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NONE;
+  if (NONE_to_NONE && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function nwFlatToUp(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NONE_to_NW = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NW;
+  if (NONE_to_NW && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function nwUpToFlat(prev_tilt_up, new_tilt_up, high_to_high) {
+  var NW_to_NONE = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_NONE;
+  if (NW_to_NONE && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function nwDownToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
+  var SE_to_NONE = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_NONE;
+  if (SE_to_NONE && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function nwFlatToDown(prev_tilt_up, new_tilt_up, high_to_high) {
+  var NONE_to_SE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_SE;
+  if (NONE_to_SE && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function nwUpToUp(prev_tilt_up, new_tilt_up, high_to_low) {
+  var NW_to_NW = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_NW;
+  if (NW_to_NW && high_to_low) {
+    return true;
+  }
+  return false;
+}
+function nwDownToDown(prev_tilt_up, new_tilt_up, low_to_high) {
+  var SE_to_SE = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_SE;
+  if (SE_to_SE && low_to_high) {
+    return true;
+  }
+  return false;
+}
+function nwUpToDown(prev_tilt_up, new_tilt_up, high_to_high) {
+  var NW_to_SE = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_SE;
+  if (NW_to_SE && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function nwDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
+  var SE_to_NW = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_NW;
+  if (SE_to_NW && low_to_low) {
+    return true;
+  }
+  return false;
+}
+
+},{"../../constants.js":10,"../misc-func.js":25,"./nw-constants.js":30}],32:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.SE_START_FINISHES = exports.SE_INTO_AIR = exports.SE_AIRBORNE = exports.SE_9_FLAT__DOWN = exports.SE_8_DOWN__FLAT = exports.SE_7_UP__FLAT = exports.SE_6_FLAT__UP = exports.SE_5_FLAT__FLAT = exports.SE_4_DOWN_DOWN_COUNTER = exports.SE_3_DOWN_DOWN_CLOCK = exports.SE_2_UP_UP_COUNTER = exports.SE_1_UP_UP_CLOCK = exports.SE_14_BLOCKED = exports.SE_13_DOWN__UP = exports.SE_12_UP__DOWN = exports.SE_11_DOWN__DOWN = exports.SE_10_UP__UP = void 0;
+var _constants = require("../../constants.js");
+var x_start = 0;
+var z_start = 0;
+var x_finish = 1;
+var z_finish = 0;
+var SE_INTO_AIR = exports.SE_INTO_AIR = "SE_INTO_AIR";
+var SE_AIRBORNE = exports.SE_AIRBORNE = "SE_AIRBORNE";
+var SE_1_UP_UP_CLOCK = exports.SE_1_UP_UP_CLOCK = "SE_1_UP_UP_CLOCK";
+var SE_2_UP_UP_COUNTER = exports.SE_2_UP_UP_COUNTER = "SE_2_UP_UP_COUNTER";
+var SE_3_DOWN_DOWN_CLOCK = exports.SE_3_DOWN_DOWN_CLOCK = "SE_3_DOWN_DOWN_CLOCK";
+var SE_4_DOWN_DOWN_COUNTER = exports.SE_4_DOWN_DOWN_COUNTER = "SE_4_DOWN_DOWN_COUNTER";
+var SE_5_FLAT__FLAT = exports.SE_5_FLAT__FLAT = "SE_5_FLAT__FLAT";
+var SE_6_FLAT__UP = exports.SE_6_FLAT__UP = "SE_6_FLAT__UP";
+var SE_7_UP__FLAT = exports.SE_7_UP__FLAT = "SE_7_UP__FLAT";
+var SE_8_DOWN__FLAT = exports.SE_8_DOWN__FLAT = "SE_8_DOWN__FLAT";
+var SE_9_FLAT__DOWN = exports.SE_9_FLAT__DOWN = "SE_9_FLAT__DOWN";
+var SE_10_UP__UP = exports.SE_10_UP__UP = "SE_10_UP__UP";
+var SE_11_DOWN__DOWN = exports.SE_11_DOWN__DOWN = "SE_11_DOWN__DOWN";
+var SE_12_UP__DOWN = exports.SE_12_UP__DOWN = "SE_12_UP__DOWN";
+var SE_13_DOWN__UP = exports.SE_13_DOWN__UP = "SE_13_DOWN__UP";
+var SE_14_BLOCKED = exports.SE_14_BLOCKED = "SE_14_BLOCKED";
+var SE_1_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], SE_1_UP_UP_CLOCK];
+var SE_2222_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], SE_2_UP_UP_COUNTER];
+var SE_3_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], SE_3_DOWN_DOWN_CLOCK];
+var SE_44444_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], SE_4_DOWN_DOWN_COUNTER];
+var SE_5_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2], SE_5_FLAT__FLAT];
+var SE_6_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], SE_6_FLAT__UP];
+var SE_7_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 2, z_finish, _constants.COL_2], SE_7_UP__FLAT];
+var SE_8_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 2, z_finish, _constants.COL_2], SE_8_DOWN__FLAT];
+var SE_9_TEST = [[x_start, 2, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], SE_9_FLAT__DOWN];
+var SE_10_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 2, z_finish, _constants.COL_2, _constants.TILT_SE, 1], SE_10_UP__UP];
+var SE_11_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], SE_11_DOWN__DOWN];
+var SE_12_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], SE_12_UP__DOWN];
+var SE_13_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], SE_13_DOWN__UP];
+var SE_START_FINISHES = exports.SE_START_FINISHES = {
+  1: SE_1_TEST,
+  2: SE_2222_TEST,
+  3: SE_3_TEST,
+  4: SE_44444_TEST,
+  5: SE_5_TEST,
+  6: SE_6_TEST,
+  7: SE_7_TEST,
+  8: SE_8_TEST,
+  9: SE_9_TEST,
+  10: SE_10_TEST,
+  11: SE_11_TEST,
+  12: SE_12_TEST,
+  13: SE_13_TEST
+};
+
+},{"../../constants.js":10}],33:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.moveToSe = moveToSe;
+var _constants = require("../../constants.js");
+var _miscFunc = require("../misc-func.js");
+var _seConstants = require("./se-constants.js");
+function seAllow(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    ee("TEST allowed SE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_NEW_TILE;
+}
+function seBlock(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    ee("TEST blocked SE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_BLOCKED;
+}
+function seFall(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    ee("TEST airborne SE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_FALLING;
+}
+function seAirborne(run_or_test, print_allowed) {
+  var local_data = {
+    run_or_test: run_or_test,
+    print_allowed: print_allowed,
+    prev_tilt_up: _seConstants.SE_AIRBORNE,
+    new_tilt_up: _seConstants.SE_AIRBORNE
+  };
+  return seFall(local_data, _seConstants.SE_AIRBORNE);
+}
+function seInAir(walkway_columns, new_index) {
+  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_column = walkway_columns.get(current_xz_index);
+  if (current_xz_column == undefined) {
+    return true; // falling in a column with no tiles
+  }
+  var current_xyz_walkway_index = current_xz_column.get(new_index);
+  if (current_xyz_walkway_index == undefined) {
+    return true; // falling in a column with tiles, but no tile at this height
+  }
+  return false;
+}
+function seHitSeWall(wall_squares, wall_columns, new_index) {
+  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var cur_xz_wall_column = wall_columns.get(current_xz_index);
+  if (cur_xz_wall_column) {
+    var possible_wall = wall_squares.get(new_index);
+    if (possible_wall) {
+      return true;
+    }
+  }
+  return false;
+}
+function seTileData(walkway_tiles, prev_index, new_index) {
+  var current_walkway_tile = walkway_tiles.get(new_index);
+  var new_tilt_up = current_walkway_tile.tilt_up,
+    new_low_y = current_walkway_tile.low_y,
+    new_high_y = current_walkway_tile.high_y;
+  var prev_tilt_up, prev_low_y, prev_high_y;
+  var prev_walkway_tile = walkway_tiles.get(prev_index);
+  if (prev_walkway_tile) {
+    prev_tilt_up = prev_walkway_tile.tilt_up;
+    prev_low_y = prev_walkway_tile.low_y;
+    prev_high_y = prev_walkway_tile.high_y;
+  } else {
+    prev_tilt_up = new_tilt_up;
+    prev_low_y = new_low_y;
+    prev_high_y = new_high_y;
+  }
+  var low_to_low = prev_low_y == new_low_y;
+  var high_to_high = prev_high_y == new_high_y;
+  var lows_and_highs = low_to_low && high_to_high;
+  var high_to_low = prev_high_y == new_low_y;
+  var low_to_high = prev_low_y == new_high_y;
+  var prev_new_data = {
+    prev_tilt_up: prev_tilt_up,
+    prev_low_y: prev_low_y,
+    prev_high_y: prev_high_y,
+    new_tilt_up: new_tilt_up,
+    new_low_y: new_low_y,
+    new_high_y: new_high_y
+  };
+  var data = {
+    low_to_low: low_to_low,
+    high_to_high: high_to_high,
+    lows_and_highs: lows_and_highs,
+    high_to_low: high_to_low,
+    low_to_high: low_to_high
+  };
+  return {
+    prev_new_data: prev_new_data,
+    data: data
+  };
+}
+function moveToSe(current_data) {
+  var run_or_test = current_data.run_or_test,
+    print_allowed = current_data.print_allowed,
+    walkway_tiles = current_data.walkway_tiles,
+    walkway_columns = current_data.walkway_columns,
+    wall_squares = current_data.wall_squares,
+    wall_columns = current_data.wall_columns,
+    prev_index = current_data.prev_index,
+    new_index = current_data.new_index;
+  if (seHitSeWall(wall_squares, wall_columns, new_index)) {
+    return seBlock(run_or_test, print_allowed, prev_index, new_index, _seConstants.SE_14_BLOCKED);
+  }
+  if (seInAir(walkway_columns, new_index)) {
+    return seAirborne(run_or_test, print_allowed);
+  }
+  var _seTileData = seTileData(walkway_tiles, prev_index, new_index),
+    prev_new_data = _seTileData.prev_new_data,
+    data = _seTileData.data;
+  var prev_tilt_up = prev_new_data.prev_tilt_up,
+    new_tilt_up = prev_new_data.new_tilt_up;
+  var low_to_low = data.low_to_low,
+    high_to_high = data.high_to_high,
+    lows_and_highs = data.lows_and_highs,
+    high_to_low = data.high_to_low,
+    low_to_high = data.low_to_high;
+  var local_data = {
+    run_or_test: run_or_test,
+    print_allowed: print_allowed,
+    prev_tilt_up: prev_tilt_up,
+    new_tilt_up: new_tilt_up
+  };
+  if (seCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return seAllow(local_data, _seConstants.SE_1_UP_UP_CLOCK); //      ⭮
+  } else if (seCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return seAllow(local_data, _seConstants.SE_2_UP_UP_COUNTER); //      ⭯
+  } else if (seCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return seAllow(local_data, _seConstants.SE_3_DOWN_DOWN_CLOCK); //  ⭮
+  } else if (seCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return seAllow(local_data, _seConstants.SE_4_DOWN_DOWN_COUNTER); //  ⭯
+  } else if (seFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return seAllow(local_data, _seConstants.SE_5_FLAT__FLAT); // - -
+  } else if (seFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return seAllow(local_data, _seConstants.SE_6_FLAT__UP); //   _⭜
+  } else if (seUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return seAllow(local_data, _seConstants.SE_7_UP__FLAT); //   ↗¯¯
+  } else if (seDownToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return seAllow(local_data, _seConstants.SE_8_DOWN__FLAT); // ↘__
+  } else if (seFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return seAllow(local_data, _seConstants.SE_9_FLAT__DOWN); // ¯⭝
+  } else if (seUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
+    return seAllow(local_data, _seConstants.SE_10_UP__UP); //     ↗↗
+  } else if (seDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
+    return seAllow(local_data, _seConstants.SE_11_DOWN__DOWN); // ↘↘
+  } else if (seUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return seAllow(local_data, _seConstants.SE_12_UP__DOWN); //  ↗↘
+  } else if (seDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return seAllow(local_data, _seConstants.SE_13_DOWN__UP); //  ↘↗
+  } else if (prev_index == new_index) {
+    return _constants.MOVE_SAME_TILE;
+  }
+  return seAllow(local_data, _seConstants.SE_13_DOWN__UP); //  ↘↗
+}
+
+/*  curve_up__curve_up.png   like a flower */
+function seCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var NN_to_NE = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NE;
+  if (NN_to_NE && lows_and_highs) {
+    return true;
+  }
+  return false;
+}
+function seCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var SW_to_SS = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_SS;
+  if (SW_to_SS && lows_and_highs) {
+    return true;
+  }
+  return false;
+}
+
+/*  curve_down__curve_down.png  like a cap */
+function seCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var SS_to_SW = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_SW;
+  if (SS_to_SW && lows_and_highs) {
+    return true;
+  }
+  return false;
+}
+function seCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var NE_to_NN = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_NN;
+  if (NE_to_NN && lows_and_highs) {
+    return true;
+  }
+  return false;
+}
+function seFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NONE_2_NONE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NONE;
+  if (NONE_2_NONE && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function seFlatToUp(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NONE_2_SE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_SE;
+  if (NONE_2_SE && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function seUpToFlat(prev_tilt_up, new_tilt_up, high_to_high) {
+  var SE_2_NONE = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_NONE;
+  if (SE_2_NONE && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function seDownToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NW_2_NONE = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_NONE;
+  if (NW_2_NONE && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function seFlatToDown(prev_tilt_up, new_tilt_up, high_to_high) {
+  var NONE_2_NW = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NW;
+  if (NONE_2_NW && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function seUpToUp(prev_tilt_up, new_tilt_up, high_to_low) {
+  var SE_2_SE = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_SE;
+  if (SE_2_SE && high_to_low) {
+    return true;
+  }
+  return false;
+}
+function seDownToDown(prev_tilt_up, new_tilt_up, low_to_high) {
+  var NW_2_NW = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_NW;
+  if (NW_2_NW && low_to_high) {
+    return true;
+  }
+  return false;
+}
+function seUpToDown(prev_tilt_up, new_tilt_up, high_to_high) {
+  var SE_2_NW = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_NW;
+  if (SE_2_NW && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function seDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NW_2_SE = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_SE;
+  if (NW_2_SE && low_to_low) {
+    return true;
+  }
+  return false;
+}
+
+},{"../../constants.js":10,"../misc-func.js":25,"./se-constants.js":32}],34:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.SS_START_FINISHES = exports.SS_INTO_AIR = exports.SS_AIRBORNE = exports.SS_9_FLAT__DOWN = exports.SS_8_DOWN__FLAT = exports.SS_7_UP__FLAT = exports.SS_6_FLAT__UP = exports.SS_5_FLAT__FLAT = exports.SS_4_DOWN_DOWN_COUNTER = exports.SS_3_DOWN_DOWN_CLOCK = exports.SS_2_UP_UP_COUNTER = exports.SS_1_UP_UP_CLOCK = exports.SS_14_BLOCKED = exports.SS_13_DOWN__UP = exports.SS_12_UP__DOWN = exports.SS_11_DOWN__DOWN = exports.SS_10_UP__UP = void 0;
+var _constants = require("../../constants.js");
+var x_start = 0;
+var z_start = 0;
+var x_finish = 0;
+var z_finish = 1;
+var SS_INTO_AIR = exports.SS_INTO_AIR = "SS_INTO_AIR";
+var SS_AIRBORNE = exports.SS_AIRBORNE = "SS_AIRBORNE";
+var SS_1_UP_UP_CLOCK = exports.SS_1_UP_UP_CLOCK = "SS_1_UP_UP_CLOCK";
+var SS_2_UP_UP_COUNTER = exports.SS_2_UP_UP_COUNTER = "SS_2_UP_UP_COUNTER";
+var SS_3_DOWN_DOWN_CLOCK = exports.SS_3_DOWN_DOWN_CLOCK = "SS_3_DOWN_DOWN_CLOCK";
+var SS_4_DOWN_DOWN_COUNTER = exports.SS_4_DOWN_DOWN_COUNTER = "SS_4_DOWN_DOWN_COUNTER";
+var SS_5_FLAT__FLAT = exports.SS_5_FLAT__FLAT = "SS_5_FLAT__FLAT";
+var SS_6_FLAT__UP = exports.SS_6_FLAT__UP = "SS_6_FLAT__UP";
+var SS_7_UP__FLAT = exports.SS_7_UP__FLAT = "SS_7_UP__FLAT";
+var SS_8_DOWN__FLAT = exports.SS_8_DOWN__FLAT = "SS_8_DOWN__FLAT";
+var SS_9_FLAT__DOWN = exports.SS_9_FLAT__DOWN = "SS_9_FLAT__DOWN";
+var SS_10_UP__UP = exports.SS_10_UP__UP = "SS_10_UP__UP";
+var SS_11_DOWN__DOWN = exports.SS_11_DOWN__DOWN = "SS_11_DOWN__DOWN";
+var SS_12_UP__DOWN = exports.SS_12_UP__DOWN = "SS_12_UP__DOWN";
+var SS_13_DOWN__UP = exports.SS_13_DOWN__UP = "SS_13_DOWN__UP";
+var SS_14_BLOCKED = exports.SS_14_BLOCKED = "SS_14_BLOCKED";
+var SS_1_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], SS_1_UP_UP_CLOCK];
+var SS_222_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], SS_2_UP_UP_COUNTER];
+var SS_3_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], SS_3_DOWN_DOWN_CLOCK];
+var SS_444_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], SS_4_DOWN_DOWN_COUNTER];
+var SS_5_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2], SS_5_FLAT__FLAT];
+var SS_6_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], SS_6_FLAT__UP];
+var SS_7_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 2, z_finish, _constants.COL_2], SS_7_UP__FLAT];
+var SS_8_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 2, z_finish, _constants.COL_2], SS_8_DOWN__FLAT];
+var SS_9_TEST = [[x_start, 2, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], SS_9_FLAT__DOWN];
+var SS_10_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 2, z_finish, _constants.COL_2, _constants.TILT_SS, 1], SS_10_UP__UP];
+var SS_11_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], SS_11_DOWN__DOWN];
+var SS_12_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], SS_12_UP__DOWN];
+var SS_13_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], SS_13_DOWN__UP];
+var SS_START_FINISHES = exports.SS_START_FINISHES = {
+  1: SS_1_TEST,
+  2: SS_222_TEST,
+  3: SS_3_TEST,
+  4: SS_444_TEST,
+  5: SS_5_TEST,
+  6: SS_6_TEST,
+  7: SS_7_TEST,
+  8: SS_8_TEST,
+  9: SS_9_TEST,
+  10: SS_10_TEST,
+  11: SS_11_TEST,
+  12: SS_12_TEST,
+  13: SS_13_TEST
+};
+
+},{"../../constants.js":10}],35:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.moveToSs = moveToSs;
+var _constants = require("../../constants.js");
+var _miscFunc = require("../misc-func.js");
+var _ssConstants = require("./ss-constants.js");
+function ssAllow(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    ee("TEST allowed SS :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_NEW_TILE;
+}
+function ssBlock(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    ee("TEST blocked SS :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_BLOCKED;
+}
+function ssFall(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    ee("TEST airborne SS :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_FALLING;
+}
+function ssAirborne(run_or_test, print_allowed) {
+  var local_data = {
+    run_or_test: run_or_test,
+    print_allowed: print_allowed,
+    prev_tilt_up: _ssConstants.SS_AIRBORNE,
+    new_tilt_up: _ssConstants.SS_AIRBORNE
+  };
+  return ssFall(local_data, _ssConstants.SS_AIRBORNE);
+}
+function ssInAir(walkway_columns, new_index) {
+  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_column = walkway_columns.get(current_xz_index);
+  if (current_xz_column == undefined) {
+    return true; // falling in a column with no tiles
+  }
+  var current_xyz_walkway_index = current_xz_column.get(new_index);
+  if (current_xyz_walkway_index == undefined) {
+    return true; // falling in a column with tiles, but no tile at this height
+  }
+  return false;
+}
+function ssHitSsWall(wall_squares, wall_columns, new_index) {
+  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var cur_xz_wall_column = wall_columns.get(current_xz_index);
+  if (cur_xz_wall_column) {
+    var possible_wall = wall_squares.get(new_index);
+    if (possible_wall) {
+      return true;
+    }
+  }
+  return false;
+}
+function ssTileData(walkway_tiles, prev_index, new_index) {
+  var current_walkway_tile = walkway_tiles.get(new_index);
+  var new_tilt_up = current_walkway_tile.tilt_up,
+    new_low_y = current_walkway_tile.low_y,
+    new_high_y = current_walkway_tile.high_y;
+  var prev_tilt_up, prev_low_y, prev_high_y;
+  var prev_walkway_tile = walkway_tiles.get(prev_index);
+  if (prev_walkway_tile) {
+    prev_tilt_up = prev_walkway_tile.tilt_up;
+    prev_low_y = prev_walkway_tile.low_y;
+    prev_high_y = prev_walkway_tile.high_y;
+  } else {
+    prev_tilt_up = new_tilt_up;
+    prev_low_y = new_low_y;
+    prev_high_y = new_high_y;
+  }
+  var low_to_low = prev_low_y == new_low_y;
+  var high_to_high = prev_high_y == new_high_y;
+  var lows_and_highs = low_to_low && high_to_high;
+  var high_to_low = prev_high_y == new_low_y;
+  var low_to_high = prev_low_y == new_high_y;
+  var prev_new_data = {
+    prev_tilt_up: prev_tilt_up,
+    prev_low_y: prev_low_y,
+    prev_high_y: prev_high_y,
+    new_tilt_up: new_tilt_up,
+    new_low_y: new_low_y,
+    new_high_y: new_high_y
+  };
+  var data = {
+    low_to_low: low_to_low,
+    high_to_high: high_to_high,
+    lows_and_highs: lows_and_highs,
+    high_to_low: high_to_low,
+    low_to_high: low_to_high
+  };
+  return {
+    prev_new_data: prev_new_data,
+    data: data
+  };
+}
+function moveToSs(current_data) {
+  var run_or_test = current_data.run_or_test,
+    print_allowed = current_data.print_allowed,
+    walkway_tiles = current_data.walkway_tiles,
+    walkway_columns = current_data.walkway_columns,
+    wall_squares = current_data.wall_squares,
+    wall_columns = current_data.wall_columns,
+    prev_index = current_data.prev_index,
+    new_index = current_data.new_index;
+  if (ssHitSsWall(wall_squares, wall_columns, new_index)) {
+    return ssBlock(run_or_test, print_allowed, prev_index, new_index, _ssConstants.SS_14_BLOCKED);
+  }
+  if (ssInAir(walkway_columns, new_index)) {
+    return ssAirborne(run_or_test, print_allowed);
+  }
+  var _ssTileData = ssTileData(walkway_tiles, prev_index, new_index),
+    prev_new_data = _ssTileData.prev_new_data,
+    data = _ssTileData.data;
+  var prev_tilt_up = prev_new_data.prev_tilt_up,
+    new_tilt_up = prev_new_data.new_tilt_up;
+  var low_to_low = data.low_to_low,
+    high_to_high = data.high_to_high,
+    lows_and_highs = data.lows_and_highs,
+    high_to_low = data.high_to_low,
+    low_to_high = data.low_to_high;
+  var local_data = {
+    run_or_test: run_or_test,
+    print_allowed: print_allowed,
+    prev_tilt_up: prev_tilt_up,
+    new_tilt_up: new_tilt_up
+  };
+  if (prev_index == new_index) {
+    return _constants.MOVE_SAME_TILE;
+  } else if (ssCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return ssAllow(local_data, _ssConstants.SS_1_UP_UP_CLOCK); //      ⭮
+  } else if (ssCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return ssAllow(local_data, _ssConstants.SS_2_UP_UP_COUNTER); //      ⭯
+  } else if (ssCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return ssAllow(local_data, _ssConstants.SS_3_DOWN_DOWN_CLOCK); //  ⭮
+  } else if (ssCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return ssAllow(local_data, _ssConstants.SS_4_DOWN_DOWN_COUNTER); //  ⭯
+  } else if (ssFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return ssAllow(local_data, _ssConstants.SS_5_FLAT__FLAT); // - -
+  } else if (ssFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return ssAllow(local_data, _ssConstants.SS_6_FLAT__UP); //   _⭜
+  } else if (ssUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return ssAllow(local_data, _ssConstants.SS_7_UP__FLAT); //   ↗¯¯
+  } else if (ssDownToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return ssAllow(local_data, _ssConstants.SS_8_DOWN__FLAT); // ↘__
+  } else if (ssFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return ssAllow(local_data, _ssConstants.SS_9_FLAT__DOWN); // ¯⭝
+  } else if (ssUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
+    return ssAllow(local_data, _ssConstants.SS_10_UP__UP); //     ↗↗
+  } else if (ssDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
+    return ssAllow(local_data, _ssConstants.SS_11_DOWN__DOWN); // ↘↘
+  } else if (ssUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return ssAllow(local_data, _ssConstants.SS_12_UP__DOWN); //  ↗↘
+  } else if (ssDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return ssAllow(local_data, _ssConstants.SS_13_DOWN__UP); //  ↘↗
+  } else if (prev_index == new_index) {
+    return _constants.MOVE_SAME_TILE;
+  }
+  return ssAllow(local_data, _ssConstants.SS_13_DOWN__UP); //  ↘↗
+}
+
+/*  curve_up__curve_up.png   like a flower */
+function ssCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var NE_to_SE = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_SE;
+  if (NE_to_SE && lows_and_highs) {
+    return true;
+  }
+  return false;
+}
+function ssCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var NW_to_SW = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_SW;
+  if (NW_to_SW && lows_and_highs) {
+    return true;
+  }
+  return false;
+}
+
+/*  curve_down__curve_down.png  like a cap */
+function ssCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var SW_to_NW = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_NW;
+  if (SW_to_NW && lows_and_highs) {
+    return true;
+  }
+  return false;
+}
+function ssCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var SE_to_NE = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_NE;
+  if (SE_to_NE && lows_and_highs) {
+    return true;
+  }
+  return false;
+}
+function ssFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NONE_2_NONE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NONE;
+  if (NONE_2_NONE && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function ssFlatToUp(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NONE_2_SS = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_SS;
+  if (NONE_2_SS && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function ssUpToFlat(prev_tilt_up, new_tilt_up, high_to_high) {
+  var SS_2_NONE = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_NONE;
+  if (SS_2_NONE && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function ssDownToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NN_2_NONE = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NONE;
+  if (NN_2_NONE && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function ssFlatToDown(prev_tilt_up, new_tilt_up, high_to_high) {
+  var NONE_2_NN = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NN;
+  if (NONE_2_NN && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function ssUpToUp(prev_tilt_up, new_tilt_up, high_to_low) {
+  var SS_2_SS = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_SS;
+  if (SS_2_SS && high_to_low) {
+    return true;
+  }
+  return false;
+}
+function ssDownToDown(prev_tilt_up, new_tilt_up, low_to_high) {
+  var NN_2_NN = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NN;
+  if (NN_2_NN && low_to_high) {
+    return true;
+  }
+  return false;
+}
+function ssUpToDown(prev_tilt_up, new_tilt_up, high_to_high) {
+  var SS_2_NN = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_NN;
+  if (SS_2_NN && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function ssDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NN_2_SS = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_SS;
+  if (NN_2_SS && low_to_low) {
+    return true;
+  }
+  return false;
+}
+
+},{"../../constants.js":10,"../misc-func.js":25,"./ss-constants.js":34}],36:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -23779,46 +26382,644 @@ function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) 
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.startGameTiles = startGameTiles;
+var _hexTile = require("./hex-tile.js");
+var HEX_CONST = _interopRequireWildcard(require("../constants.js"));
+function _interopRequireWildcard(e, t) {
+  if ("function" == typeof WeakMap) var r = new WeakMap(),
+    n = new WeakMap();
+  return (_interopRequireWildcard = function _interopRequireWildcard(e, t) {
+    if (!t && e && e.__esModule) return e;
+    var o,
+      i,
+      f = {
+        __proto__: null,
+        "default": e
+      };
+    if (null === e || "object" != _typeof(e) && "function" != typeof e) return f;
+    if (o = t ? n : r) {
+      if (o.has(e)) return o.get(e);
+      o.set(e, f);
+    }
+    for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]);
+    return f;
+  })(e, t);
+}
+function startGameTiles(GAME_WALKWAY) {
+  var start_hexes = GAME_WALKWAY.shift();
+  var _start_hexes = _slicedToArray(start_hexes, 3),
+    game_start_hex_x = _start_hexes[0],
+    game_start_coord_y = _start_hexes[1],
+    game_start_hex_z = _start_hexes[2];
+  var _ref = (0, _hexTile.tileCenterCoord)(game_start_hex_x, game_start_hex_z),
+    _ref2 = _slicedToArray(_ref, 2),
+    game_start_coord_x = _ref2[0],
+    game_start_coord_z = _ref2[1];
+  var start_xyz_camera = [game_start_coord_x, game_start_coord_y, game_start_coord_z];
+  var walkway_coords = GAME_WALKWAY;
+  var start_xyz_lookat = GAME_WALKWAY.shift();
+  return {
+    walkway_coords: walkway_coords,
+    start_xyz_camera: start_xyz_camera,
+    start_xyz_lookat: start_xyz_lookat
+  };
+}
+function startTestTiles(test_direction) {
+  if (TEST_DIRECTION == HEX_CONST.TEST_SS) {
+    // the_coords.pop(); // get rid of name
+    var _ss_load_test = ss_load_test(TEST_NUMBER_1_TO_11);
+    var _ss_load_test2 = _slicedToArray(_ss_load_test, 4);
+    the_coords = _ss_load_test2[0];
+    test_xyz_camera = _ss_load_test2[1];
+    test_xyz_lookat = _ss_load_test2[2];
+    test_name = _ss_load_test2[3];
+    ee("main start test coord ss", the_coords);
+  } else if (TEST_DIRECTION == HEX_CONST.TEST_NN) {
+    // the_coords.pop(); // get rid of name
+    var _nn_load_test = nn_load_test(TEST_NUMBER_1_TO_11);
+    var _nn_load_test2 = _slicedToArray(_nn_load_test, 4);
+    the_coords = _nn_load_test2[0];
+    test_xyz_camera = _nn_load_test2[1];
+    test_xyz_lookat = _nn_load_test2[2];
+    test_name = _nn_load_test2[3];
+    ee("main start test coord nn", the_coords);
+  } else if (TEST_DIRECTION == HEX_CONST.TEST_NE) {
+    // the_coords.pop(); // get rid of name
+    var _ne_load_test = ne_load_test(TEST_NUMBER_1_TO_11);
+    var _ne_load_test2 = _slicedToArray(_ne_load_test, 4);
+    the_coords = _ne_load_test2[0];
+    test_xyz_camera = _ne_load_test2[1];
+    test_xyz_lookat = _ne_load_test2[2];
+    test_name = _ne_load_test2[3];
+    ee("main start test coord ne", the_coords);
+  } else if (TEST_DIRECTION == HEX_CONST.TEST_SW) {
+    // the_coords.pop(); // get rid of name
+    var _sw_load_test = sw_load_test(TEST_NUMBER_1_TO_11);
+    var _sw_load_test2 = _slicedToArray(_sw_load_test, 4);
+    the_coords = _sw_load_test2[0];
+    test_xyz_camera = _sw_load_test2[1];
+    test_xyz_lookat = _sw_load_test2[2];
+    test_name = _sw_load_test2[3];
+  } else if (TEST_DIRECTION == HEX_CONST.TEST_NW) {
+    // the_coords.pop(); // get rid of name
+    var _nw_load_test = nw_load_test(TEST_NUMBER_1_TO_11);
+    var _nw_load_test2 = _slicedToArray(_nw_load_test, 4);
+    the_coords = _nw_load_test2[0];
+    test_xyz_camera = _nw_load_test2[1];
+    test_xyz_lookat = _nw_load_test2[2];
+    test_name = _nw_load_test2[3];
+    ee("main start test coord nw", the_coords);
+  } else if (TEST_DIRECTION == HEX_CONST.TEST_SE) {
+    // the_coords.pop(); // get rid of name
+    var _se_load_test = se_load_test(TEST_NUMBER_1_TO_11);
+    var _se_load_test2 = _slicedToArray(_se_load_test, 4);
+    the_coords = _se_load_test2[0];
+    test_xyz_camera = _se_load_test2[1];
+    test_xyz_lookat = _se_load_test2[2];
+    test_name = _se_load_test2[3];
+  }
+  if (test_name !== "") {
+    ee("Physical mouse moving TEST NAME :: ".concat(test_name, " :: move forward to cause test"));
+  }
+}
+
+},{"../constants.js":10,"./hex-tile.js":23}],37:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.SW_START_FINISHES = exports.SW_INTO_AIR = exports.SW_AIRBORNE = exports.SW_9_FLAT__DOWN = exports.SW_8_DOWN__FLAT = exports.SW_7_UP__FLAT = exports.SW_6_FLAT__UP = exports.SW_5_FLAT__FLAT = exports.SW_4_DOWN_DOWN_COUNTER = exports.SW_3_DOWN_DOWN_CLOCK = exports.SW_2_UP_UP_COUNTER = exports.SW_1_UP_UP_CLOCK = exports.SW_14_BLOCKED = exports.SW_13_DOWN__UP = exports.SW_11_UP__DOWN = exports.SW_10_UP__UP = exports.SW_10_DOWN__DOWN = void 0;
+var _constants = require("../../constants.js");
+var x_start = 0;
+var z_start = 0;
+var x_finish = -1;
+var z_finish = 1;
+var SW_INTO_AIR = exports.SW_INTO_AIR = "SW_INTO_AIR";
+var SW_AIRBORNE = exports.SW_AIRBORNE = "SW_AIRBORNE";
+var SW_1_UP_UP_CLOCK = exports.SW_1_UP_UP_CLOCK = "SW_1_UP_UP_CLOCK";
+var SW_2_UP_UP_COUNTER = exports.SW_2_UP_UP_COUNTER = "SW_2_UP_UP_COUNTER";
+var SW_3_DOWN_DOWN_CLOCK = exports.SW_3_DOWN_DOWN_CLOCK = "SW_3_DOWN_DOWN_CLOCK";
+var SW_4_DOWN_DOWN_COUNTER = exports.SW_4_DOWN_DOWN_COUNTER = "SW_4_DOWN_DOWN_COUNTER";
+var SW_5_FLAT__FLAT = exports.SW_5_FLAT__FLAT = "SW_5_FLAT__FLAT";
+var SW_6_FLAT__UP = exports.SW_6_FLAT__UP = "SW_6_FLAT__UP";
+var SW_7_UP__FLAT = exports.SW_7_UP__FLAT = "SW_7_UP__FLAT";
+var SW_8_DOWN__FLAT = exports.SW_8_DOWN__FLAT = "SW_8_DOWN__FLAT";
+var SW_9_FLAT__DOWN = exports.SW_9_FLAT__DOWN = "SW_9_FLAT__DOWN";
+var SW_10_UP__UP = exports.SW_10_UP__UP = "SW_10_UP__UP";
+var SW_10_DOWN__DOWN = exports.SW_10_DOWN__DOWN = "SW_10_DOWN__DOWN";
+var SW_11_UP__DOWN = exports.SW_11_UP__DOWN = "SW_11_UP__DOWN";
+var SW_13_DOWN__UP = exports.SW_13_DOWN__UP = "SW_13_DOWN__UP";
+var SW_14_BLOCKED = exports.SW_14_BLOCKED = "SW_14_BLOCKED";
+var SW_1_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], SW_1_UP_UP_CLOCK];
+var SW_222_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], SW_2_UP_UP_COUNTER];
+var SW_3_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], SW_3_DOWN_DOWN_CLOCK];
+var SW_444_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], SW_4_DOWN_DOWN_COUNTER];
+var SW_5_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2], SW_5_FLAT__FLAT];
+var SW_6_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], SW_6_FLAT__UP];
+var SW_7_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 2, z_finish, _constants.COL_2], SW_7_UP__FLAT];
+var SW_8_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 2, z_finish, _constants.COL_2], SW_8_DOWN__FLAT];
+var SW_9_TEST = [[x_start, 2, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], SW_9_FLAT__DOWN];
+var SW_10_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 2, z_finish, _constants.COL_2, _constants.TILT_SW, 1], SW_10_UP__UP];
+var SW_11_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], SW_10_DOWN__DOWN];
+var SW_12_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], SW_11_UP__DOWN];
+var SW_13_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], SW_13_DOWN__UP];
+var SW_START_FINISHES = exports.SW_START_FINISHES = {
+  1: SW_1_TEST,
+  2: SW_222_TEST,
+  3: SW_3_TEST,
+  4: SW_444_TEST,
+  5: SW_5_TEST,
+  6: SW_6_TEST,
+  7: SW_7_TEST,
+  8: SW_8_TEST,
+  9: SW_9_TEST,
+  10: SW_10_TEST,
+  11: SW_11_TEST,
+  12: SW_12_TEST,
+  13: SW_13_TEST
+};
+
+},{"../../constants.js":10}],38:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.moveToSw = moveToSw;
+var _constants = require("../../constants.js");
+var _miscFunc = require("../misc-func.js");
+var _swConstants = require("./sw-constants.js");
+function swAllow(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    ee("TEST allowed SW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_NEW_TILE;
+}
+function swBlock(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    ee("TEST blocked SW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_BLOCKED;
+}
+function swFall(local_data, mess_1) {
+  var run_or_test = local_data.run_or_test,
+    print_allowed = local_data.print_allowed,
+    prev_tilt_up = local_data.prev_tilt_up,
+    new_tilt_up = local_data.new_tilt_up;
+  if (print_allowed == _constants.TESTING_PRINT) {
+    ee("TEST airborne SW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+  }
+  return _constants.MOVE_FALLING;
+}
+function swAirborne(run_or_test, print_allowed) {
+  var local_data = {
+    run_or_test: run_or_test,
+    print_allowed: print_allowed,
+    prev_tilt_up: _swConstants.SW_AIRBORNE,
+    new_tilt_up: _swConstants.SW_AIRBORNE
+  };
+  return swFall(local_data, _swConstants.SW_AIRBORNE);
+}
+function swInAir(walkway_columns, new_index) {
+  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_column = walkway_columns.get(current_xz_index);
+  if (current_xz_column == undefined) {
+    return true; // falling in a column with no tiles
+  }
+  var current_xyz_walkway_index = current_xz_column.get(new_index);
+  if (current_xyz_walkway_index == undefined) {
+    return true; // falling in a column with tiles, but no tile at this height
+  }
+  return false;
+}
+function swHitSwWall(wall_squares, wall_columns, new_index) {
+  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var cur_xz_wall_column = wall_columns.get(current_xz_index);
+  if (cur_xz_wall_column) {
+    var possible_wall = wall_squares.get(new_index);
+    if (possible_wall) {
+      return true;
+    }
+  }
+  return false;
+}
+function swTileData(walkway_tiles, prev_index, new_index) {
+  var current_walkway_tile = walkway_tiles.get(new_index);
+  var new_tilt_up = current_walkway_tile.tilt_up,
+    new_low_y = current_walkway_tile.low_y,
+    new_high_y = current_walkway_tile.high_y;
+  var prev_tilt_up, prev_low_y, prev_high_y;
+  var prev_walkway_tile = walkway_tiles.get(prev_index);
+  if (prev_walkway_tile) {
+    prev_tilt_up = prev_walkway_tile.tilt_up;
+    prev_low_y = prev_walkway_tile.low_y;
+    prev_high_y = prev_walkway_tile.high_y;
+  } else {
+    prev_tilt_up = new_tilt_up;
+    prev_low_y = new_low_y;
+    prev_high_y = new_high_y;
+  }
+  var low_to_low = prev_low_y == new_low_y;
+  var high_to_high = prev_high_y == new_high_y;
+  var lows_and_highs = low_to_low && high_to_high;
+  var high_to_low = prev_high_y == new_low_y;
+  var low_to_high = prev_low_y == new_high_y;
+  var prev_new_data = {
+    prev_tilt_up: prev_tilt_up,
+    prev_low_y: prev_low_y,
+    prev_high_y: prev_high_y,
+    new_tilt_up: new_tilt_up,
+    new_low_y: new_low_y,
+    new_high_y: new_high_y
+  };
+  var data = {
+    low_to_low: low_to_low,
+    high_to_high: high_to_high,
+    lows_and_highs: lows_and_highs,
+    high_to_low: high_to_low,
+    low_to_high: low_to_high
+  };
+  return {
+    prev_new_data: prev_new_data,
+    data: data
+  };
+}
+function moveToSw(current_data) {
+  var run_or_test = current_data.run_or_test,
+    print_allowed = current_data.print_allowed,
+    walkway_tiles = current_data.walkway_tiles,
+    walkway_columns = current_data.walkway_columns,
+    wall_squares = current_data.wall_squares,
+    wall_columns = current_data.wall_columns,
+    prev_index = current_data.prev_index,
+    new_index = current_data.new_index;
+  if (swHitSwWall(wall_squares, wall_columns, new_index)) {
+    return swBlock(run_or_test, print_allowed, prev_index, new_index, _swConstants.SW_14_BLOCKED);
+  }
+  if (swInAir(walkway_columns, new_index)) {
+    return swAirborne(run_or_test, print_allowed);
+  }
+  var _swTileData = swTileData(walkway_tiles, prev_index, new_index),
+    prev_new_data = _swTileData.prev_new_data,
+    data = _swTileData.data;
+  var prev_tilt_up = prev_new_data.prev_tilt_up,
+    new_tilt_up = prev_new_data.new_tilt_up;
+  var low_to_low = data.low_to_low,
+    high_to_high = data.high_to_high,
+    lows_and_highs = data.lows_and_highs,
+    high_to_low = data.high_to_low,
+    low_to_high = data.low_to_high;
+  var local_data = {
+    run_or_test: run_or_test,
+    print_allowed: print_allowed,
+    prev_tilt_up: prev_tilt_up,
+    new_tilt_up: new_tilt_up
+  };
+  if (prev_index == new_index) {
+    return _constants.MOVE_SAME_TILE;
+  } else if (swCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return swAllow(local_data, _swConstants.SW_1_UP_UP_CLOCK); //      ⭮
+  } else if (swCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return swAllow(local_data, _swConstants.SW_2_UP_UP_COUNTER); //      ⭯
+  } else if (swCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return swAllow(local_data, _swConstants.SW_3_DOWN_DOWN_CLOCK); //  ⭮
+  } else if (swCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
+    return swAllow(local_data, _swConstants.SW_4_DOWN_DOWN_COUNTER); //  ⭯
+  } else if (swFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return swAllow(local_data, _swConstants.SW_5_FLAT__FLAT); // - -
+  } else if (swFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return swAllow(local_data, _swConstants.SW_6_FLAT__UP); //   _⭜
+  } else if (swUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return swAllow(local_data, _swConstants.SW_7_UP__FLAT); //   ↗¯¯
+  } else if (swDownToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return swAllow(local_data, _swConstants.SW_8_DOWN__FLAT); // ↘__
+  } else if (swFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return swAllow(local_data, _swConstants.SW_9_FLAT__DOWN); // ¯⭝
+  } else if (swUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
+    return swAllow(local_data, _swConstants.SW_10_UP__UP); //     ↗↗
+  } else if (swDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
+    return swAllow(local_data, _swConstants.SW_10_DOWN__DOWN); // ↘↘
+  } else if (swUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
+    return swAllow(local_data, _swConstants.SW_11_UP__DOWN); //  ↗↘
+  } else if (swDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
+    return swAllow(local_data, _swConstants.SW_13_DOWN__UP); //  ↘↗
+  } else if (prev_index == new_index) {
+    return _constants.MOVE_SAME_TILE;
+  }
+  return swAllow(local_data, _swConstants.SW_13_DOWN__UP); //  ↘↗
+}
+
+/*  curve_up__curve_up.png   like a flower */
+function swCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var SE_to_SS = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_SS;
+  if (SE_to_SS && lows_and_highs) {
+    ee("FLOWER CLOCK sw");
+    return true;
+  }
+  return false;
+}
+function swCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var NN_to_NW = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NW;
+  if (NN_to_NW && lows_and_highs) {
+    ee("FLOWER COUNT sw");
+    return true;
+  }
+  return false;
+}
+
+/*  curve_down__curve_down.png  like a cap */
+function swCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var NW_to_NN = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_NN;
+  if (NW_to_NN && lows_and_highs) {
+    ee("hat CLOCK sw");
+    return true;
+  }
+  return false;
+}
+function swCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
+  var SS_to_SE = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_SE;
+  if (SS_to_SE && lows_and_highs) {
+    ee("hat COUNT sw");
+    return true;
+  }
+  return false;
+}
+function swFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NONE_2_NONE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NONE;
+  if (NONE_2_NONE && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function swFlatToUp(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NONE_2_SW = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_SW;
+  if (NONE_2_SW && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function swUpToFlat(prev_tilt_up, new_tilt_up, high_to_high) {
+  var SW_2_NONE = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_NONE;
+  if (SW_2_NONE && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function swDownToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NE_2_NONE = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_NONE;
+  if (NE_2_NONE && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function swFlatToDown(prev_tilt_up, new_tilt_up, high_to_high) {
+  var NONE_2_NE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NE;
+  if (NONE_2_NE && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function swUpToUp(prev_tilt_up, new_tilt_up, high_to_low) {
+  var SW_2_SW = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_SW;
+  if (SW_2_SW && high_to_low) {
+    return true;
+  }
+  return false;
+}
+function swDownToDown(prev_tilt_up, new_tilt_up, low_to_high) {
+  var NE_2_NE = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_NE;
+  if (NE_2_NE && low_to_high) {
+    return true;
+  }
+  return false;
+}
+function swUpToDown(prev_tilt_up, new_tilt_up, high_to_high) {
+  var SW_2_NE = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_NE;
+  if (SW_2_NE && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function swDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
+  var NE_2_SW = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_SW;
+  if (NE_2_SW && low_to_low) {
+    return true;
+  }
+  return false;
+}
+
+},{"../../constants.js":10,"../misc-func.js":25,"./sw-constants.js":37}],39:[function(require,module,exports){
+"use strict";
+
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.makeWalkway = makeWalkway;
-var _constants = require("../constants.js");
+var _miscFuncs = require("../misc-funcs.js");
+var HEX_CONST = _interopRequireWildcard(require("../constants.js"));
 var _hexTile = require("./hex-tile.js");
+function _interopRequireWildcard(e, t) {
+  if ("function" == typeof WeakMap) var r = new WeakMap(),
+    n = new WeakMap();
+  return (_interopRequireWildcard = function _interopRequireWildcard(e, t) {
+    if (!t && e && e.__esModule) return e;
+    var o,
+      i,
+      f = {
+        __proto__: null,
+        "default": e
+      };
+    if (null === e || "object" != _typeof(e) && "function" != typeof e) return f;
+    if (o = t ? n : r) {
+      if (o.has(e)) return o.get(e);
+      o.set(e, f);
+    }
+    for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]);
+    return f;
+  })(e, t);
+}
+//import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
+
+// const walkway_coords = [
+//     // x,     y,      z,  incline_dir, incline_amount
+//     ["001", "040", "002"],
+//     ["001", "040", "001"],
+//     ["001", "040", "000"],
+//     ["002", "040", "-01"],
+//     ["003", "040", "-01"],
+//     ["003", "020", "-01"],
+
+//     ["002", "020", "-01"],
+//     ["001", "020", "-01"],
+//     ["000", "020", "000"],
+//     ["000", "020", "001"],
+//     ["000", "020", "002"],
+//     ["000", "020", "003"],
+//     ["000", "020", "004"],
+//     ["000", "020", "005"],
+//     ["000", "020", "006"],
+//     ["000", "020", "007", "blue"], //   0,7      2
+//     ["000", "020", "008"],
+
+//     ["003", "020", "000", "blue", TILT_SS, 1.0],
+//     ["003", "020", "001", "blue", TILT_NN, 1.0],
+//     ["003", "010", "002", "blue", TILT_NN, 1.0],
+//     ["003", "010", "003"],
+//     ["004", "010", "003", "yellow", TILT_SE, 0.5],
+//     ["005", "015", "003", "yellow", TILT_SE, 0.5],
+//     ["006", "015", "003", "yellow", TILT_NW, 0.5],
+//     ["002", "010", "004", "yellow", TILT_SW, 0.2],
+//     ["001", "012", "005", "yellow", TILT_SW, 0.2],
+//     ["000", "008", "006", "yellow", TILT_NE, 0.4],
+//     ["000", "008", "007", "yellow", TILT_NE, 0.4], // 0.7       0.8
+
+//     // 0.8 ==> 8       /10
+//     // 5 ==> 50  therefore we can have g_walkway_height as ints
+
+//     // so we modify the indexs of x,z now y as well
+
+//     ["004", "008", "006", "purple", TILT_SE, 0.5],
+//     ["003", "008", "007", "purple", TILT_SS, 1.0],
+//     ["002", "008", "007", "purple", TILT_SW, 1.5],
+//     ["002", "008", "006", "purple", TILT_NW, 2.0],
+//     ["003", "008", "005", "purple", TILT_NN, 2.5],
+//     ["004", "008", "005", "purple", TILT_NE, 3.0]
+
+//     // ["004", "3.0", "006", TILT_SS, 0.5],
+//     // ["003", "2.5", "007", TILT_SS, 1.0],
+//     // ["002", "2.0", "007", TILT_SS, 1.5],
+//     // ["002", "1.5", "006", TILT_SS, 2.0],
+//     // ["003", "1.0", "005", TILT_SS, 2.5],
+//     // ["004", "0.5", "005", TILT_SS, 3.0]
+// ];
+
 //
-var walkway_coords = [
-// x,     y,      z,  incline_dir, incline_amount
-["001", "04.0", "002"], ["001", "04.0", "001"], ["001", "04.0", "000"], ["002", "04.0", "-01"], ["003", "04.0", "-01"], ["003", "02.0", "-001"], ["002", "02.0", "-001"], ["001", "02.0", "-001"], ["000", "02.0", "000"], ["000", "02.0", "001"], ["000", "02.0", "002"], ["000", "02.0", "003"], ["000", "02.0", "004"], ["000", "02.0", "005"], ["000", "02.0", "006"], ["000", "02.0", "007"], ["000", "02.0", "008"], ["003", "02.0", "000", _constants.S_S, 1.0], ["003", "02.0", "001", _constants.N_N, 1.0], ["003", "01.0", "002", _constants.N_N, 1.0], ["003", "01.0", "003"], ["004", "01.0", "003", _constants.S_E, 0.5], ["005", "01.5", "003", _constants.S_E, 0.5], ["006", "01.5", "003", _constants.N_W, 0.5], ["002", "01.0", "004", _constants.S_W, 0.2], ["001", "01.2", "005", _constants.S_W, 0.2], ["000", "01.0", "006", _constants.N_E, 0.4], ["000", "0.8", "007", _constants.N_E, 0.4], ["004", "0.8", "006", _constants.S_E, 1.0], ["003", "0.8", "007", _constants.S_S, 1.0], ["002", "0.8", "007", _constants.S_W, 1.0], ["002", "0.8", "006", _constants.N_W, 1.0], ["003", "0.8", "005", _constants.N_N, 1.0], ["004", "0.8", "005", _constants.N_E, 1.0]];
-function makeWalkway(the_scene, walkway_meshes, walkway_tiles, walkway_overlaps, tile_colors2) {
+//         x,      y,      z,  hex_color, slope_direction, incline_amount
+//    ["-001", "00.5", "-001",  c____red,         TILT_NN, 0.1]
+//    ["0000", "0000", "0000",  c_yellow,         TILT_NN, 1]    // more better way !!!!!!!!!!
+//    ["-003", "0050", "-002",  c_purple]
+
+// const walkway_coords = [
+//     // x,     y,      z,  incline_dir, incline_amount
+//     ["0000", "1", "0000", HEX_CONST.C____GREEN],
+//     //    ["-99.1", "099.1", "-99.1", TILT_NN, "0.1" "green"]
+//     ["0001", "1", "-001", HEX_CONST.C_____BLUE, HEX_CONST.TILT_NE, 10]
+//     //  ["003", "050", "002", "yellow"]
+// ];
+
+function coordsBad(x_index, y_level, z_index) {
+  if (x_index % 1 != 0) {
+    (0, _miscFuncs.ee)("checkCoords error x_index ", x_index);
+    return true;
+  }
+  if (y_level % 1 != 0 && y_level % 1 != 0.5) {
+    (0, _miscFuncs.ee)("checkCoords error y_level ", y_level);
+    return true;
+  }
+  if (z_index % 1 != 0) {
+    (0, _miscFuncs.ee)("checkCoords error z_index ", z_index);
+    return true;
+  }
+  return false;
+}
+function makeWalkway(the_scene, walkway_coords, walkway_meshes, walkway_tiles, walkway_columns) {
   for (var i = 0; i < walkway_coords.length; i++) {
     var ramp_piece = walkway_coords[i];
-    var _ramp_piece = _slicedToArray(ramp_piece, 3),
-      x_str = _ramp_piece[0],
-      y_str = _ramp_piece[1],
-      z_str = _ramp_piece[2];
-    var x_index = parseInt(x_str);
-    var y_index = parseFloat(y_str);
-    var z_index = parseInt(z_str);
-    var ramp_xyz = [x_index, y_index, z_index];
-    if (ramp_piece.length == 3) {
-      var _ref = (0, _hexTile.HexTile)(the_scene, walkway_meshes, walkway_tiles, walkway_overlaps, ramp_xyz, tile_colors2);
-      var _ref2 = _slicedToArray(_ref, 3);
-      walkway_meshes = _ref2[0];
-      walkway_tiles = _ref2[1];
-      walkway_overlaps = _ref2[2];
-    } else {
-      var incline_and_dir = [ramp_piece[3], ramp_piece[4]];
-      var _ref3 = (0, _hexTile.HexTile)(the_scene, walkway_meshes, walkway_tiles, walkway_overlaps, ramp_xyz, tile_colors2, incline_and_dir);
-      var _ref4 = _slicedToArray(_ref3, 3);
-      walkway_meshes = _ref4[0];
-      walkway_tiles = _ref4[1];
-      walkway_overlaps = _ref4[2];
+    if (Array.isArray(ramp_piece)) {
+      var _ramp_piece = _slicedToArray(ramp_piece, 3),
+        x_str = _ramp_piece[0],
+        y_str = _ramp_piece[1],
+        z_str = _ramp_piece[2];
+      var x_index = parseInt(x_str);
+      //            const y_index = parseFloat(y_str); /// y_level
+      var y_index = parseInt(y_str); /// y_level
+
+      var z_index = parseInt(z_str);
+      if (coordsBad(x_index, y_index, z_index)) {
+        debugger;
+      }
+      var ramp_xyz = [x_index, y_index, z_index];
+      if (ramp_piece.length == 3) {
+        var top_color2 = 0x88ee88;
+        var _ref = (0, _hexTile.HexTile)(the_scene, walkway_meshes, walkway_tiles, ramp_xyz, top_color2);
+        var _ref2 = _slicedToArray(_ref, 2);
+        walkway_meshes = _ref2[0];
+        walkway_tiles = _ref2[1];
+      } else if (ramp_piece.length == 4) {
+        var tile_color = ramp_piece[3];
+        var _ref3 = (0, _hexTile.HexTile)(the_scene, walkway_meshes, walkway_tiles, ramp_xyz, tile_color);
+        var _ref4 = _slicedToArray(_ref3, 2);
+        walkway_meshes = _ref4[0];
+        walkway_tiles = _ref4[1];
+      } else {
+        var _ramp_piece2 = _slicedToArray(ramp_piece, 6),
+          _tile_color = _ramp_piece2[3],
+          slope_direction = _ramp_piece2[4],
+          incline_amount = _ramp_piece2[5];
+        var _ref5 = (0, _hexTile.HexTile)(the_scene, walkway_meshes, walkway_tiles, ramp_xyz, _tile_color, slope_direction, incline_amount);
+        var _ref6 = _slicedToArray(_ref5, 2);
+        walkway_meshes = _ref6[0];
+        walkway_tiles = _ref6[1];
+      }
     }
   }
-  return [walkway_meshes, walkway_tiles, walkway_overlaps];
+  var walkway_columns = new Map();
+  var _iterator = _createForOfIteratorHelper(walkway_tiles),
+    _step;
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var _step$value = _slicedToArray(_step.value, 2),
+        _key = _step$value[0],
+        a_tile = _step$value[1];
+      var x_z = a_tile.x_z;
+      var xyz_index = a_tile.xyz_index;
+      var missing_x_z_column = !walkway_columns.has(x_z);
+      if (missing_x_z_column) {
+        var empty_x_z_column = new Map();
+        walkway_columns.set(x_z, empty_x_z_column);
+      }
+      var cur_x_z_column = walkway_columns.get(x_z);
+      var _x_z$split = x_z.split(","),
+        _x_z$split2 = _slicedToArray(_x_z$split, 2),
+        _x_index = _x_z$split2[0],
+        _z_index = _x_z$split2[1];
+      var low_y_100 = a_tile.low_y * 100;
+      var high_y_100 = a_tile.high_y * 100;
+      for (var y_100_index = low_y_100; y_100_index <= high_y_100; y_100_index += 5) {
+        var a_y_index = "".concat(_x_index, ",").concat(y_100_index, ",").concat(_z_index);
+        cur_x_z_column.set(a_y_index, xyz_index);
+      }
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+  return [walkway_meshes, walkway_tiles, walkway_columns];
 }
 
-},{"../constants.js":9,"./hex-tile.js":16}],20:[function(require,module,exports){
+},{"../constants.js":10,"../misc-funcs.js":18,"./hex-tile.js":23}],40:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -23832,16 +27033,20 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.walkwayIncline = walkwayIncline;
 var _constants = require("../constants.js");
-var ABOVE_WALKWAY = 0.52; // Base offset for camera height above surface
-
+var _maths = require("../maths.js");
+function hexIndex(x_hex_ind, y_height, z_hex_ind) {
+  var y_fixed_to_10ths = Math.trunc(y_height * 10) / 10;
+  var hex_index = "".concat(x_hex_ind, ",").concat(y_fixed_to_10ths, ",").concat(z_hex_ind);
+  return hex_index;
+}
 function swivelIntercept(cam_x_z, swivel_a, swivel_b) {
   var _cam_x_z = _slicedToArray(cam_x_z, 2),
     cam_x = _cam_x_z[0],
     cam_z = _cam_x_z[1];
-  var x1 = swivel_a[_constants.X_INDX];
-  var z1 = swivel_a[_constants.Z_INDX];
-  var x2 = swivel_b[_constants.X_INDX];
-  var z2 = swivel_b[_constants.Z_INDX];
+  var x1 = swivel_a[0];
+  var z1 = swivel_a[2];
+  var x2 = swivel_b[0];
+  var z2 = swivel_b[2];
   var dx = x2 - x1;
   var dz = z2 - z1;
   var dAB = dx * dx + dz * dz;
@@ -23882,7 +27087,7 @@ function inclineNW_NE_SE_SW(cam_pos, stair_tile, swivel_a, swivel_b) {
   var length_from_swivel2 = intercept2cam(cam_x_z, swivel_intercept);
   var dot_side_of_line = dotsSideOfLine(cam_x_z, swivel_a, swivel_b);
   var pixel_size;
-  if (tilt_up == _constants.N_W || tilt_up == _constants.S_W) {
+  if (tilt_up == _constants.TILT_NW || tilt_up == _constants.TILT_SW) {
     if (dot_side_of_line < 0) {
       pixel_size = accross_length / 2 - length_from_swivel2;
     } else {
@@ -23890,54 +27095,370 @@ function inclineNW_NE_SE_SW(cam_pos, stair_tile, swivel_a, swivel_b) {
     }
   } else {
     if (dot_side_of_line > 0) {
-      pixel_size = accross_length / 2 - length_from_swivel2; // N_E or S_E
+      pixel_size = accross_length / 2 - length_from_swivel2; // TILT_NE or TILT_SE
     } else {
       pixel_size = accross_length / 2 + length_from_swivel2;
     }
   }
   var height_increase = angle_incline * (pixel_size / accross_length);
-  var new_cam = y_position + height_increase + ABOVE_WALKWAY;
-  return new_cam;
+  var new_cam = y_position + height_increase + 0; //ABOVE_WALKWAY;
+  return height_increase; //new_cam;
 }
-function inclineNN_SS(cam_pos, stair_tile) {
-  var tilt_up = stair_tile.tilt_up,
-    angle_incline = stair_tile.angle_incline,
-    y_position = stair_tile.y_position,
-    tile_positions = stair_tile.tile_positions;
-  var highest_z = tile_positions[0][_constants.Z_INDX];
-  var lowest_z = tile_positions[3][_constants.Z_INDX];
+var ABOVE_WALKWAY = 0.52; // Base offset for camera height above surface
+var ABOVE_WALKWAY_SS = 1.52;
+function inclineNN(cam_pos, current_tile) {
+  var angle_incline = current_tile.angle_incline,
+    tile_positions = current_tile.tile_positions;
+  var highest_z = tile_positions[0][2];
+  var lowest_z = tile_positions[3][2];
   var total_z_width = highest_z - lowest_z;
   var z_distance_traveled, nn_ss_offset;
-  if (tilt_up == _constants.N_N) {
-    z_distance_traveled = highest_z - cam_pos.z;
-    nn_ss_offset = ABOVE_WALKWAY;
-  } else {
-    z_distance_traveled = cam_pos.z - highest_z; // S_S
-    nn_ss_offset = ABOVE_WALKWAY + 1.0;
-  }
+  z_distance_traveled = highest_z - cam_pos.z;
+  nn_ss_offset = 0; //ABOVE_WALKWAY;
   var height_increase = z_distance_traveled / total_z_width * angle_incline;
-  var new_cam_y2 = y_position + height_increase + nn_ss_offset;
+  var new_cam_y2 = height_increase + nn_ss_offset;
   return new_cam_y2;
 }
-function walkwayIncline(cam_pos, stair_tile) {
-  var tilt_up = stair_tile.tilt_up,
-    tile_positions = stair_tile.tile_positions,
-    y_position = stair_tile.y_position;
-  if (tilt_up == _constants.N_W) {
-    return inclineNW_NE_SE_SW(cam_pos, stair_tile, tile_positions[0], tile_positions[3]);
-  } else if (tilt_up == _constants.N_E) {
-    return inclineNW_NE_SE_SW(cam_pos, stair_tile, tile_positions[1], tile_positions[4]);
-  } else if (tilt_up == _constants.S_E) {
-    return inclineNW_NE_SE_SW(cam_pos, stair_tile, tile_positions[0], tile_positions[3]);
-  } else if (tilt_up == _constants.S_W) {
-    return inclineNW_NE_SE_SW(cam_pos, stair_tile, tile_positions[1], tile_positions[4]);
-  } else if (tilt_up == _constants.N_N || tilt_up == _constants.S_S) {
-    return inclineNN_SS(cam_pos, stair_tile);
+function inclineSS(cam_pos, current_tile) {
+  var angle_incline = current_tile.angle_incline,
+    tile_positions = current_tile.tile_positions;
+  var highest_z = tile_positions[0][2];
+  var lowest_z = tile_positions[3][2];
+  var total_z_width = highest_z - lowest_z;
+  var z_distance_traveled, nn_ss_offset;
+  z_distance_traveled = cam_pos.z - lowest_z;
+  nn_ss_offset = 0; // ABOVE_WALKWAY_SS; // qbert
+
+  var height_increase = z_distance_traveled / total_z_width * angle_incline;
+  var new_cam_y2 = height_increase + nn_ss_offset;
+  return new_cam_y2;
+}
+function walkwayIncline(walkway_tiles, cam_pos) {
+  var _ref = (0, _maths.coords2HexIndexes)(cam_pos.x, cam_pos.z),
+    _ref2 = _slicedToArray(_ref, 2),
+    x_hex_ind = _ref2[0],
+    z_hex_ind = _ref2[1];
+  var tile_index = hexIndex(x_hex_ind, cam_pos.y, z_hex_ind);
+  if (walkway_tiles.has(tile_index)) {
+    var current_tile = walkway_tiles.get(tile_index);
+    var tilt_up = current_tile.tilt_up,
+      tile_positions = current_tile.tile_positions;
+    if (tilt_up == _constants.TILT_NW) {
+      return inclineNW_NE_SE_SW(cam_pos, current_tile, tile_positions[0], tile_positions[3]);
+    } else if (tilt_up == _constants.TILT_NE) {
+      return inclineNW_NE_SE_SW(cam_pos, current_tile, tile_positions[1], tile_positions[4]);
+    } else if (tilt_up == _constants.TILT_SE) {
+      return inclineNW_NE_SE_SW(cam_pos, current_tile, tile_positions[0], tile_positions[3]);
+    } else if (tilt_up == _constants.TILT_SW) {
+      return inclineNW_NE_SE_SW(cam_pos, current_tile, tile_positions[1], tile_positions[4]);
+    } else if (tilt_up == _constants.TILT_NN) {
+      return inclineNN(cam_pos, current_tile);
+    } else if (tilt_up == _constants.TILT_SS) {
+      return inclineSS(cam_pos, current_tile);
+    }
   }
-  return y_position + ABOVE_WALKWAY;
+  return 0; // y_position + ABOVE_WALKWAY;
 }
 
-},{"../constants.js":9}],21:[function(require,module,exports){
+},{"../constants.js":10,"../maths.js":17}],41:[function(require,module,exports){
+"use strict";
+
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.SquareWall = SquareWall;
+Object.defineProperty(exports, "coords2HexIndexes", {
+  enumerable: true,
+  get: function get() {
+    return _maths.coords2HexIndexes;
+  }
+});
+exports.squarePoints = squarePoints;
+Object.defineProperty(exports, "tileCenterCoord", {
+  enumerable: true,
+  get: function get() {
+    return _maths.tileCenterCoord;
+  }
+});
+exports.wallRectangles = wallRectangles;
+var _three = require("three");
+var _wallMesh = require("./wall-mesh.js");
+var _geoMesh = require("../geo-mesh.js");
+var _miscFuncs = require("../misc-funcs.js");
+var _maths = require("../maths.js");
+var _constants = require("../constants.js");
+var sqrt_3 = Math.sqrt(3);
+
+/*
+                          square_up_left  
+                             /---------\
+                            / |      / |\       
+             triangle_left /  |    /   | \ triangle_right
+                           \  |  /     | /
+                            \ |/       |/      
+                             \---------/
+                               square_down_right   
+*/
+
+function wallRectangles(hex_points) {
+  var _hex_points = _slicedToArray(hex_points, 4),
+    top_left = _hex_points[0],
+    top_right = _hex_points[1],
+    bot_right = _hex_points[2],
+    bot_left = _hex_points[3];
+  var square_up_left = [].concat(_toConsumableArray(bot_left), _toConsumableArray(top_left), _toConsumableArray(top_right));
+  var square_down_right = [].concat(_toConsumableArray(bot_left), _toConsumableArray(top_right), _toConsumableArray(bot_right));
+  var hexagon_triangles = [].concat(_toConsumableArray(square_up_left), _toConsumableArray(square_down_right));
+  return hexagon_triangles;
+}
+function SquareWall(the_scene, walkway_meshes, walkway_tiles, x_y_z, tile_color, wall_position, wall_height) {
+  var _x_y_z = _slicedToArray(x_y_z, 3),
+    x_index = _x_y_z[0],
+    y_index = _x_y_z[1],
+    z_index = _x_y_z[2];
+  var xyz_index = "".concat(x_index, ",").concat(y_index, ",").concat(z_index);
+  var _ref = (0, _maths.tileCenterCoord)(x_index, z_index),
+    _ref2 = _slicedToArray(_ref, 2),
+    x_center = _ref2[0],
+    z_center = _ref2[1];
+  var tile_radius = 1;
+  var a_tile = new _three.Group();
+  a_tile.position.set(x_center, 0, z_center);
+  var square_points = squarePoints(tile_radius, y_index, wall_position, wall_height);
+  walkway_tiles = offsetWallPoints(walkway_tiles, x_y_z, wall_position, square_points);
+  var top_triangles = wallRectangles(square_points);
+  (0, _geoMesh.geoMesh)(a_tile, top_triangles, tile_color);
+  the_scene.add(a_tile);
+  (0, _wallMesh.wallCoords)(a_tile, x_y_z, wall_position, wall_height);
+  walkway_meshes.set(xyz_index, a_tile);
+  return [walkway_meshes, walkway_tiles];
+}
+
+//    ["000", "010", "000", "green", TILT_NN, 10], just the objects
+
+function offsetWallPoints(stair_tiles, x_y_z, wall_position, square_points) {
+  var _x_y_z2 = _slicedToArray(x_y_z, 3),
+    x_index = _x_y_z2[0],
+    y_index = _x_y_z2[1],
+    z_index = _x_y_z2[2];
+  var xyz_index = "".concat(x_index, ",").concat(y_index, ",").concat(z_index);
+  var _ref3 = (0, _maths.tileCenterCoord)(x_index, z_index),
+    _ref4 = _slicedToArray(_ref3, 2),
+    x_center = _ref4[0],
+    z_center = _ref4[1];
+  var tile_positions = [];
+  for (var i = 0; i < square_points.length; i++) {
+    var tile_point = square_points[i];
+    if (Array.isArray(tile_point)) {
+      var _tile_point = _slicedToArray(tile_point, 3),
+        x = _tile_point[0],
+        y = _tile_point[1],
+        z = _tile_point[2];
+      x = x + x_center;
+      z = z + z_center;
+      tile_positions.push([x, y, z]);
+    }
+  }
+  var top_point_y = tile_positions[3][1];
+  var bottom_point_y = tile_positions[0][1];
+  if (top_point_y === bottom_point_y) {
+    top_point_y = top_point_y; // * 10;
+    bottom_point_y = top_point_y;
+  } else {
+    top_point_y = top_point_y; // * 10; // - 0.0001;
+    bottom_point_y = bottom_point_y; // * 10; // + 0.0001;
+  }
+  var tile_obj = {
+    x_center: x_center,
+    y_position: y_index,
+    z_center: z_center,
+    // wall_side: square_position
+    wall_side: wall_position,
+    tile_positions: tile_positions,
+    // square_positions
+    x_z: "".concat(x_index, ",").concat(z_index),
+    xyz_index: xyz_index,
+    high_y: top_point_y,
+    // - 0.0001,
+    low_y: bottom_point_y // why?????????/
+  };
+  stair_tiles.set(xyz_index, tile_obj);
+  return stair_tiles;
+}
+
+// these must flip around
+function squarePoints(tile_radius, y_100_height, wall_position, wall_height) {
+  //function squarePoints(tile_radius, y_height, wall_position, wall_height) {
+  var y_height = y_100_height / 100;
+  tile_radius = tile_radius - 0.2; // - 0.2;
+
+  var hex_dist = tile_radius * Math.sqrt(3) / 2;
+  var half_radius = tile_radius / 2;
+  var top_left, bot_left, top_rght, bot_rght; //, left_tip, rght_tip;
+
+  var top_height = y_height + wall_height;
+  var bot_height = y_height;
+  var top_left_x = 0 - half_radius;
+  var bot_left_x = 0 - half_radius;
+  var top_rght_x = 0 + half_radius;
+  var bot_rght_x = 0 + half_radius;
+  var left_tip_x = 0 - tile_radius;
+  var rght_tip_x = 0 + tile_radius;
+  var top_left_z = 0 + hex_dist;
+  var bot_left_z = 0 - hex_dist;
+  var top_rght_z = 0 + hex_dist;
+  var bot_rght_z = 0 - hex_dist;
+  var left_tip_z = 0;
+  var rght_tip_z = 0;
+  if (wall_position === _constants.WALL_NN) {
+    top_rght = [bot_rght_x, bot_height, bot_rght_z];
+    top_left = [bot_left_x, bot_height, bot_left_z];
+    bot_rght = [bot_rght_x, top_height, bot_rght_z];
+    bot_left = [bot_left_x, top_height, bot_left_z];
+  } else if (wall_position === _constants.WALL_NE) {
+    bot_left = [bot_rght_x, top_height, bot_rght_z];
+    bot_rght = [rght_tip_x, top_height, rght_tip_z];
+    top_left = [bot_rght_x, bot_height, bot_rght_z];
+    top_rght = [rght_tip_x, bot_height, rght_tip_z];
+  } else if (wall_position === _constants.WALL_SW) {
+    bot_left = [top_left_x, top_height, top_left_z];
+    bot_rght = [left_tip_x, top_height, left_tip_z];
+    top_left = [top_left_x, bot_height, top_left_z];
+    top_rght = [left_tip_x, bot_height, left_tip_z];
+  } else if (wall_position === _constants.WALL_NW) {
+    bot_left = [bot_left_x, top_height, bot_left_z];
+    bot_rght = [left_tip_x, top_height, left_tip_z];
+    top_left = [bot_left_x, bot_height, bot_left_z];
+    top_rght = [left_tip_x, bot_height, left_tip_z];
+  } else if (wall_position === _constants.WALL_SE) {
+    bot_left = [top_rght_x, top_height, top_rght_z];
+    bot_rght = [rght_tip_x, top_height, rght_tip_z];
+    top_rght = [rght_tip_x, bot_height, rght_tip_z];
+    top_left = [top_rght_x, bot_height, top_rght_z];
+  } else if (wall_position === _constants.WALL_SS) {
+    top_left = [top_left_x, bot_height, top_left_z];
+    top_rght = [top_rght_x, bot_height, top_rght_z];
+    bot_rght = [top_rght_x, top_height, top_rght_z];
+    bot_left = [top_left_x, top_height, top_left_z];
+  } else {
+    (0, _miscFuncs.ee)("squarePoints unknown  wall_position==", wall_position);
+  }
+  var wall_corners = [top_left, top_rght, bot_rght, bot_left];
+  return wall_corners;
+}
+
+},{"../constants.js":10,"../geo-mesh.js":13,"../maths.js":17,"../misc-funcs.js":18,"./wall-mesh.js":43,"three":3}],42:[function(require,module,exports){
+"use strict";
+
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.makeWalls = makeWalls;
+var HEX_CONST = _interopRequireWildcard(require("../constants.js"));
+var _squareWalls = require("./square-walls.js");
+function _interopRequireWildcard(e, t) {
+  if ("function" == typeof WeakMap) var r = new WeakMap(),
+    n = new WeakMap();
+  return (_interopRequireWildcard = function _interopRequireWildcard(e, t) {
+    if (!t && e && e.__esModule) return e;
+    var o,
+      i,
+      f = {
+        __proto__: null,
+        "default": e
+      };
+    if (null === e || "object" != _typeof(e) && "function" != typeof e) return f;
+    if (o = t ? n : r) {
+      if (o.has(e)) return o.get(e);
+      o.set(e, f);
+    }
+    for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]);
+    return f;
+  })(e, t);
+}
+//import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
+
+//function makeWalls(the_scene, wall_coords, walkway_meshes, wall_squares, walkway_columns, walkway_overlaps) {
+function makeWalls(the_scene, wall_coords, walkway_meshes, wall_squares, wall_columns) {
+  for (var i = 0; i < wall_coords.length; i++) {
+    var ramp_piece = wall_coords[i];
+    if (Array.isArray(ramp_piece)) {
+      var _ramp_piece = _slicedToArray(ramp_piece, 3),
+        x_str = _ramp_piece[0],
+        y_str = _ramp_piece[1],
+        z_str = _ramp_piece[2];
+      var x_index = parseInt(x_str);
+      var y_index = parseInt(y_str);
+      //            const y_index = parseFloat(y_str);
+      var z_index = parseInt(z_str);
+      var ramp_xyz = [x_index, y_index, z_index];
+      var _ramp_piece2 = _slicedToArray(ramp_piece, 6),
+        tile_color = _ramp_piece2[3],
+        wall_position = _ramp_piece2[4],
+        wall_height = _ramp_piece2[5];
+      var _ref = (0, _squareWalls.SquareWall)(the_scene, walkway_meshes, wall_squares, ramp_xyz, tile_color, wall_position,
+      // wall_position
+      wall_height // wall_height
+      );
+      var _ref2 = _slicedToArray(_ref, 2);
+      walkway_meshes = _ref2[0];
+      wall_squares = _ref2[1];
+    }
+  }
+  var wall_columns = new Map();
+  var _iterator = _createForOfIteratorHelper(wall_squares),
+    _step;
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var _step$value = _slicedToArray(_step.value, 2),
+        _key = _step$value[0],
+        a_wall = _step$value[1];
+      var x_z = a_wall.x_z;
+      var xyz_index = a_wall.xyz_index;
+      var missing_x_z_column = !wall_columns.has(x_z);
+      if (missing_x_z_column) {
+        var empty_x_z_column = new Map();
+        wall_columns.set(x_z, empty_x_z_column);
+      }
+      var cur_x_z_column = wall_columns.get(x_z);
+      var _x_z$split = x_z.split(","),
+        _x_z$split2 = _slicedToArray(_x_z$split, 2),
+        _x_index = _x_z$split2[0],
+        _z_index = _x_z$split2[1];
+      var low_y_10 = a_wall.low_y * 10;
+      var high_y_10 = a_wall.high_y * 10;
+      for (var y_10_index = low_y_10; y_10_index <= high_y_10; y_10_index++) {
+        var a_y_index = "".concat(_x_index, ",").concat(y_10_index / 10, ",").concat(_z_index);
+        cur_x_z_column.set(a_y_index, xyz_index);
+      }
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+  return [walkway_meshes, wall_squares, wall_columns];
+}
+
+},{"../constants.js":10,"./square-walls.js":41}],43:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -23949,134 +27470,69 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.pointInsideTile = pointInsideTile;
-exports.walkwayOverlaps = walkwayOverlaps;
+exports.wallCoords = wallCoords;
+var _three = require("three");
 var _constants = require("../constants.js");
-var _hexTile = require("./hex-tile.js");
-// AI: when we place a tile, we can calculate which other tiles could be above it,
-// and store that in stair_overlaps. then when we place a tile, we can check if there are any tiles
-// that could be below it, and if so, we can check if they are actually below it, and if so, we
-//  can adjust the height of the tile accordingly. this way we can avoid having to check every tile
-//  in the scene every time we place a tile, and instead only check the tiles that could be above or below it.
-
-function walkwayOverlaps(stair_overlaps, x_y_z) {
+var _FontLoader = require("three/examples/jsm/loaders/FontLoader.js");
+var _TextGeometry = require("three/examples/jsm/geometries/TextGeometry.js");
+var _helvetiker_regularTypeface = require("../helvetiker_regular.typeface.js");
+var loader2 = new _FontLoader.FontLoader();
+var WHITE_LABELS = 0xffffff;
+var the_font = loader2.parse(_helvetiker_regularTypeface.type_face);
+function wallCoords(a_tile, x_y_z, wall_position, wall_height) {
   var _x_y_z = _slicedToArray(x_y_z, 3),
     x_index = _x_y_z[0],
     y_index = _x_y_z[1],
     z_index = _x_y_z[2];
-  var xyz_index = "".concat(x_index, ",").concat(y_index, ",").concat(z_index);
-  var _ref = (0, _hexTile.tileCenterCoord)(x_index, z_index),
-    _ref2 = _slicedToArray(_ref, 2),
-    x_center = _ref2[0],
-    z_center = _ref2[1];
-  var x_mid = Math.floor(x_center);
-  var x_low = x_mid - 1;
-  var x_hih = x_mid + 1;
-  var z_mid = Math.floor(z_center);
-  var z_low = z_mid - 1;
-  var z_hih = z_mid + 1;
-  stair_overlaps = possibleOverlap(stair_overlaps, "".concat(x_low, ",").concat(z_mid), xyz_index); // -1,0  nw
-  stair_overlaps = possibleOverlap(stair_overlaps, "".concat(x_low, ",").concat(z_hih), xyz_index); // -1,1  sw
+  var textMaterial = new _three.MeshLambertMaterial({
+    emissive: 0xffffff,
+    color: WHITE_LABELS
+  });
+  var wall_text = "".concat(x_index, ",").concat(z_index); // ${wall_position}`;
+  var textGeometry = new _TextGeometry.TextGeometry(wall_text, {
+    font: the_font,
+    size: 0.2,
+    depth: 0,
+    curveSegments: 12
+  });
+  var text_mesh = new _three.Mesh(textGeometry, textMaterial);
+  text_mesh.position.y = y_index + wall_height + 0.4; // qbert hard to see
 
-  stair_overlaps = possibleOverlap(stair_overlaps, "".concat(x_mid, ",").concat(z_low), xyz_index); // 0,-1  nn
-  stair_overlaps = possibleOverlap(stair_overlaps, "".concat(x_mid, ",").concat(z_mid), xyz_index); // 0,0
-  stair_overlaps = possibleOverlap(stair_overlaps, "".concat(x_mid, ",").concat(z_hih), xyz_index); // 0,1   ss
-
-  stair_overlaps = possibleOverlap(stair_overlaps, "".concat(x_hih, ",").concat(z_low), xyz_index); // 1,-1  ne
-  stair_overlaps = possibleOverlap(stair_overlaps, "".concat(x_hih, ",").concat(z_mid), xyz_index); // 1,0   se
-
-  return stair_overlaps;
-}
-function possibleOverlap(walkway_overlaps, xyz_key, xyz_index) {
-  if (walkway_overlaps.has(xyz_key)) {
-    var cur_arr = walkway_overlaps.get(xyz_key);
-    cur_arr.push(xyz_index);
-    walkway_overlaps.set(xyz_key, cur_arr);
+  if (wall_position != _constants.TILT_NONE) {
+    text_mesh.rotation.y = -Math.PI / 2;
+    text_mesh.rotation.z = -Math.PI / 2;
+  }
+  var x, z;
+  if (wall_position == _constants.TILT_NONE) {
+    x = -0.15;
+    z = 0.1;
+  } else if (wall_position == _constants.WALL_NN) {
+    x = -0.15;
+    z = -0.55;
+  } else if (wall_position == _constants.WALL_NE) {
+    x = 0.3;
+    z = -0.25;
+  } else if (wall_position == _constants.WALL_SE) {
+    x = 1;
+    z = 0.4;
+    //text_mesh.position.y -= 0.1;
+  } else if (wall_position == _constants.WALL_SS) {
+    x = -0.15;
+    z = 0.48;
+  } else if (wall_position == _constants.WALL_SW) {
+    x = -0.6;
+    z = 0.4;
+  } else if (wall_position == _constants.WALL_NW) {
+    x = +0.9;
+    z = 0.25;
   } else {
-    walkway_overlaps.set(xyz_key, [xyz_index]);
+    ee(" wallCoords() unknown wall_position", wall_position);
   }
-  return walkway_overlaps;
+  text_mesh.position.x = x;
+  text_mesh.position.z = z;
+  a_tile.add(text_mesh);
 }
 
-/*
-           blue
-          neg-z
-            |
-            |
-red--neg-x----------------------pos-x
-            |
-            |                nn
-            | -0.5,-0.86/----------\0.5,-0.86
-            |          /4          3\ 
-            |       nw/              \ne
-            |        /                \ 
-            |       /5      0,0        \ 1,0  
-            |   -1,0\                 2/
-            |        \                /
-            |      sw \              / se        
-            |          \0          1/
-            |  -0.5,0.86\----------/0.5,0.86
-            |     ^          ss 
-            |     |
-            |    start point
-            |
-          pos-z
-*/
+//, geoMesh };
 
-function pointInsideTile(x_point, z_point, stair_tile) {
-  var tile_positions = stair_tile.tile_positions;
-  var highest_z = tile_positions[0][2];
-  var lowest_z = tile_positions[3][2];
-  var highest_x = tile_positions[2][0];
-  var lowest_x = tile_positions[5][0];
-  var outside_hex = x_point < lowest_x || x_point > highest_x || z_point < lowest_z || z_point > highest_z;
-  if (outside_hex) {
-    return false;
-  }
-  var x_center = stair_tile.x_center,
-    z_center = stair_tile.z_center;
-  if (x_point > x_center) {
-    if (z_point > z_center) {
-      var se_x1 = tile_positions[1][0];
-      var se_z1 = tile_positions[1][2];
-      var se_x2 = tile_positions[2][0];
-      var se_z2 = tile_positions[2][2];
-      var se_d = (x_point - se_x1) * (se_z2 - se_z1) - (z_point - se_z1) * (se_x2 - se_x1);
-      if (se_d < 0) {
-        return false;
-      }
-    } else {
-      var ne_x1 = tile_positions[2][0];
-      var ne_z1 = tile_positions[2][2];
-      var ne_x2 = tile_positions[3][0];
-      var ne_z2 = tile_positions[3][2];
-      var ne_d = (x_point - ne_x1) * (ne_z2 - ne_z1) - (z_point - ne_z1) * (ne_x2 - ne_x1);
-      if (ne_d < 0) {
-        return false;
-      }
-    }
-  } else {
-    if (z_point > z_center) {
-      var sw_x1 = tile_positions[5][0];
-      var sw_z1 = tile_positions[5][2];
-      var sw_x2 = tile_positions[0][0];
-      var sw_z2 = tile_positions[0][2];
-      var sw_d = (x_point - sw_x1) * (sw_z2 - sw_z1) - (z_point - sw_z1) * (sw_x2 - sw_x1);
-      if (sw_d < 0) {
-        return false;
-      }
-    } else {
-      var nw_x1 = tile_positions[4][0];
-      var nw_z1 = tile_positions[4][2];
-      var nw_x2 = tile_positions[5][0];
-      var nw_z2 = tile_positions[5][2];
-      var nw_d = (x_point - nw_x1) * (nw_z2 - nw_z1) - (z_point - nw_z1) * (nw_x2 - nw_x1);
-      if (nw_d < 0) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-},{"../constants.js":9,"./hex-tile.js":16}]},{},[11]);
+},{"../constants.js":10,"../helvetiker_regular.typeface.js":14,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}]},{},[15]);

@@ -254,15 +254,15 @@ const WAVES_5 = [WAVE_4_0, WAVE_4_1, WAVE_4_2, WAVE_4_3, WAVE_4_4, WAVE_4_5, WAV
 const WAVES_6 = [WAVE_5_0, WAVE_5_1, WAVE_5_2, WAVE_5_3, WAVE_5_4, WAVE_5_5, WAVE_5_6, WAVE_5_7];
 const WAVES_7 = [WAVE_6_0, WAVE_6_1, WAVE_6_2, WAVE_6_3, WAVE_6_4, WAVE_6_5, WAVE_6_6, WAVE_6_7];
 
-const WAVES_SHOW = [...WAVES_1, ...WAVES_2, ...WAVES_3, ...WAVES_4, ...WAVES_5, ...WAVES_6, ...WAVES_7];
+const WAVETILT_SSHOW = [...WAVES_1, ...WAVES_2, ...WAVES_3, ...WAVES_4, ...WAVES_5, ...WAVES_6, ...WAVES_7];
 
 //      '+00~-01,NN:0'
 
 // function offsetWaves(x_offset, z_offset) {
 //     var moved_waves = [];
-//     for (let i = 0; i < WAVES_SHOW.length; i++) {
+//     for (let i = 0; i < WAVETILT_SSHOW.length; i++) {
 //         // for (let i = 0; i < 2; i++) {
-//         const a_wave = WAVES_SHOW[i];
+//         const a_wave = WAVETILT_SSHOW[i];
 //         var wave_set = [];
 //         for (let j = 0; j < a_wave.length; j++) {
 //             //for (let j = 0; j < 2; j++) {
@@ -288,7 +288,6 @@ const WAVES_SHOW = [...WAVES_1, ...WAVES_2, ...WAVES_3, ...WAVES_4, ...WAVES_5, 
 //     const WAVES_MOVED = offsetWaves(x_offset, z_offset);
 
 //     function doWaves() {
-//         //console.log("turn off these waves", last_waves);
 //         last_waves = WAVES_MOVED[wave_index];
 //         let current_waves = WAVES_MOVED[wave_index];
 //         if (wave_index >= WAVES_MOVED.length) {
@@ -296,8 +295,7 @@ const WAVES_SHOW = [...WAVES_1, ...WAVES_2, ...WAVES_3, ...WAVES_4, ...WAVES_5, 
 //         } else {
 //             wave_index++;
 //         }
-//         // console.log("turn on these waves", current_waves);
-//         // console.log("new index", wave_index);
+
 //     }
 
 //     return doWaves;

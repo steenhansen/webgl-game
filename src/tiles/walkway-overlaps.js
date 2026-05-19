@@ -1,4 +1,4 @@
-import { X_INDX, Y_INDX, Z_INDX, N_N, S_S, N_W, N_E, S_E, S_W } from "../constants.js";
+import { X_INDX, Y_INDX, Z_INDX, TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
 
 import { tileCenterCoord } from "./hex-tile.js";
 
@@ -10,6 +10,7 @@ import { tileCenterCoord } from "./hex-tile.js";
 
 function walkwayOverlaps(stair_overlaps, x_y_z) {
     const [x_index, y_index, z_index] = x_y_z;
+    const y_int = parseInt(y_index);
     const xyz_index = `${x_index},${y_index},${z_index}`;
     let [x_center, z_center] = tileCenterCoord(x_index, z_index);
 
@@ -21,20 +22,35 @@ function walkwayOverlaps(stair_overlaps, x_y_z) {
     const z_low = z_mid - 1;
     const z_hih = z_mid + 1;
 
-    stair_overlaps = possibleOverlap(stair_overlaps, `${x_low},${z_mid}`, xyz_index); // -1,0  nw
-    stair_overlaps = possibleOverlap(stair_overlaps, `${x_low},${z_hih}`, xyz_index); // -1,1  sw
+    stair_overlaps = possibleOverlap(stair_overlaps, `${x_low},${z_mid}`, xyz_index, y_int); // -1,0  nw
+    stair_overlaps = possibleOverlap(stair_overlaps, `${x_low},${z_hih}`, xyz_index, y_int); // -1,1  sw
 
-    stair_overlaps = possibleOverlap(stair_overlaps, `${x_mid},${z_low}`, xyz_index); // 0,-1  nn
-    stair_overlaps = possibleOverlap(stair_overlaps, `${x_mid},${z_mid}`, xyz_index); // 0,0
-    stair_overlaps = possibleOverlap(stair_overlaps, `${x_mid},${z_hih}`, xyz_index); // 0,1   ss
+    stair_overlaps = possibleOverlap(stair_overlaps, `${x_mid},${z_low}`, xyz_index, y_int); // 0,-1  nn
+    stair_overlaps = possibleOverlap(stair_overlaps, `${x_mid},${z_mid}`, xyz_index, y_int); // 0,0
+    stair_overlaps = possibleOverlap(stair_overlaps, `${x_mid},${z_hih}`, xyz_index, y_int); // 0,1   ss
 
-    stair_overlaps = possibleOverlap(stair_overlaps, `${x_hih},${z_low}`, xyz_index); // 1,-1  ne
-    stair_overlaps = possibleOverlap(stair_overlaps, `${x_hih},${z_mid}`, xyz_index); // 1,0   se
+    stair_overlaps = possibleOverlap(stair_overlaps, `${x_hih},${z_low}`, xyz_index, y_int); // 1,-1  ne
+    stair_overlaps = possibleOverlap(stair_overlaps, `${x_hih},${z_mid}`, xyz_index, y_int); // 1,0   se
 
     return stair_overlaps;
 }
 
-function possibleOverlap(walkway_overlaps, xyz_key, xyz_index) {
+// NEW qbert
+function possibleOverlapNEW(walkway_overlaps, xz_column, xyz_index, y_int) {
+    if (walkway_overlaps.has(xz_column)) {
+        let current_arr = walkway_overlaps.get(xz_column);
+        current_arr[y_int] = xyz_index;
+        walkway_overlaps.set(xz_column, current_arr);
+    } else {
+        let start_array = Array(g_highest_y_tile).fill("");
+        start_array[y_int] = xyz_index;
+        walkway_overlaps.set(xz_column, start_array);
+    }
+    return walkway_overlaps;
+}
+
+// GOOD qbert
+function possibleOverlapGOOD(walkway_overlaps, xyz_key, xyz_index) {
     if (walkway_overlaps.has(xyz_key)) {
         let cur_arr = walkway_overlaps.get(xyz_key);
         cur_arr.push(xyz_index);
@@ -42,6 +58,20 @@ function possibleOverlap(walkway_overlaps, xyz_key, xyz_index) {
     } else {
         walkway_overlaps.set(xyz_key, [xyz_index]);
     }
+    return walkway_overlaps;
+}
+
+// BAD qbert
+function possibleOverlap(walkway_overlaps, xz_key, xyz_index, y_int) {
+    // let cur_y_overlaps = walkway_overlaps[y_int];
+    // let new_arr;
+    // if (cur_y_overlaps.has(xz_key)) {
+    //     new_arr = cur_y_overlaps.get(xz_key);
+    //     new_arr.push(xyz_index);
+    // } else {
+    //     new_arr = [xyz_index];
+    // }
+    // cur_y_overlaps.set(xz_key, new_arr);
     return walkway_overlaps;
 }
 
@@ -91,6 +121,7 @@ function pointInsideTile(x_point, z_point, stair_tile) {
             if (se_d < 0) {
                 return false;
             }
+            //   ee("point is inside se");
         } else {
             const ne_x1 = tile_positions[2][0];
             const ne_z1 = tile_positions[2][2];
@@ -100,6 +131,7 @@ function pointInsideTile(x_point, z_point, stair_tile) {
             if (ne_d < 0) {
                 return false;
             }
+            // ee("point is inside ne");
         }
     } else {
         if (z_point > z_center) {
@@ -109,8 +141,10 @@ function pointInsideTile(x_point, z_point, stair_tile) {
             const sw_z2 = tile_positions[0][2];
             const sw_d = (x_point - sw_x1) * (sw_z2 - sw_z1) - (z_point - sw_z1) * (sw_x2 - sw_x1);
             if (sw_d < 0) {
+                //    ee("NOT point is inside sw");
                 return false;
             }
+            //  ee("point is inside sw");
         } else {
             const nw_x1 = tile_positions[4][0];
             const nw_z1 = tile_positions[4][2];
@@ -120,6 +154,7 @@ function pointInsideTile(x_point, z_point, stair_tile) {
             if (nw_d < 0) {
                 return false;
             }
+            //    ee("point is inside nw");
         }
     }
     return true;

@@ -1,6 +1,49 @@
 
 
+we are gonna have to draw blockers distinct
+
+
+
+
+
+
+
+x_hex_index, z_hex_index  1,2
+x_coord, y_height, z_coord  1.23,4.12,7.12
+
+
+
+var prev_coord = camPosNew(prev_coord, new_coord);
+if (prev_coord!=0) {
+    cam_pos.xyz = prev_coord.xyz
+}
+
+
+
+1. figure out which way move is
+2. N_N .... N_W each has its own function
+
+then in the function check angle to angle to flat ..
+
+
+
+x_center ==> hex_x_center
+
+
+
+
 qbert
+
+have all tiles stored by y int()  
+
+check that camy is inside highest and lowest y on tile, otherwise fall
+
+have current tile brighter
+
+
+
+
+
 
 
 //      camPoint3d / gridIndex2d
