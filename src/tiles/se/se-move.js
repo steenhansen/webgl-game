@@ -1,3 +1,5 @@
+import { ee, tt, EE, TT } from "../../console-short.js";
+
 import {
     MOVE_FALLING,
     MOVE_NEW_TILE,
@@ -13,7 +15,7 @@ import {
     TILT_SW,
     TILT_NW
 } from "../../constants.js";
-import { stripYindex } from "../misc-func.js";
+import { stripYindex } from "../hex-routines.js";
 
 import {
     SE_AIRBORNE,

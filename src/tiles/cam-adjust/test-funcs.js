@@ -1,3 +1,5 @@
+import { ee, tt, EE, TT } from "../../console-short.js";
+
 import { AScene } from "../../a-scene.js";
 import { tileCenterCoord } from "../hex-tile.js";
 import { transition2Tile } from "./camAdjust.js";

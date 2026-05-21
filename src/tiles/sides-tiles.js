@@ -1,3 +1,5 @@
+import { ee, tt, EE, TT } from "../console-short.js";
+
 import { geoMesh } from "./mesh-tiles.js";
 import { hexNewColor, colorLeft, colorRight } from "./colors-tiles.js";
 

@@ -1,3 +1,5 @@
+import { ee, tt, EE, TT } from "../console-short.js";
+
 import {
     EdgesGeometry,
     Vector3,
@@ -17,7 +19,7 @@ import { geoMesh } from "../geo-mesh.js";
 import { distance2hexpoints, axial_round, coords2HexIndexes, tileCenterCoord } from "../maths.js";
 
 import { X_INDX, Y_INDX, Z_INDX, TILT_SE90, TILT_NN90, TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW, TILT_NONE } from "../constants.js";
-const sqrt_3 = Math.sqrt(3);
+const SQRT_3 = Math.sqrt(3);
 
 /*
                           square_up_left  
@@ -55,13 +57,14 @@ function HexTile(the_scene, walkway_meshes, walkway_tiles, x_y_z, tile_color, sl
 
     let [x_center, z_center] = tileCenterCoord(x_index, z_index);
     const tile_radius = 1;
+
     const a_tile = new Group();
     a_tile.position.set(x_center, 0, z_center);
     const tile_points = hexPoints(tile_radius, y_100_index, slope_direction, incline_amount);
-
     walkway_tiles = offsetTilePoints(walkway_tiles, x_y_z, slope_direction, incline_amount, tile_points);
     const top_triangles = tileTriangles(tile_points);
     geoMesh(a_tile, top_triangles, tile_color);
+
     the_scene.add(a_tile);
     addCoords(a_tile, x_y_z, slope_direction, incline_amount);
     walkway_meshes.set(xyz_index, a_tile);

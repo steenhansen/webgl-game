@@ -1,3 +1,5 @@
+import { ee, tt, EE, TT } from "../console-short.js";
+
 const colorLeft = (hex) => {
     const r = hex & 0xff0000;
     const g = hex & 0x00ff00;

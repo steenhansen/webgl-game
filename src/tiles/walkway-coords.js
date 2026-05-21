@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../misc-funcs.js";
+import { ee, tt, EE, TT } from "../console-short.js";
 
 //import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
 import * as HEX_CONST from "../constants.js";
@@ -88,7 +88,7 @@ function coordsBad(x_index, y_level, z_index) {
     return false;
 }
 
-function makeWalkway(the_scene, walkway_coords, walkway_meshes, walkway_tiles, walkway_columns) {
+function makeWalkway(the_scene, walkway_meshes, walkway_coords, walkway_tiles, walkway_columns) {
     for (var i = 0; i < walkway_coords.length; i++) {
         const ramp_piece = walkway_coords[i];
         if (Array.isArray(ramp_piece)) {

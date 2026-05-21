@@ -1,56 +1,65 @@
+import { ee, tt, EE, TT } from "../console-short.js";
 //import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
 import * as HEX_CONST from "../constants.js";
-
-import { SquareWall } from "./circle-trampoline.js";
+import * as THREE from "three";
+//import { roundTrampoline } from "./circle-trampoline.js";
+import { distance2hexpoints, axial_round, coords2HexIndexes, tileCenterCoord } from "../maths.js";
+import {
+    EdgesGeometry,
+    Vector3,
+    MeshPhongMaterial,
+    Box3,
+    InstancedMesh,
+    LineBasicMaterial,
+    LineSegments,
+    BufferGeometry,
+    Float32BufferAttribute,
+    MeshLambertMaterial,
+    Group,
+    Mesh,
+    DoubleSide,
+    RGB_ETC2_Format
+} from "three";
 
 //function makeWalls(the_scene, wall_coords, walkway_meshes, wall_squares, walkway_columns, walkway_overlaps) {
-function makeWalls(the_scene, wall_coords, walkway_meshes, wall_squares, wall_columns) {
-    for (var i = 0; i < wall_coords.length; i++) {
-        const ramp_piece = wall_coords[i];
-        if (Array.isArray(ramp_piece)) {
-            const [x_str, y_str, z_str] = ramp_piece;
-            const x_index = parseInt(x_str);
-            const y_index = parseInt(y_str);
-            //            const y_index = parseFloat(y_str);
-            const z_index = parseInt(z_str);
-            const ramp_xyz = [x_index, y_index, z_index];
+function makeTrampolines(the_scene, object_meshes, g_trampolines) {
+    var trampoline_columns = new Map();
+    for (var i = 0; i < g_trampolines.length; i++) {
+        const trampoline_data = g_trampolines[i];
+        const [x_str, y_str, z_str] = trampoline_data;
+        const x_index = parseInt(x_str);
+        const y_index = parseInt(y_str);
+        const z_index = parseInt(z_str);
 
-            const [, , , tile_color, wall_position, wall_height] = ramp_piece;
+        const two_circles = new Group();
 
-            [walkway_meshes, wall_squares] = SquareWall(
-                the_scene,
-                walkway_meshes,
-                wall_squares,
+        const circle_geometry = new THREE.CircleGeometry(0.8, 32); // Radius 5, 32 segments
+        const circle_material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const a_circle = new THREE.Mesh(circle_geometry, circle_material);
+        a_circle.material.side = THREE.DoubleSide;
+        let [x_center, z_center] = tileCenterCoord(x_index, z_index);
+        a_circle.position.set(x_center, y_index / 100, z_center);
+        a_circle.rotation.x = (2 * Math.PI) / 4;
+        two_circles.add(a_circle);
 
-                ramp_xyz,
-                tile_color,
-                wall_position, // wall_position
-                wall_height // wall_height
-            );
-        }
+        const circle_geometry2 = new THREE.CircleGeometry(0.7, 32); // Radius 5, 32 segments
+        const circle_material2 = new THREE.MeshBasicMaterial({ color: 0x003300 });
+        const a_circle2 = new THREE.Mesh(circle_geometry2, circle_material2);
+        a_circle2.material.side = THREE.DoubleSide;
+        //  let [x_center, z_center] = tileCenterCoord(x_index, z_index);
+        a_circle2.position.set(x_center, y_index / 100 + 0.001, z_center);
+        a_circle2.rotation.x = (2 * Math.PI) / 4;
+        two_circles.add(a_circle2);
+
+        the_scene.add(two_circles);
+        const trampoline_index = `${x_str},${y_str},${z_str}`;
+        tt("dasdf", trampoline_index);
+        trampoline_columns.set(trampoline_index, trampoline_index);
     }
 
-    var wall_columns = new Map();
+    tt("trampoline_columns", trampoline_columns);
 
-    for (const [_key, a_wall] of wall_squares) {
-        const x_z = a_wall.x_z;
-        const xyz_index = a_wall.xyz_index;
-        const missing_x_z_column = !wall_columns.has(x_z);
-        if (missing_x_z_column) {
-            let empty_x_z_column = new Map();
-            wall_columns.set(x_z, empty_x_z_column);
-        }
-        let cur_x_z_column = wall_columns.get(x_z);
-        const [x_index, z_index] = x_z.split(",");
-
-        let low_y_10 = a_wall.low_y * 10;
-        let high_y_10 = a_wall.high_y * 10;
-        for (let y_10_index = low_y_10; y_10_index <= high_y_10; y_10_index++) {
-            const a_y_index = `${x_index},${y_10_index / 10},${z_index}`;
-            cur_x_z_column.set(a_y_index, xyz_index);
-        }
-    }
-    return [walkway_meshes, wall_squares, wall_columns];
+    return [object_meshes, trampoline_columns];
 }
 
-export { makeWalls };
+export { makeTrampolines };

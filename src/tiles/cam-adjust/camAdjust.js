@@ -1,7 +1,9 @@
+import { ee, tt, EE, TT } from "../../console-short.js";
+
 import * as HEX_CONST from "../../constants.js";
 
 import { tileCenterCoord, coords2HexIndexes } from "../hex-tile.js";
-import { hexIndex, stripYindex } from "../misc-func.js";
+import { hexIndex, stripYindex } from "../hex-routines.js";
 
 import { moveToNn } from "../nn/nn-move.js";
 import { moveToNe } from "../ne/ne-move.js";
@@ -11,7 +13,6 @@ import { moveToSs } from "../ss/ss-move.js";
 import { moveToSw } from "../sw/sw-move.js";
 
 import { moveToSe } from "../se/se-move.js";
-import { tt } from "../../misc-funcs.js";
 
 function verticallyNearNN(x_ind, level_y, z_ind, current_data) {
     let tile_index = hexIndex(x_ind, level_y, z_ind);

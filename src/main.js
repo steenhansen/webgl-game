@@ -1,8 +1,8 @@
-import { ee, tt, EE, TT } from "./misc-funcs.js";
+import { ee, tt, EE, TT } from "./console-short.js";
 
 import * as THREE from "three";
 import * as HEX_CONST from "./constants.js";
-import { CIRCLE_WALKWAY, CIRCLE_WALLS, CIRCLE_TRAMPOLINES } from "./maps/circles.js";
+import { CIRCLE_WALKWAY, CIRCLE_WALLS, CIRCLE_TRAMPOLINES, CIRCLE_PENTAGONS } from "./maps/circles.js";
 import { walkwayIncline } from "./tiles/walkway-heights.js";
 import { tileCenterCoord, coords2HexIndexes } from "./tiles/hex-tile.js";
 import { transition2Tile } from "./tiles/cam-adjust/camAdjust.js";
@@ -11,9 +11,9 @@ import { moveKeys, makeControls } from "./controls/key-controls.js";
 import { XyzDot } from "./a-dot.js";
 import { RUNNING_NO_PRINT } from "./constants.js";
 import { startGameTiles } from "./tiles/start-tiles.js";
-import { buildTiles, buildScene, buildRenderer, buildListener } from "./build-tiles.js";
+import { buildObjects, buildScene, buildRenderer, buildListener } from "./build-objects.js";
 import { gameLoop } from "./game-loop.js";
-import { hexIndex } from "./tiles/misc-func.js"; // 2 misc-func.js  and misc-funcs.js
+import { hexIndex } from "./tiles/hex-routines.js"; // 2 hex-routines.js  and console-short.js
 
 let the_coords, test_xyz_camera, test_xyz_lookat, test_name;
 const g_walkway_coords = the_coords;
@@ -22,6 +22,7 @@ const TEST_NUMBER_1_TO_11 = 0; // if 0 then none
 const GAME_WALKWAY = CIRCLE_WALKWAY;
 const GAME_WALLS = CIRCLE_WALLS;
 const GAME_TRAMPOLINES = CIRCLE_TRAMPOLINES;
+const GAME_PENTAGONS = CIRCLE_PENTAGONS;
 
 const GET_ABOVE_TILES = 1;
 
@@ -43,9 +44,12 @@ persp_camera.lookAt(test_xyz_lookat[0], test_xyz_lookat[1] / 100, test_xyz_looka
 
 the_scene.add(persp_camera);
 
-const { g_walkway_meshes, g_walkway_tiles, g_walkway_columns, g_wall_squares, g_wall_columns, g_ground_tiles } = buildTiles(the_scene, GAME_WALLS, the_coords);
+const built_objects = buildObjects(the_scene, GAME_WALLS, the_coords, GAME_TRAMPOLINES, GAME_PENTAGONS);
 
-// const { g_walkway_meshes, g_walkway_tiles, g_walkway_columns, g_wall_squares, g_wall_columns, g_ground_tiles } = buildTrampolines(
+const { g_object_meshes, g_walkway_tiles, g_walkway_columns, g_wall_squares, g_wall_columns, g_ground_tiles, g_trampolines, g_pentagons, the_pentagon_mesh } =
+    built_objects;
+
+// const { g_object_meshes, g_walkway_tiles, g_walkway_columns, g_wall_squares, g_wall_columns, g_ground_tiles } = buildTrampolines(
 //     the_scene,
 //     GAME_TRAMPOLINES,
 //     the_coords
@@ -77,11 +81,23 @@ const tick = () => {
     const cam_pos = persp_camera.position;
     next_pos = { x: cam_pos.x, y: cur_y_100_pos, z: cam_pos.z };
 
-    if (tile_transition.move_result == HEX_CONST.MOVE_FALLING) {
+    if (tile_transition.move_result == HEX_CONST.MOVE_RISING) {
+        cur_y_100_pos = cur_y_100_pos + 25;
+        if (cur_y_100_pos >= 1600) {
+            tile_transition.move_result = HEX_CONST.MOVE_FALLING;
+        }
+    } else if (tile_transition.move_result == HEX_CONST.MOVE_FALLING) {
         let [prev_x_ind, prev_z_ind] = coords2HexIndexes(cam_pos.x, cam_pos.z);
         let tile_index = hexIndex(prev_x_ind, cur_y_100_pos, prev_z_ind);
+
+        if (!g_walkway_tiles.has(tile_index)) {
+            tt("NNOOOO", tile_index, g_walkway_tiles);
+        }
+
         if (g_walkway_tiles.has(tile_index)) {
             tile_transition = { move_result: HEX_CONST.MOVE_SAME_TILE, level_y: cur_y_100_pos };
+        } else if (g_trampolines.has(tile_index)) {
+            tile_transition.move_result = HEX_CONST.MOVE_RISING;
         } else {
             cur_y_100_pos = cur_y_100_pos - 5;
         }
@@ -109,11 +125,14 @@ const tick = () => {
     persp_camera.position.y = cur_y_100_pos / 100 + GET_ABOVE_TILES + inc_y;
 
     // XyzDot(the_scene, cam_pos.x, persp_camera.position.y, cam_pos.z, 0x666666);
+    // the_pentagon_mesh.rotation.x += 0.01;
+    the_pentagon_mesh.rotation.y += 0.02;
+    // the_pentagon_mesh.rotation.z += 0.00001;
 
     a_renderer.render(the_scene, persp_camera);
 
-    tt(cur_y_100_pos);
-    if (cur_y_100_pos <= 0) {
+    // tt(cur_y_100_pos);
+    if (cur_y_100_pos < -100) {
         cur_y_100_pos = 1600;
     }
 

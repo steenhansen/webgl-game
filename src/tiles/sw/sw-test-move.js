@@ -1,3 +1,5 @@
+import { ee, tt, EE, TT } from "../../console-short.js";
+
 import { checkPrevNextTiles } from "../cam-adjust/test-funcs.js";
 import { TEST_PASSED, TEST_FAILED, MOVE_GO } from "../../constants.js";
 import { tileCenterCoord } from "../hex-tile.js";

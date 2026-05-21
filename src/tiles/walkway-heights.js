@@ -1,3 +1,5 @@
+import { ee, tt, EE, TT } from "../console-short.js";
+
 import { X_INDX, Y_INDX, Z_INDX, TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
 
 import { distance2hexpoints, axial_round, coords2HexIndexes, tileCenterCoord } from "../maths.js";

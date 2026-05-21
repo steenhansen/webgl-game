@@ -1,3 +1,5 @@
+import { ee, tt, EE, TT } from "../console-short.js";
+
 function setUpLiveTests(TEST_DIRECTION, TEST_NUMBER_1_TO_11) {
     if (TEST_DIRECTION == HEX_CONST.TEST_SS) {
         [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = ss_load_test(TEST_NUMBER_1_TO_11);

@@ -1,3 +1,5 @@
+import { ee, tt, EE, TT } from "../console-short.js";
+
 import { mx_hash_vec3_1 } from "three/src/nodes/materialx/lib/mx_noise.js";
 import * as HEX_CONST from "../constants.js";
 

@@ -1,3 +1,5 @@
+import { ee, tt, EE, TT } from "../console-short.js";
+
 import { tileCenterCoord } from "./hex-tile.js";
 import * as HEX_CONST from "../constants.js";
 

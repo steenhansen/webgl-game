@@ -1,4 +1,7 @@
+import { ee, tt, EE, TT } from "./console-short.js";
+
 import * as HEX_CONST from "./constants.js";
+
 import { tileCenterCoord, coords2HexIndexes } from "./tiles/hex-tile.js";
 
 function gameLoop(prev_pos, next_pos, cur_y_100_pos, tile_transition, cam_pos) {
@@ -24,7 +27,7 @@ function gameLoop(prev_pos, next_pos, cur_y_100_pos, tile_transition, cam_pos) {
         cam_pos.z = prev_pos.z;
         next_pos = prev_pos;
     } else {
-        ee("move in gameLoop");
+        //  ee("move in gameLoop");
     }
     return [prev_pos, next_pos, cur_y_100_pos];
 }

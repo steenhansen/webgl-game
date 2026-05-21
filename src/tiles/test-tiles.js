@@ -1,3 +1,5 @@
+import { ee, tt, EE, TT } from "../console-short.js";
+
 function testTile(x_index, z_index) {
     var new_tile = {
         x_center: x_index,

@@ -2,6 +2,16 @@
 
 
 
+
+
+
+
+can go through the back side of a wall
+
+
+
+
+
 x_ind, level_y, z_ind
 
 
@@ -15,9 +25,6 @@ coord => pos
 
 
     let y_index = y_100_index / 100;
-
-GOTO DIR               
-	cd C:\Users\16043\Documents\GitHub\aaa
 
 
 

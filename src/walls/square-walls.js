@@ -1,3 +1,5 @@
+import { ee, tt, EE, TT } from "../console-short.js";
+
 import {
     EdgesGeometry,
     Vector3,
@@ -14,7 +16,6 @@ import {
 } from "three";
 import { wallCoords } from "./wall-mesh.js";
 import { geoMesh } from "../geo-mesh.js";
-import { ee } from "../misc-funcs.js";
 
 import { distance2hexpoints, axial_round, coords2HexIndexes, tileCenterCoord } from "../maths.js";
 import {
@@ -35,7 +36,7 @@ import {
     TILT_SW,
     TILT_NONE
 } from "../constants.js";
-const sqrt_3 = Math.sqrt(3);
+const SQRT_3 = Math.sqrt(3);
 
 /*
                           square_up_left  
@@ -57,7 +58,7 @@ function wallRectangles(hex_points) {
     return hexagon_triangles;
 }
 
-function SquareWall(the_scene, walkway_meshes, walkway_tiles, x_y_z, tile_color, wall_position, wall_height) {
+function SquareWall(the_scene, object_meshes, walkway_tiles, x_y_z, tile_color, wall_position, wall_height) {
     const [x_index, y_index, z_index] = x_y_z;
     const xyz_index = `${x_index},${y_index},${z_index}`;
 
@@ -72,8 +73,8 @@ function SquareWall(the_scene, walkway_meshes, walkway_tiles, x_y_z, tile_color,
     geoMesh(a_tile, top_triangles, tile_color);
     the_scene.add(a_tile);
     wallCoords(a_tile, x_y_z, wall_position, wall_height);
-    walkway_meshes.set(xyz_index, a_tile);
-    return [walkway_meshes, walkway_tiles];
+    object_meshes.set(xyz_index, a_tile);
+    return [object_meshes, walkway_tiles];
 }
 
 //    ["000", "010", "000", "green", TILT_NN, 10], just the objects

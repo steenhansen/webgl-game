@@ -21596,6 +21596,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.XyzDot = XyzDot;
+var _consoleShort = require("./console-short.js");
 var THREE = _interopRequireWildcard(require("three"));
 function _interopRequireWildcard(e, t) {
   if ("function" == typeof WeakMap) var r = new WeakMap(),
@@ -21640,13 +21641,14 @@ function XyzDot(the_scene, x, y, z, the_color) {
   the_scene.add(dot);
 }
 
-},{"three":3}],8:[function(require,module,exports){
+},{"./console-short.js":10,"three":3}],8:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.AScene = AScene;
+var _consoleShort = require("./console-short.js");
 var _three = require("three");
 function AScene(background_color) {
   var a_scene = new _three.Scene();
@@ -21654,7 +21656,7 @@ function AScene(background_color) {
   return a_scene;
 }
 
-},{"three":3}],9:[function(require,module,exports){
+},{"./console-short.js":10,"three":3}],9:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -21668,11 +21670,14 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.buildListener = buildListener;
+exports.buildObjects = buildObjects;
 exports.buildRenderer = buildRenderer;
 exports.buildScene = buildScene;
-exports.buildTiles = buildTiles;
+var _consoleShort = require("./console-short.js");
 var _walkwayCoords = require("./tiles/walkway-coords.js");
 var _wallCoords = require("./walls/wall-coords.js");
+var _trampolineCoords = require("./trampoline/trampoline-coords.js");
+var _pentagonCoords = require("./pentagon/pentagon-coords.js");
 var _groundTiles = require("./tiles/ground-tiles.js");
 var _aScene = require("./a-scene.js");
 var _perspectiveCamera = require("./perspective-camera.js");
@@ -21703,35 +21708,49 @@ function _interopRequireWildcard(e, t) {
     return f;
   })(e, t);
 }
-function buildTiles(the_scene, GAME_WALLS, g_walkway_coords) {
+function buildObjects(the_scene, GAME_WALLS, g_walkway_coords, g_trampolines, g_pentagons) {
   var g_ground_tiles = new Map([]);
-  var g_walkway_meshes = new Map([]);
+  var g_object_meshes = new Map([]);
   var g_walkway_tiles = new Map([]);
   var g_wall_squares = new Map([]);
   var g_walkway_columns = new Map([]);
   var g_wall_columns = new Map([]);
   var g_game_walls_coords = GAME_WALLS;
-  var _ref = (0, _walkwayCoords.makeWalkway)(the_scene, g_walkway_coords, g_walkway_meshes, g_walkway_tiles, g_walkway_columns);
+  var _ref = (0, _walkwayCoords.makeWalkway)(the_scene, g_object_meshes, g_walkway_coords, g_walkway_tiles, g_walkway_columns);
   var _ref2 = _slicedToArray(_ref, 3);
-  g_walkway_meshes = _ref2[0];
+  g_object_meshes = _ref2[0];
   g_walkway_tiles = _ref2[1];
   g_walkway_columns = _ref2[2];
-  var _ref3 = (0, _wallCoords.makeWalls)(the_scene, g_game_walls_coords, g_walkway_meshes, g_wall_squares, g_wall_columns);
+  var _ref3 = (0, _wallCoords.makeWalls)(the_scene, g_object_meshes, g_game_walls_coords, g_wall_squares, g_wall_columns);
   var _ref4 = _slicedToArray(_ref3, 3);
-  g_walkway_meshes = _ref4[0];
+  g_object_meshes = _ref4[0];
   g_wall_squares = _ref4[1];
   g_wall_columns = _ref4[2];
-  var _ref5 = (0, _groundTiles.ground_field)(g_walkway_meshes, g_ground_tiles, the_scene, -10, 10, 0x3366ee, 0x33ee66);
+  /////
+  var _ref5 = (0, _groundTiles.ground_field)(the_scene, g_object_meshes, g_ground_tiles, -10, 10, 0x3366ee, 0x33ee66);
   var _ref6 = _slicedToArray(_ref5, 2);
-  g_walkway_meshes = _ref6[0];
+  g_object_meshes = _ref6[0];
   g_ground_tiles = _ref6[1];
+  (0, _consoleShort.tt)(g_trampolines);
+  var _ref7 = (0, _trampolineCoords.makeTrampolines)(the_scene, g_object_meshes, g_trampolines);
+  var _ref8 = _slicedToArray(_ref7, 2);
+  g_object_meshes = _ref8[0];
+  g_trampolines = _ref8[1];
+  var the_pentagon_mesh;
+  var _ref9 = (0, _pentagonCoords.makePentagon)(the_scene, g_object_meshes, g_pentagons);
+  var _ref0 = _slicedToArray(_ref9, 2);
+  the_pentagon_mesh = _ref0[0];
+  g_pentagons = _ref0[1];
   return {
-    g_walkway_meshes: g_walkway_meshes,
+    g_object_meshes: g_object_meshes,
     g_walkway_tiles: g_walkway_tiles,
     g_walkway_columns: g_walkway_columns,
     g_wall_squares: g_wall_squares,
     g_wall_columns: g_wall_columns,
-    g_ground_tiles: g_ground_tiles
+    g_ground_tiles: g_ground_tiles,
+    g_trampolines: g_trampolines,
+    g_pentagons: g_pentagons,
+    the_pentagon_mesh: the_pentagon_mesh
   };
 }
 var HI_DPI_ENABLE = Math.min(window.devicePixelRatio, 2);
@@ -21781,13 +21800,63 @@ function buildListener(persp_camera) {
   });
 }
 
-},{"./a-scene.js":8,"./perspective-camera.js":19,"./tiles/ground-tiles.js":22,"./tiles/walkway-coords.js":39,"./walls/wall-coords.js":42,"gl-bench/dist/gl-bench.module":1,"three":3}],10:[function(require,module,exports){
+},{"./a-scene.js":8,"./console-short.js":10,"./pentagon/pentagon-coords.js":19,"./perspective-camera.js":20,"./tiles/ground-tiles.js":23,"./tiles/walkway-coords.js":40,"./trampoline/trampoline-coords.js":42,"./walls/wall-coords.js":44,"gl-bench/dist/gl-bench.module":1,"three":3}],10:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.Z_INDX = exports.Y_INDX = exports.X_INDX = exports.WALL_SW = exports.WALL_SS = exports.WALL_SE = exports.WALL_NW = exports.WALL_NN = exports.WALL_NE = exports.TILT_SW = exports.TILT_SS = exports.TILT_SE90 = exports.TILT_SE = exports.TILT_NW = exports.TILT_NONE = exports.TILT_NN90 = exports.TILT_NN = exports.TILT_NE = exports.TEST_TILE_MOVE = exports.TEST_SW = exports.TEST_SS = exports.TEST_SE = exports.TEST_PASSED = exports.TEST_NW = exports.TEST_NN = exports.TEST_NE = exports.TEST_FAILED = exports.TESTING_PRINT = exports.START_Z_LOOK = exports.START_Z_HEX = exports.START_Y_LOOK = exports.START_Y_HEX = exports.START_X_LOOK = exports.START_X_HEX = exports.START_XYZ = exports.SQRT_3 = exports.RUNNING_NO_PRINT = exports.PHYS_TILE_MOVE = exports.ON_OLD_TILE = exports.ON_NO_TILE = exports.ON_NEW_TILE = exports.MOVE_SW = exports.MOVE_STOP = exports.MOVE_SS = exports.MOVE_SE = exports.MOVE_SAME_TILE = exports.MOVE_NW = exports.MOVE_NO = exports.MOVE_NN = exports.MOVE_NEW_TILE = exports.MOVE_NE = exports.MOVE_GO = exports.MOVE_FALLING = exports.MOVE_BLOCKED = exports.HEIGHT_ABOVE_WALKWAY = exports.DROP_PER_TICK_FLOAT = exports.C______RED = exports.C_____BLUE = exports.C____GREEN = exports.C____BROWN = exports.C___YELLOW = exports.C___PURPLE = exports.C_NONE = exports.COL_2 = exports.COL_1 = void 0;
+exports.tt = exports.ee = exports.TT = exports.EE = void 0;
+// 2 hex-routines.js  and console-short.js
+
+/*
+cons ole.log("hexPoints unknown  up_direction==", up_direction);
+ ee("hexPoints unknown  up_direction==", up_direction);
+ */
+
+var ee = function ee() {
+  var _window;
+  var prefix = "SYSTEM ERROR :";
+  for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+    args[_key] = arguments[_key];
+  }
+  if (typeof args[0] === "string") {
+    args[0] = "".concat(prefix, " ").concat(args[0]);
+  } else {
+    args.unshift(prefix);
+  }
+  (_window = window["con" + "sole"]).log.apply(_window, args);
+};
+
+/*
+cons ole.log(`TEST allowed NW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
+tt(`allowed NW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
+*/
+exports.ee = ee;
+var tt = function tt() {
+  var _window2;
+  var prefix = "TEST ";
+  for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+    args[_key2] = arguments[_key2];
+  }
+  if (typeof args[0] === "string") {
+    args[0] = "".concat(prefix, " ").concat(args[0]);
+  } else {
+    args.unshift(prefix);
+  }
+  (_window2 = window["con" + "sole"]).log.apply(_window2, args);
+};
+exports.tt = tt;
+var TT = exports.TT = tt;
+var EE = exports.EE = ee;
+
+},{}],11:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Z_INDX = exports.Y_INDX = exports.X_INDX = exports.WALL_SW = exports.WALL_SS = exports.WALL_SE = exports.WALL_NW = exports.WALL_NN = exports.WALL_NE = exports.TILT_SW = exports.TILT_SS = exports.TILT_SE90 = exports.TILT_SE = exports.TILT_NW = exports.TILT_NONE = exports.TILT_NN90 = exports.TILT_NN = exports.TILT_NE = exports.TEST_TILE_MOVE = exports.TEST_SW = exports.TEST_SS = exports.TEST_SE = exports.TEST_PASSED = exports.TEST_NW = exports.TEST_NN = exports.TEST_NE = exports.TEST_FAILED = exports.TESTING_PRINT = exports.START_Z_LOOK = exports.START_Z_HEX = exports.START_Y_LOOK = exports.START_Y_HEX = exports.START_X_LOOK = exports.START_X_HEX = exports.START_XYZ = exports.SQRT_3 = exports.RUNNING_NO_PRINT = exports.PHYS_TILE_MOVE = exports.ON_OLD_TILE = exports.ON_NO_TILE = exports.ON_NEW_TILE = exports.MOVE_SW = exports.MOVE_STOP = exports.MOVE_SS = exports.MOVE_SE = exports.MOVE_SAME_TILE = exports.MOVE_RISING = exports.MOVE_NW = exports.MOVE_NO = exports.MOVE_NN = exports.MOVE_NEW_TILE = exports.MOVE_NE = exports.MOVE_GO = exports.MOVE_FALLING = exports.MOVE_BLOCKED = exports.HEIGHT_ABOVE_WALKWAY = exports.DROP_PER_TICK_FLOAT = exports.C______RED = exports.C_____BLUE = exports.C____GREEN = exports.C____BROWN = exports.C___YELLOW = exports.C___PURPLE = exports.C_NONE = exports.COL_2 = exports.COL_1 = void 0;
 var HEIGHT_ABOVE_WALKWAY = exports.HEIGHT_ABOVE_WALKWAY = 0.0;
 var START_X_LOOK = exports.START_X_LOOK = 3;
 var START_Y_LOOK = exports.START_Y_LOOK = 1; // *10 !!!!!!!!!!!!
@@ -21865,9 +21934,9 @@ var MOVE_SAME_TILE = exports.MOVE_SAME_TILE = "MOVE_SAME_TILE";
 var MOVE_NEW_TILE = exports.MOVE_NEW_TILE = "MOVE_NEW_TILE";
 var MOVE_BLOCKED = exports.MOVE_BLOCKED = "MOVE_BLOCKED";
 var MOVE_FALLING = exports.MOVE_FALLING = "MOVE_FALLING";
-var MOVE_RISING = "MOVE_RISING";
+var MOVE_RISING = exports.MOVE_RISING = "MOVE_RISING";
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -21875,6 +21944,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.makeControls = makeControls;
 exports.moveKeys = moveKeys;
+var _consoleShort = require("../console-short.js");
 var _PointerLockControls = require("three/examples/jsm/controls/PointerLockControls.js");
 //var controls;
 var moveForward = false;
@@ -21944,7 +22014,7 @@ function moveKeys(delta, controls) {
   if (moveRight) controls.moveRight(speed);
 }
 
-},{"three/examples/jsm/controls/PointerLockControls.js":4}],12:[function(require,module,exports){
+},{"../console-short.js":10,"three/examples/jsm/controls/PointerLockControls.js":4}],13:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -21958,6 +22028,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.gameLoop = gameLoop;
+var _consoleShort = require("./console-short.js");
 var HEX_CONST = _interopRequireWildcard(require("./constants.js"));
 var _hexTile = require("./tiles/hex-tile.js");
 function _interopRequireWildcard(e, t) {
@@ -22008,21 +22079,23 @@ function gameLoop(prev_pos, next_pos, cur_y_100_pos, tile_transition, cam_pos) {
     cam_pos.z = prev_pos.z;
     next_pos = prev_pos;
   } else {
-    ee("move in gameLoop");
+    //  ee("move in gameLoop");
   }
   return [prev_pos, next_pos, cur_y_100_pos];
 }
 
-},{"./constants.js":10,"./tiles/hex-tile.js":23}],13:[function(require,module,exports){
+},{"./console-short.js":10,"./constants.js":11,"./tiles/hex-tile.js":25}],14:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.geoMesh = geoMesh;
+var _consoleShort = require("./console-short.js");
 var _three = require("three");
 // only ramp needs to be double sided
 function geoMesh(group, vertices_set, a_color) {
+  //  tt("geoMesh", vertices_set);
   var side_geometry = geometricVertices(vertices_set);
   var side_material = new _three.MeshLambertMaterial({
     color: a_color,
@@ -22049,7 +22122,7 @@ function geometricVertices(the_vertices) {
   return the_geometry;
 }
 
-},{"three":3}],14:[function(require,module,exports){
+},{"./console-short.js":10,"three":3}],15:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23338,7 +23411,7 @@ var type_face = exports.type_face = {
   underlineThickness: 50
 };
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -23348,7 +23421,7 @@ function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length)
 function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
-var _miscFuncs = require("./misc-funcs.js");
+var _consoleShort = require("./console-short.js");
 var THREE = _interopRequireWildcard(require("three"));
 var _constants = _interopRequireWildcard(require("./constants.js"));
 var HEX_CONST = _constants;
@@ -23360,9 +23433,9 @@ var _liveTest = require("./tests/live-test.js");
 var _keyControls = require("./controls/key-controls.js");
 var _aDot = require("./a-dot.js");
 var _startTiles = require("./tiles/start-tiles.js");
-var _buildTiles = require("./build-tiles.js");
+var _buildObjects = require("./build-objects.js");
 var _gameLoop = require("./game-loop.js");
-var _miscFunc = require("./tiles/misc-func.js");
+var _hexRoutines = require("./tiles/hex-routines.js");
 function _interopRequireWildcard(e, t) {
   if ("function" == typeof WeakMap) var r = new WeakMap(),
     n = new WeakMap();
@@ -23383,7 +23456,7 @@ function _interopRequireWildcard(e, t) {
     return f;
   })(e, t);
 }
-// 2 misc-func.js  and misc-funcs.js
+// 2 hex-routines.js  and console-short.js
 
 var the_coords, test_xyz_camera, test_xyz_lookat, test_name;
 var g_walkway_coords = the_coords;
@@ -23392,6 +23465,7 @@ var TEST_NUMBER_1_TO_11 = 0; // if 0 then none
 var GAME_WALKWAY = _circles.CIRCLE_WALKWAY;
 var GAME_WALLS = _circles.CIRCLE_WALLS;
 var GAME_TRAMPOLINES = _circles.CIRCLE_TRAMPOLINES;
+var GAME_PENTAGONS = _circles.CIRCLE_PENTAGONS;
 var GET_ABOVE_TILES = 1;
 if (TEST_NUMBER_1_TO_11 == 0) {
   var _ref = (0, _startTiles.startGameTiles)(GAME_WALKWAY),
@@ -23410,7 +23484,7 @@ if (TEST_NUMBER_1_TO_11 == 0) {
   test_xyz_lookat = _ref3[2];
   test_name = _ref3[3];
 }
-var _ref4 = (0, _buildTiles.buildScene)(test_xyz_camera),
+var _ref4 = (0, _buildObjects.buildScene)(test_xyz_camera),
   the_scene = _ref4.the_scene,
   persp_camera = _ref4.persp_camera,
   the_width = _ref4.the_width,
@@ -23420,25 +23494,28 @@ var _ref4 = (0, _buildTiles.buildScene)(test_xyz_camera),
 persp_camera.position.set(test_xyz_camera[0], test_xyz_camera[1] / 100, test_xyz_camera[2]);
 persp_camera.lookAt(test_xyz_lookat[0], test_xyz_lookat[1] / 100, test_xyz_lookat[2]);
 the_scene.add(persp_camera);
-var _ref5 = (0, _buildTiles.buildTiles)(the_scene, GAME_WALLS, the_coords),
-  g_walkway_meshes = _ref5.g_walkway_meshes,
-  g_walkway_tiles = _ref5.g_walkway_tiles,
-  g_walkway_columns = _ref5.g_walkway_columns,
-  g_wall_squares = _ref5.g_wall_squares,
-  g_wall_columns = _ref5.g_wall_columns,
-  g_ground_tiles = _ref5.g_ground_tiles;
+var built_objects = (0, _buildObjects.buildObjects)(the_scene, GAME_WALLS, the_coords, GAME_TRAMPOLINES, GAME_PENTAGONS);
+var g_object_meshes = built_objects.g_object_meshes,
+  g_walkway_tiles = built_objects.g_walkway_tiles,
+  g_walkway_columns = built_objects.g_walkway_columns,
+  g_wall_squares = built_objects.g_wall_squares,
+  g_wall_columns = built_objects.g_wall_columns,
+  g_ground_tiles = built_objects.g_ground_tiles,
+  g_trampolines = built_objects.g_trampolines,
+  g_pentagons = built_objects.g_pentagons,
+  the_pentagon_mesh = built_objects.the_pentagon_mesh;
 
-// const { g_walkway_meshes, g_walkway_tiles, g_walkway_columns, g_wall_squares, g_wall_columns, g_ground_tiles } = buildTrampolines(
+// const { g_object_meshes, g_walkway_tiles, g_walkway_columns, g_wall_squares, g_wall_columns, g_ground_tiles } = buildTrampolines(
 //     the_scene,
 //     GAME_TRAMPOLINES,
 //     the_coords
 // );
 
 (0, _liveTest.staticTests)();
-var _ref6 = (0, _buildTiles.buildRenderer)(the_scene, the_width, the_height),
-  a_renderer = _ref6.a_renderer,
-  bench = _ref6.bench;
-(0, _buildTiles.buildListener)(persp_camera);
+var _ref5 = (0, _buildObjects.buildRenderer)(the_scene, the_width, the_height),
+  a_renderer = _ref5.a_renderer,
+  bench = _ref5.bench;
+(0, _buildObjects.buildListener)(persp_camera);
 var key_controls = (0, _keyControls.makeControls)(persp_camera);
 
 /**
@@ -23469,17 +23546,27 @@ var _tick = function tick() {
     y: cur_y_100_pos,
     z: cam_pos.z
   };
-  if (tile_transition.move_result == HEX_CONST.MOVE_FALLING) {
-    var _ref7 = (0, _hexTile.coords2HexIndexes)(cam_pos.x, cam_pos.z),
-      _ref8 = _slicedToArray(_ref7, 2),
-      prev_x_ind = _ref8[0],
-      prev_z_ind = _ref8[1];
-    var tile_index = (0, _miscFunc.hexIndex)(prev_x_ind, cur_y_100_pos, prev_z_ind);
+  if (tile_transition.move_result == HEX_CONST.MOVE_RISING) {
+    cur_y_100_pos = cur_y_100_pos + 25;
+    if (cur_y_100_pos >= 1600) {
+      tile_transition.move_result = HEX_CONST.MOVE_FALLING;
+    }
+  } else if (tile_transition.move_result == HEX_CONST.MOVE_FALLING) {
+    var _ref6 = (0, _hexTile.coords2HexIndexes)(cam_pos.x, cam_pos.z),
+      _ref7 = _slicedToArray(_ref6, 2),
+      prev_x_ind = _ref7[0],
+      prev_z_ind = _ref7[1];
+    var tile_index = (0, _hexRoutines.hexIndex)(prev_x_ind, cur_y_100_pos, prev_z_ind);
+    if (!g_walkway_tiles.has(tile_index)) {
+      (0, _consoleShort.tt)("NNOOOO", tile_index, g_walkway_tiles);
+    }
     if (g_walkway_tiles.has(tile_index)) {
       tile_transition = {
         move_result: HEX_CONST.MOVE_SAME_TILE,
         level_y: cur_y_100_pos
       };
+    } else if (g_trampolines.has(tile_index)) {
+      tile_transition.move_result = HEX_CONST.MOVE_RISING;
     } else {
       cur_y_100_pos = cur_y_100_pos - 5;
     }
@@ -23487,21 +23574,25 @@ var _tick = function tick() {
     tile_transition = (0, _camAdjust.transition2Tile)(HEX_CONST.PHYS_TILE_MOVE, _constants.RUNNING_NO_PRINT, g_walkway_tiles, g_walkway_columns, g_wall_squares, g_wall_columns, prev_pos, next_pos);
     if (tile_transition.move_result == HEX_CONST.MOVE_FALLING) {}
   }
-  var _ref9 = (0, _gameLoop.gameLoop)(prev_pos, next_pos, cur_y_100_pos, tile_transition, cam_pos);
-  var _ref0 = _slicedToArray(_ref9, 3);
-  prev_pos = _ref0[0];
-  next_pos = _ref0[1];
-  cur_y_100_pos = _ref0[2];
+  var _ref8 = (0, _gameLoop.gameLoop)(prev_pos, next_pos, cur_y_100_pos, tile_transition, cam_pos);
+  var _ref9 = _slicedToArray(_ref8, 3);
+  prev_pos = _ref9[0];
+  next_pos = _ref9[1];
+  cur_y_100_pos = _ref9[2];
   persp_camera.getWorldDirection(vector_3);
   (0, _keyControls.moveKeys)(clock_delta, key_controls);
   var inc_y = (0, _walkwayHeights.walkwayIncline)(g_walkway_tiles, next_pos);
   persp_camera.position.y = cur_y_100_pos / 100 + GET_ABOVE_TILES + inc_y;
 
   // XyzDot(the_scene, cam_pos.x, persp_camera.position.y, cam_pos.z, 0x666666);
+  // the_pentagon_mesh.rotation.x += 0.01;
+  the_pentagon_mesh.rotation.y += 0.02;
+  // the_pentagon_mesh.rotation.z += 0.00001;
 
   a_renderer.render(the_scene, persp_camera);
-  (0, _miscFuncs.tt)(cur_y_100_pos);
-  if (cur_y_100_pos <= 0) {
+
+  // tt(cur_y_100_pos);
+  if (cur_y_100_pos < -100) {
     cur_y_100_pos = 1600;
   }
 
@@ -23521,14 +23612,15 @@ a_renderer.setAnimationLoop(function (now) {
   return draw(now);
 });
 
-},{"./a-dot.js":7,"./build-tiles.js":9,"./constants.js":10,"./controls/key-controls.js":11,"./game-loop.js":12,"./maps/circles.js":16,"./misc-funcs.js":18,"./tests/live-test.js":20,"./tiles/cam-adjust/camAdjust.js":21,"./tiles/hex-tile.js":23,"./tiles/misc-func.js":25,"./tiles/start-tiles.js":36,"./tiles/walkway-heights.js":40,"three":3}],16:[function(require,module,exports){
+},{"./a-dot.js":7,"./build-objects.js":9,"./console-short.js":10,"./constants.js":11,"./controls/key-controls.js":12,"./game-loop.js":13,"./maps/circles.js":17,"./tests/live-test.js":21,"./tiles/cam-adjust/camAdjust.js":22,"./tiles/hex-routines.js":24,"./tiles/hex-tile.js":25,"./tiles/start-tiles.js":37,"./tiles/walkway-heights.js":41,"three":3}],17:[function(require,module,exports){
 "use strict";
 
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.CIRCLE_WALLS = exports.CIRCLE_WALKWAY = exports.CIRCLE_TRAMPOLINES = void 0;
+exports.CIRCLE_WALLS = exports.CIRCLE_WALKWAY = exports.CIRCLE_TRAMPOLINES = exports.CIRCLE_PENTAGONS = void 0;
+var _consoleShort = require("../console-short.js");
 var HEX_CONST = _interopRequireWildcard(require("../constants.js"));
 function _interopRequireWildcard(e, t) {
   if ("function" == typeof WeakMap) var r = new WeakMap(),
@@ -23695,24 +23787,24 @@ var CIRCLE_WALLS = exports.CIRCLE_WALLS = [["001", "200", "002", HEX_CONST.C____
 ///  ["-1", "2", "004", HEX_CONST.C___PURPLE, HEX_CONST.WALL_NE, 0.5],
 ["-01", "200", "003", HEX_CONST.C____BROWN, HEX_CONST.WALL_SE, 1.5] ///["-1", "2", "003", HEX_CONST.C____BROWN, HEX_CONST.WALL_SE, 1.5]
 ];
-var CIRCLE_WALKWAY = exports.CIRCLE_WALKWAY = [[0, 605, 0],
+var CIRCLE_WALKWAY = exports.CIRCLE_WALKWAY = [[0, 605, 1],
 //[0, 900, -2], //  [0, 6, 0], // start
-[0, 500, -2],
+[-4, 500, 2],
 // [0, 1, 3],
-["000", "350", "003"],
+["000", "350", "003", 0xffff00],
 //["000", "3.5", "003"],
 
-["000", "200", "003"],
+["000", "200", "003", 0x0000ff],
 //    ["000", "2.0", "003"],
 
-["000", "200", "002"],
+["000", "200", "002", 0xffffff],
 //   ["000", "2.0", "002"],
-["000", "200", "001"],
+["000", "200", "001", 0x0000ff],
 //["000", "2.0", "001"],
-["000", "200", "000"],
+["000", "200", "000", 0x0000ff],
 //["000", "2.0", "000"],
 
-["000", "200", "-01", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1],
+["000", "200", "-01", 0x1010ff, HEX_CONST.TILT_NN, 1],
 //["000", "2.0", "-01", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1],
 ["000", "300", "-02"],
 //["000", "3.0", "-02"],
@@ -23734,13 +23826,17 @@ var CIRCLE_WALKWAY = exports.CIRCLE_WALKWAY = [[0, 605, 0],
 //["000", "6.0", "-4"],
 ["001", "600", "-04"],
 //["001", "6.0", "-4"],
-["002", "600", "-04"] //["002", "6.0", "-4"]
-];
+["002", "600", "-04"],
+//["002", "6.0", "-4"],
+////////////////////////////////
+
+["-4", "700", "3", HEX_CONST.C___YELLOW, HEX_CONST.TILT_SE, 1.0], ["-5", "700", "4", HEX_CONST.C___YELLOW, HEX_CONST.TILT_SS, 1.0], ["-6", "700", "4", HEX_CONST.C___YELLOW, HEX_CONST.TILT_SW, 1.0], ["-6", "700", "3", HEX_CONST.C___YELLOW, HEX_CONST.TILT_NW, 1.0], ["-5", "700", "2", HEX_CONST.C___YELLOW, HEX_CONST.TILT_NN, 1.0], ["-4", "700", "2", HEX_CONST.C___YELLOW, HEX_CONST.TILT_NE, 1.0]];
 // NB only 1.0  1.5
 
-var CIRCLE_TRAMPOLINES = exports.CIRCLE_TRAMPOLINES = [["-04", "200", "-04", HEX_CONST.C____GREEN]];
+var CIRCLE_TRAMPOLINES = exports.CIRCLE_TRAMPOLINES = [["-2", "0", "2", HEX_CONST.C____GREEN]];
+var CIRCLE_PENTAGONS = exports.CIRCLE_PENTAGONS = [["0", "270", "3", HEX_CONST.C____GREEN]];
 
-},{"../constants.js":10}],17:[function(require,module,exports){
+},{"../console-short.js":10,"../constants.js":11}],18:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23750,7 +23846,8 @@ exports.axial_round = axial_round;
 exports.coords2HexIndexes = coords2HexIndexes;
 exports.distance2hexpoints = distance2hexpoints;
 exports.tileCenterCoord = tileCenterCoord;
-var sqrt_3 = Math.sqrt(3);
+var _consoleShort = require("./console-short.js");
+var SQRT_3 = Math.sqrt(3);
 function distance2hexpoints(hex_point_1, hex_point_2) {
   var x_diff = hex_point_2[0] - hex_point_1[0];
   var z_diff = hex_point_2[2] - hex_point_1[2];
@@ -23779,68 +23876,141 @@ function coords2HexIndexes(x_coord, z_coord) {
   var y = z_coord / 1;
   // cartesian to hex
   var q = 2 / 3 * x;
-  var r = -1 / 3 * x + sqrt_3 / 3 * y;
+  var r = -1 / 3 * x + SQRT_3 / 3 * y;
   var ar = axial_round(q, r);
   return ar;
 }
 function tileCenterCoord(x_tile, z_tile) {
   var x_coord = 3 / 2 * x_tile;
-  var z_coord = sqrt_3 / 2 * x_tile + sqrt_3 * z_tile;
+  var z_coord = SQRT_3 / 2 * x_tile + SQRT_3 * z_tile;
   coords2HexIndexes(x_coord, z_coord);
   return [x_coord, z_coord];
 }
 
-},{}],18:[function(require,module,exports){
+},{"./console-short.js":10}],19:[function(require,module,exports){
 "use strict";
 
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.tt = exports.ee = exports.TT = exports.EE = void 0;
-// 2 misc-func.js  and misc-funcs.js
+exports.makePentagon = makePentagon;
+var _consoleShort = require("../console-short.js");
+var HEX_CONST = _interopRequireWildcard(require("../constants.js"));
+var _three = _interopRequireWildcard(require("three"));
+var THREE = _three;
+var _maths = require("../maths.js");
+function _interopRequireWildcard(e, t) {
+  if ("function" == typeof WeakMap) var r = new WeakMap(),
+    n = new WeakMap();
+  return (_interopRequireWildcard = function _interopRequireWildcard(e, t) {
+    if (!t && e && e.__esModule) return e;
+    var o,
+      i,
+      f = {
+        __proto__: null,
+        "default": e
+      };
+    if (null === e || "object" != _typeof(e) && "function" != typeof e) return f;
+    if (o = t ? n : r) {
+      if (o.has(e)) return o.get(e);
+      o.set(e, f);
+    }
+    for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]);
+    return f;
+  })(e, t);
+}
+//import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
 
-/*
-cons ole.log("hexPoints unknown  up_direction==", up_direction);
- ee("hexPoints unknown  up_direction==", up_direction);
- */
+//import { roundTrampoline } from "./circle-trampoline.js";
 
-var ee = function ee() {
-  var _window;
-  var prefix = "SYSTEM ERROR :";
-  for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-    args[_key] = arguments[_key];
-  }
-  if (typeof args[0] === "string") {
-    args[0] = "".concat(prefix, " ").concat(args[0]);
-  } else {
-    args.unshift(prefix);
-  }
-  (_window = window["con" + "sole"]).log.apply(_window, args);
-};
+//function makeWalls(the_scene, wall_coords, walkway_meshes, wall_squares, walkway_columns, walkway_overlaps) {
+function makePentagon(the_scene, object_meshes, g_pentagons) {
+  var trampoline_columns = new Map();
+  var the_pentagon_mesh;
+  for (var i = 0; i < g_pentagons.length; i++) {
+    var trampoline_data = g_pentagons[i];
+    var _trampoline_data = _slicedToArray(trampoline_data, 3),
+      x_str = _trampoline_data[0],
+      y_str = _trampoline_data[1],
+      z_str = _trampoline_data[2];
+    var x_index = parseInt(x_str);
+    var y_index = parseInt(y_str);
+    var z_index = parseInt(z_str);
+    var two_circles = new _three.Group();
+    var pent_geometry = new THREE.CircleGeometry(0.8, 5);
+    var pent_material = new THREE.MeshBasicMaterial({
+      color: 0xffff00
+    });
+    var pent_mesh = new THREE.Mesh(pent_geometry, pent_material);
+    pent_mesh.material.side = THREE.DoubleSide;
+    var _ref = (0, _maths.tileCenterCoord)(x_index, z_index),
+      _ref2 = _slicedToArray(_ref, 2),
+      x_center = _ref2[0],
+      z_center = _ref2[1];
+    pent_mesh.position.set(x_center, y_index / 100, z_center);
+    pent_mesh.rotation.z = 2 * Math.PI / 4;
+    two_circles.add(pent_mesh);
 
-/*
-cons ole.log(`TEST allowed NW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-tt(`allowed NW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-*/
-exports.ee = ee;
-var tt = function tt() {
-  var _window2;
-  var prefix = "TEST ";
-  for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-    args[_key2] = arguments[_key2];
-  }
-  if (typeof args[0] === "string") {
-    args[0] = "".concat(prefix, " ").concat(args[0]);
-  } else {
-    args.unshift(prefix);
-  }
-  (_window2 = window["con" + "sole"]).log.apply(_window2, args);
-};
-exports.tt = tt;
-var TT = exports.TT = tt;
-var EE = exports.EE = ee;
+    // const pent_geometry2 = new THREE.CircleGeometry(0.7, 5);
+    // const pent_material2 = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    // const pent_mesh2 = new THREE.Mesh(pent_geometry2, pent_material2);
+    // pent_mesh2.material.side = THREE.DoubleSide;
+    // //  let [x_center, z_center] = tileCenterCoord(x_index, z_index);
+    // pent_mesh2.position.set(x_center, y_index / 100, z_center + 0.1);
+    // pent_mesh2.rotation.z = (2 * Math.PI) / 4;
+    // two_circles.add(pent_mesh2);
+    // const vertices_set = [
+    //     -0.5, 3.5, -0.8660254037844386, -0.5, 3.5, 0.8660254037844386, 0.5, 3.5, 0.8660254037844386, -0.5, 3.5, -0.8660254037844386, 0.5, 3.5,
+    //     0.8660254037844386, 0.5, 3.5, -0.8660254037844386, -0.5, 3.5, -0.8660254037844386, -1, 3.5, 0, -0.5, 3.5, 0.8660254037844386, 0.5, 3.5,
+    //     0.8660254037844386, 1, 3.5, 0, 0.5, 3.5, -0.8660254037844386
+    // ];
 
-},{}],19:[function(require,module,exports){
+    // function geometricVertices(the_vertices) {
+    //     const float_vertices = new Float32Array(the_vertices);
+    //     const the_geometry = new BufferGeometry();
+    //     the_geometry.setAttribute("position", new Float32BufferAttribute(float_vertices, 3));
+    //     return the_geometry;
+    // }
+
+    // const side_geometry = geometricVertices(vertices_set);
+    // // const side_material = new MeshLambertMaterial({ color: "pink", transparent: false, opacity: 1 });
+    // //   const hexagon_side = new Mesh(side_geometry, side_material);
+    // // side_material.side = DoubleSide;
+
+    // const edges = new EdgesGeometry(side_geometry);
+    // const lineMaterial = new LineBasicMaterial({ color: 0x00ff00, linewidth: 1256 });
+    // lineMaterial.side = DoubleSide;
+    // const edgeLines = new LineSegments(edges, lineMaterial);
+
+    // // hexagon_side.add(edgeLines);
+    // two_circles.add(edgeLines);
+    // const pent_geometry3 = new THREE.CircleGeometry(0.7, 5);
+    // const pent_material3 = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    // const pent_mesh3 = new THREE.Mesh(pent_geometry3, pent_material3);
+    // pent_mesh3.material.side = THREE.DoubleSide;
+    // // let [x_center, z_center] = tileCenterCoord(x_index, z_index);
+    // pent_mesh3.position.set(x_center, y_index / 100, z_center - 0.1);
+    // pent_mesh3.rotation.z = (2 * Math.PI) / 4;
+    // two_circles.add(pent_mesh3);
+
+    the_scene.add(two_circles);
+    var trampoline_index = "".concat(x_str, ",").concat(y_str, ",").concat(z_str);
+    (0, _consoleShort.tt)("dasdf", trampoline_index);
+    trampoline_columns.set(trampoline_index, trampoline_index);
+    the_pentagon_mesh = pent_mesh;
+  }
+  (0, _consoleShort.tt)("trampoline_columns", trampoline_columns);
+  return [the_pentagon_mesh, trampoline_columns];
+}
+
+},{"../console-short.js":10,"../constants.js":11,"../maths.js":18,"three":3}],20:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -23854,6 +24024,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.PerspCamera = PerspCamera;
 exports.projMatrix = projMatrix;
+var _consoleShort = require("./console-short.js");
 var _three = require("three");
 function PerspCamera(the_fov, width_height, nf_planes, xyz_pos) {
   var _width_height = _slicedToArray(width_height, 2),
@@ -23879,7 +24050,7 @@ function projMatrix(the_camera, width_height) {
   the_camera.updateProjectionMatrix();
 }
 
-},{"three":3}],20:[function(require,module,exports){
+},{"./console-short.js":10,"three":3}],21:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -23893,6 +24064,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.setUpLiveTests = setUpLiveTests;
 exports.staticTests = staticTests;
+var _consoleShort = require("../console-short.js");
 function setUpLiveTests(TEST_DIRECTION, TEST_NUMBER_1_TO_11) {
   if (TEST_DIRECTION == HEX_CONST.TEST_SS) {
     var _ss_load_test = ss_load_test(TEST_NUMBER_1_TO_11);
@@ -23938,7 +24110,7 @@ function setUpLiveTests(TEST_DIRECTION, TEST_NUMBER_1_TO_11) {
     test_name = _se_load_test2[3];
   }
   if (test_name !== "") {
-    ee("Physical mouse moving TEST NAME :: ".concat(test_name, " :: move forward to cause test"));
+    (0, _consoleShort.ee)("Physical mouse moving TEST NAME :: ".concat(test_name, " :: move forward to cause test"));
   }
   return [the_coords, test_xyz_camera, test_xyz_lookat, test_name];
 }
@@ -23954,7 +24126,7 @@ function staticTests() {
   //ee("the tests:", g_tests);
 }
 
-},{}],21:[function(require,module,exports){
+},{"../console-short.js":10}],22:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -23968,16 +24140,16 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.transition2Tile = transition2Tile;
+var _consoleShort = require("../../console-short.js");
 var HEX_CONST = _interopRequireWildcard(require("../../constants.js"));
 var _hexTile = require("../hex-tile.js");
-var _miscFunc = require("../misc-func.js");
+var _hexRoutines = require("../hex-routines.js");
 var _nnMove = require("../nn/nn-move.js");
 var _neMove = require("../ne/ne-move.js");
 var _nwMove = require("../nw/nw-move.js");
 var _ssMove = require("../ss/ss-move.js");
 var _swMove = require("../sw/sw-move.js");
 var _seMove = require("../se/se-move.js");
-var _miscFuncs = require("../../misc-funcs.js");
 function _interopRequireWildcard(e, t) {
   if ("function" == typeof WeakMap) var r = new WeakMap(),
     n = new WeakMap();
@@ -23999,7 +24171,7 @@ function _interopRequireWildcard(e, t) {
   })(e, t);
 }
 function verticallyNearNN(x_ind, level_y, z_ind, current_data) {
-  var tile_index = (0, _miscFunc.hexIndex)(x_ind, level_y, z_ind);
+  var tile_index = (0, _hexRoutines.hexIndex)(x_ind, level_y, z_ind);
   current_data.new_index = tile_index;
   var move_result = (0, _nnMove.moveToNn)(current_data);
   return {
@@ -24048,8 +24220,8 @@ function transition2Tile(run_or_test, print_allowed, walkway_tiles, walkway_colu
     new_x_ind = _ref4[0],
     new_z_ind = _ref4[1];
   var move_dir = moveDirectionCoords2(prev_pos.x, prev_pos.z, new_pos.x, new_pos.z);
-  var prev_index = (0, _miscFunc.hexIndex)(prev_x_ind, prev_pos.y, prev_z_ind);
-  var new_index = (0, _miscFunc.hexIndex)(new_x_ind, new_pos.y, new_z_ind);
+  var prev_index = (0, _hexRoutines.hexIndex)(prev_x_ind, prev_pos.y, prev_z_ind);
+  var new_index = (0, _hexRoutines.hexIndex)(new_x_ind, new_pos.y, new_z_ind);
   var no_old_new_tile;
   var current_data = {
     run_or_test: run_or_test,
@@ -24083,14 +24255,14 @@ function transition2Tile(run_or_test, print_allowed, walkway_tiles, walkway_colu
   }
 }
 function isVerticallyNear(walkway_tiles, x_ind, level_y, z_ind) {
-  var tile_index = (0, _miscFunc.hexIndex)(x_ind, level_y, z_ind);
+  var tile_index = (0, _hexRoutines.hexIndex)(x_ind, level_y, z_ind);
   if (walkway_tiles.has(tile_index)) {
     return true;
   }
   return false;
 }
 function verticallyNearSS(x_ind, level_y, z_ind, current_data) {
-  var tile_index = (0, _miscFunc.hexIndex)(x_ind, level_y, z_ind);
+  var tile_index = (0, _hexRoutines.hexIndex)(x_ind, level_y, z_ind);
   current_data.new_index = tile_index;
   var move_result = (0, _ssMove.moveToSs)(current_data);
   return {
@@ -24099,7 +24271,7 @@ function verticallyNearSS(x_ind, level_y, z_ind, current_data) {
   };
 }
 function verticallyNearNE(x_ind, level_y, z_ind, current_data) {
-  var tile_index = (0, _miscFunc.hexIndex)(x_ind, level_y, z_ind);
+  var tile_index = (0, _hexRoutines.hexIndex)(x_ind, level_y, z_ind);
   current_data.new_index = tile_index;
   var move_result = (0, _neMove.moveToNe)(current_data);
   return {
@@ -24108,7 +24280,7 @@ function verticallyNearNE(x_ind, level_y, z_ind, current_data) {
   };
 }
 function verticallyNearSE(x_ind, level_y, z_ind, current_data) {
-  var tile_index = (0, _miscFunc.hexIndex)(x_ind, level_y, z_ind);
+  var tile_index = (0, _hexRoutines.hexIndex)(x_ind, level_y, z_ind);
   current_data.new_index = tile_index;
   var move_result = (0, _seMove.moveToSe)(current_data);
   return {
@@ -24117,7 +24289,7 @@ function verticallyNearSE(x_ind, level_y, z_ind, current_data) {
   };
 }
 function verticallyNearSW(x_ind, level_y, z_ind, current_data) {
-  var tile_index = (0, _miscFunc.hexIndex)(x_ind, level_y, z_ind);
+  var tile_index = (0, _hexRoutines.hexIndex)(x_ind, level_y, z_ind);
   current_data.new_index = tile_index;
   var move_result = (0, _swMove.moveToSw)(current_data);
   return {
@@ -24126,7 +24298,7 @@ function verticallyNearSW(x_ind, level_y, z_ind, current_data) {
   };
 }
 function verticallyNearNW(x_ind, level_y, z_ind, current_data) {
-  var tile_index = (0, _miscFunc.hexIndex)(x_ind, level_y, z_ind);
+  var tile_index = (0, _hexRoutines.hexIndex)(x_ind, level_y, z_ind);
   current_data.new_index = tile_index;
   var move_result = (0, _nwMove.moveToNw)(current_data);
   return {
@@ -24264,14 +24436,14 @@ function moveDirectionCoords2(prev_x_coord, prev_z_coord, new_x_coord, new_z_coo
       //    ee("*** SE");
       move_direction = HEX_CONST.MOVE_SE;
     } else {
-      ee("*** NOT SURE  THETA--=", theta);
+      (0, _consoleShort.ee)("*** NOT SURE  THETA--=", theta);
       move_direction = HEX_CONST.MOVE_NO;
     }
   }
   return move_direction;
 }
 
-},{"../../constants.js":10,"../../misc-funcs.js":18,"../hex-tile.js":23,"../misc-func.js":25,"../ne/ne-move.js":27,"../nn/nn-move.js":29,"../nw/nw-move.js":31,"../se/se-move.js":33,"../ss/ss-move.js":35,"../sw/sw-move.js":38}],22:[function(require,module,exports){
+},{"../../console-short.js":10,"../../constants.js":11,"../hex-routines.js":24,"../hex-tile.js":25,"../ne/ne-move.js":28,"../nn/nn-move.js":30,"../nw/nw-move.js":32,"../se/se-move.js":34,"../ss/ss-move.js":36,"../sw/sw-move.js":39}],23:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -24286,13 +24458,13 @@ Object.defineProperty(exports, "__esModule", {
 exports.groundRow = groundRow;
 exports.groundTile = groundTile;
 exports.ground_field = ground_field;
-var _miscFuncs = require("../misc-funcs.js");
+var _consoleShort = require("../console-short.js");
 var _three = require("three");
 var _constants = require("../constants.js");
 var _hexTile = require("./hex-tile.js");
 var _meshTiles = require("./mesh-tiles.js");
 var _geoMesh = require("../geo-mesh.js");
-function ground_field(hex_tiles, ground_tiles, the_scene, start_x, end_x, base_color) {
+function ground_field(the_scene, hex_tiles, ground_tiles, start_x, end_x, base_color) {
   for (var x = start_x; x < end_x; x++) {
     var _groundRow = groundRow(hex_tiles, ground_tiles, the_scene, x, -10, 10, base_color);
     var _groundRow2 = _slicedToArray(_groundRow, 2);
@@ -24335,7 +24507,36 @@ function groundTile(hex_tiles, the_scene, x_y_z, tile_colors) {
   return hex_tiles;
 }
 
-},{"../constants.js":10,"../geo-mesh.js":13,"../misc-funcs.js":18,"./hex-tile.js":23,"./mesh-tiles.js":24,"three":3}],23:[function(require,module,exports){
+},{"../console-short.js":10,"../constants.js":11,"../geo-mesh.js":14,"./hex-tile.js":25,"./mesh-tiles.js":26,"three":3}],24:[function(require,module,exports){
+"use strict";
+
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.hexIndex = hexIndex;
+exports.stripYindex = stripYindex;
+var _consoleShort = require("../console-short.js");
+function hexIndex(x_hex_ind, y_height, z_hex_ind) {
+  var y_fixed_to_10ths = Math.trunc(y_height * 10) / 10;
+  var hex_index = "".concat(x_hex_ind, ",").concat(y_fixed_to_10ths, ",").concat(z_hex_ind);
+  return hex_index;
+}
+function stripYindex(hex_index) {
+  var _hex_index$split = hex_index.split(","),
+    _hex_index$split2 = _slicedToArray(_hex_index$split, 3),
+    x_hex_ind = _hex_index$split2[0],
+    _y_height = _hex_index$split2[1],
+    z_hex_ind = _hex_index$split2[2];
+  return "".concat(x_hex_ind, ",").concat(z_hex_ind);
+}
+
+},{"../console-short.js":10}],25:[function(require,module,exports){
 "use strict";
 
 function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
@@ -24366,12 +24567,13 @@ Object.defineProperty(exports, "tileCenterCoord", {
   }
 });
 exports.tileTriangles = tileTriangles;
+var _consoleShort = require("../console-short.js");
 var _three = require("three");
 var _meshTiles = require("./mesh-tiles.js");
 var _geoMesh = require("../geo-mesh.js");
 var _maths = require("../maths.js");
 var _constants = require("../constants.js");
-var sqrt_3 = Math.sqrt(3);
+var SQRT_3 = Math.sqrt(3);
 
 /*
                           square_up_left  
@@ -24602,13 +24804,13 @@ function hexPoints(tile_radius, y_100_height, up_direction, angled_height) {
     bot_rght = [top_rght_x, top_height, top_rght_z];
     bot_left = [top_left_x, top_height, top_left_z];
   } else {
-    ee("hexPoints unknown  up_direction==", up_direction);
+    (0, _consoleShort.ee)("hexPoints unknown  up_direction==", up_direction);
   }
   var stair_tiles = [top_left, top_rght, rght_tip, bot_rght, bot_left, left_tip];
   return stair_tiles;
 }
 
-},{"../constants.js":10,"../geo-mesh.js":13,"../maths.js":17,"./mesh-tiles.js":24,"three":3}],24:[function(require,module,exports){
+},{"../console-short.js":10,"../constants.js":11,"../geo-mesh.js":14,"../maths.js":18,"./mesh-tiles.js":26,"three":3}],26:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -24621,6 +24823,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.addCoords = addCoords;
+var _consoleShort = require("../console-short.js");
 var _three = require("three");
 var _constants = require("../constants.js");
 var _FontLoader = require("three/examples/jsm/loaders/FontLoader.js");
@@ -24688,42 +24891,14 @@ function addCoords(a_tile, x_y_z, slope_direction, incline_amount) {
     x = -0.7;
     z = -0.25;
   } else {
-    ee(" addCoords() unknown slope_direction", slope_direction);
+    (0, _consoleShort.ee)(" addCoords() unknown slope_direction", slope_direction);
   }
   text_mesh.position.x = x;
   text_mesh.position.z = z;
   a_tile.add(text_mesh);
 }
 
-},{"../constants.js":10,"../helvetiker_regular.typeface.js":14,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}],25:[function(require,module,exports){
-"use strict";
-
-function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
-function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
-function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.hexIndex = hexIndex;
-exports.stripYindex = stripYindex;
-function hexIndex(x_hex_ind, y_height, z_hex_ind) {
-  var y_fixed_to_10ths = Math.trunc(y_height * 10) / 10;
-  var hex_index = "".concat(x_hex_ind, ",").concat(y_fixed_to_10ths, ",").concat(z_hex_ind);
-  return hex_index;
-}
-function stripYindex(hex_index) {
-  var _hex_index$split = hex_index.split(","),
-    _hex_index$split2 = _slicedToArray(_hex_index$split, 3),
-    x_hex_ind = _hex_index$split2[0],
-    _y_height = _hex_index$split2[1],
-    z_hex_ind = _hex_index$split2[2];
-  return "".concat(x_hex_ind, ",").concat(z_hex_ind);
-}
-
-},{}],26:[function(require,module,exports){
+},{"../console-short.js":10,"../constants.js":11,"../helvetiker_regular.typeface.js":15,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}],27:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24780,15 +24955,16 @@ var NE_START_FINISHES = exports.NE_START_FINISHES = {
   13: NE_13_TEST
 };
 
-},{"../../constants.js":10}],27:[function(require,module,exports){
+},{"../../constants.js":11}],28:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.moveToNe = moveToNe;
+var _consoleShort = require("../../console-short.js");
 var _constants = require("../../constants.js");
-var _miscFunc = require("../misc-func.js");
+var _hexRoutines = require("../hex-routines.js");
 var _neConstants = require("./ne-constants.js");
 function neAllow(local_data, mess_1) {
   var run_or_test = local_data.run_or_test,
@@ -24796,7 +24972,7 @@ function neAllow(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    ee("TEST allowed NE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST allowed NE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_NEW_TILE;
 }
@@ -24806,7 +24982,7 @@ function neBlock(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    ee("TEST blocked NE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST blocked NE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_BLOCKED;
 }
@@ -24816,7 +24992,7 @@ function neFall(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    ee("TEST airborne NE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST airborne NE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_FALLING;
 }
@@ -24830,7 +25006,7 @@ function neAirborne(run_or_test, print_allowed) {
   return neFall(local_data, _neConstants.NE_AIRBORNE);
 }
 function neInAir(walkway_columns, new_index) {
-  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
   var current_xz_column = walkway_columns.get(current_xz_index);
   if (current_xz_column == undefined) {
     return true; // falling in a column with no tiles
@@ -24842,7 +25018,7 @@ function neInAir(walkway_columns, new_index) {
   return false;
 }
 function neHitSsWall(wall_squares, wall_columns, new_index) {
-  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
   var cur_xz_wall_column = wall_columns.get(current_xz_index);
   if (cur_xz_wall_column) {
     var possible_wall = wall_squares.get(new_index);
@@ -24960,7 +25136,7 @@ function moveToNe(current_data) {
 function neCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   var NW_to_NN = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_NN;
   if (NW_to_NN && lows_and_highs) {
-    ee("FLOWER CLOCK ne");
+    (0, _consoleShort.ee)("FLOWER CLOCK ne");
     return true;
   }
   return false;
@@ -24968,7 +25144,7 @@ function neCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
 function neCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   var SS_to_SE = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_SE;
   if (SS_to_SE && lows_and_highs) {
-    ee("FLOWER COUNT ne");
+    (0, _consoleShort.ee)("FLOWER COUNT ne");
     return true;
   }
   return false;
@@ -24978,7 +25154,7 @@ function neCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
 function neCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   var SE_to_SS = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_SS;
   if (SE_to_SS && lows_and_highs) {
-    ee("hat CLOCK ne");
+    (0, _consoleShort.ee)("hat CLOCK ne");
     return true;
   }
   return false;
@@ -24986,7 +25162,7 @@ function neCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
 function neCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   var NN_to_NW = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NW;
   if (NN_to_NW && lows_and_highs) {
-    ee("hat COUNT ne");
+    (0, _consoleShort.ee)("hat COUNT ne");
     return true;
   }
   return false;
@@ -25055,7 +25231,7 @@ function neDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
   return false;
 }
 
-},{"../../constants.js":10,"../misc-func.js":25,"./ne-constants.js":26}],28:[function(require,module,exports){
+},{"../../console-short.js":10,"../../constants.js":11,"../hex-routines.js":24,"./ne-constants.js":27}],29:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25112,19 +25288,19 @@ var NN_START_FINISHES = exports.NN_START_FINISHES = {
   13: NN_13_TEST
 };
 
-},{"../../constants.js":10}],29:[function(require,module,exports){
+},{"../../constants.js":11}],30:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.moveToNn = moveToNn;
-var _miscFuncs = require("../../misc-funcs.js");
+var _consoleShort = require("../../console-short.js");
 var _constants = require("../../constants.js");
-var _miscFunc = require("../misc-func.js");
+var _hexRoutines = require("../hex-routines.js");
 var _nnConstants = require("./nn-constants.js");
 function nnInAir(walkway_columns, new_index) {
-  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
   var current_xz_column = walkway_columns.get(current_xz_index);
   if (current_xz_column == undefined) {
     return true; // falling in a column with no tiles
@@ -25141,7 +25317,7 @@ function nnAllow(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _miscFuncs.ee)("TEST allowed NN :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST allowed NN :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_NEW_TILE;
 }
@@ -25151,7 +25327,7 @@ function nnBlock(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _miscFuncs.ee)("TEST blocked NN :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST blocked NN :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_BLOCKED;
 }
@@ -25161,7 +25337,7 @@ function nnFall(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _miscFuncs.ee)("TEST airborne NN :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST airborne NN :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_FALLING;
 }
@@ -25175,7 +25351,7 @@ function nnAirborne(run_or_test, print_allowed) {
   return nnFall(local_data, _nnConstants.NN_AIRBORNE);
 }
 function nnHitSsWall(wall_squares, wall_columns, new_index) {
-  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
   var cur_xz_wall_column = wall_columns.get(current_xz_index);
   if (cur_xz_wall_column) {
     var possible_wall = wall_squares.get(new_index);
@@ -25384,7 +25560,7 @@ function nnDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
   return false;
 }
 
-},{"../../constants.js":10,"../../misc-funcs.js":18,"../misc-func.js":25,"./nn-constants.js":28}],30:[function(require,module,exports){
+},{"../../console-short.js":10,"../../constants.js":11,"../hex-routines.js":24,"./nn-constants.js":29}],31:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25441,15 +25617,16 @@ var NW_START_FINISHES = exports.NW_START_FINISHES = {
   13: NW_13_TEST
 };
 
-},{"../../constants.js":10}],31:[function(require,module,exports){
+},{"../../constants.js":11}],32:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.moveToNw = moveToNw;
+var _consoleShort = require("../../console-short.js");
 var _constants = require("../../constants.js");
-var _miscFunc = require("../misc-func.js");
+var _hexRoutines = require("../hex-routines.js");
 var _nwConstants = require("./nw-constants.js");
 function nwAllow(local_data, mess_1) {
   var run_or_test = local_data.run_or_test,
@@ -25457,7 +25634,7 @@ function nwAllow(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    ee("TEST allowed NW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST allowed NW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_NEW_TILE;
 }
@@ -25467,7 +25644,7 @@ function nwBlock(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    ee("TEST blocked NW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST blocked NW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_BLOCKED;
 }
@@ -25477,7 +25654,7 @@ function nwFall(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    ee("TEST airborne NW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST airborne NW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_FALLING;
 }
@@ -25491,7 +25668,7 @@ function nwAirborne(run_or_test, print_allowed) {
   return nwFall(local_data, _nwConstants.NW_AIRBORNE);
 }
 function nwInAir(walkway_columns, new_index) {
-  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
   var current_xz_column = walkway_columns.get(current_xz_index);
   if (current_xz_column == undefined) {
     return true; // falling in a column with no tiles
@@ -25503,7 +25680,7 @@ function nwInAir(walkway_columns, new_index) {
   return false;
 }
 function nwHitSsWall(wall_squares, wall_columns, new_index) {
-  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
   var cur_xz_wall_column = wall_columns.get(current_xz_index);
   if (cur_xz_wall_column) {
     var possible_wall = wall_squares.get(new_index);
@@ -25621,7 +25798,7 @@ function moveToNw(current_data) {
 function nwCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   var SS_to_SW = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_SW;
   if (SS_to_SW && lows_and_highs) {
-    ee("FLOWER CLOCK nw");
+    (0, _consoleShort.ee)("FLOWER CLOCK nw");
     return true;
   }
   return false;
@@ -25629,7 +25806,7 @@ function nwCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
 function nwCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   var NE_to_NN = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_NN;
   if (NE_to_NN && lows_and_highs) {
-    ee("FLOWER COUNT nw");
+    (0, _consoleShort.ee)("FLOWER COUNT nw");
     return true;
   }
   return false;
@@ -25646,7 +25823,7 @@ function nwCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
 function nwCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   var SW_to_SS = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_SS;
   if (SW_to_SS && lows_and_highs) {
-    ee("hat COUNT nw");
+    (0, _consoleShort.ee)("hat COUNT nw");
     return true;
   }
   return false;
@@ -25715,7 +25892,7 @@ function nwDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
   return false;
 }
 
-},{"../../constants.js":10,"../misc-func.js":25,"./nw-constants.js":30}],32:[function(require,module,exports){
+},{"../../console-short.js":10,"../../constants.js":11,"../hex-routines.js":24,"./nw-constants.js":31}],33:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25772,15 +25949,16 @@ var SE_START_FINISHES = exports.SE_START_FINISHES = {
   13: SE_13_TEST
 };
 
-},{"../../constants.js":10}],33:[function(require,module,exports){
+},{"../../constants.js":11}],34:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.moveToSe = moveToSe;
+var _consoleShort = require("../../console-short.js");
 var _constants = require("../../constants.js");
-var _miscFunc = require("../misc-func.js");
+var _hexRoutines = require("../hex-routines.js");
 var _seConstants = require("./se-constants.js");
 function seAllow(local_data, mess_1) {
   var run_or_test = local_data.run_or_test,
@@ -25788,7 +25966,7 @@ function seAllow(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    ee("TEST allowed SE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST allowed SE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_NEW_TILE;
 }
@@ -25798,7 +25976,7 @@ function seBlock(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    ee("TEST blocked SE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST blocked SE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_BLOCKED;
 }
@@ -25808,7 +25986,7 @@ function seFall(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    ee("TEST airborne SE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST airborne SE :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_FALLING;
 }
@@ -25822,7 +26000,7 @@ function seAirborne(run_or_test, print_allowed) {
   return seFall(local_data, _seConstants.SE_AIRBORNE);
 }
 function seInAir(walkway_columns, new_index) {
-  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
   var current_xz_column = walkway_columns.get(current_xz_index);
   if (current_xz_column == undefined) {
     return true; // falling in a column with no tiles
@@ -25834,7 +26012,7 @@ function seInAir(walkway_columns, new_index) {
   return false;
 }
 function seHitSeWall(wall_squares, wall_columns, new_index) {
-  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
   var cur_xz_wall_column = wall_columns.get(current_xz_index);
   if (cur_xz_wall_column) {
     var possible_wall = wall_squares.get(new_index);
@@ -26043,7 +26221,7 @@ function seDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
   return false;
 }
 
-},{"../../constants.js":10,"../misc-func.js":25,"./se-constants.js":32}],34:[function(require,module,exports){
+},{"../../console-short.js":10,"../../constants.js":11,"../hex-routines.js":24,"./se-constants.js":33}],35:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26100,15 +26278,16 @@ var SS_START_FINISHES = exports.SS_START_FINISHES = {
   13: SS_13_TEST
 };
 
-},{"../../constants.js":10}],35:[function(require,module,exports){
+},{"../../constants.js":11}],36:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.moveToSs = moveToSs;
+var _consoleShort = require("../../console-short.js");
 var _constants = require("../../constants.js");
-var _miscFunc = require("../misc-func.js");
+var _hexRoutines = require("../hex-routines.js");
 var _ssConstants = require("./ss-constants.js");
 function ssAllow(local_data, mess_1) {
   var run_or_test = local_data.run_or_test,
@@ -26116,7 +26295,7 @@ function ssAllow(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    ee("TEST allowed SS :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST allowed SS :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_NEW_TILE;
 }
@@ -26126,7 +26305,7 @@ function ssBlock(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    ee("TEST blocked SS :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST blocked SS :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_BLOCKED;
 }
@@ -26136,7 +26315,7 @@ function ssFall(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    ee("TEST airborne SS :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST airborne SS :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_FALLING;
 }
@@ -26150,7 +26329,7 @@ function ssAirborne(run_or_test, print_allowed) {
   return ssFall(local_data, _ssConstants.SS_AIRBORNE);
 }
 function ssInAir(walkway_columns, new_index) {
-  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
   var current_xz_column = walkway_columns.get(current_xz_index);
   if (current_xz_column == undefined) {
     return true; // falling in a column with no tiles
@@ -26162,7 +26341,7 @@ function ssInAir(walkway_columns, new_index) {
   return false;
 }
 function ssHitSsWall(wall_squares, wall_columns, new_index) {
-  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
   var cur_xz_wall_column = wall_columns.get(current_xz_index);
   if (cur_xz_wall_column) {
     var possible_wall = wall_squares.get(new_index);
@@ -26373,7 +26552,7 @@ function ssDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
   return false;
 }
 
-},{"../../constants.js":10,"../misc-func.js":25,"./ss-constants.js":34}],36:[function(require,module,exports){
+},{"../../console-short.js":10,"../../constants.js":11,"../hex-routines.js":24,"./ss-constants.js":35}],37:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -26387,6 +26566,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.startGameTiles = startGameTiles;
+var _consoleShort = require("../console-short.js");
 var _hexTile = require("./hex-tile.js");
 var HEX_CONST = _interopRequireWildcard(require("../constants.js"));
 function _interopRequireWildcard(e, t) {
@@ -26437,7 +26617,7 @@ function startTestTiles(test_direction) {
     test_xyz_camera = _ss_load_test2[1];
     test_xyz_lookat = _ss_load_test2[2];
     test_name = _ss_load_test2[3];
-    ee("main start test coord ss", the_coords);
+    (0, _consoleShort.ee)("main start test coord ss", the_coords);
   } else if (TEST_DIRECTION == HEX_CONST.TEST_NN) {
     // the_coords.pop(); // get rid of name
     var _nn_load_test = nn_load_test(TEST_NUMBER_1_TO_11);
@@ -26446,7 +26626,7 @@ function startTestTiles(test_direction) {
     test_xyz_camera = _nn_load_test2[1];
     test_xyz_lookat = _nn_load_test2[2];
     test_name = _nn_load_test2[3];
-    ee("main start test coord nn", the_coords);
+    (0, _consoleShort.ee)("main start test coord nn", the_coords);
   } else if (TEST_DIRECTION == HEX_CONST.TEST_NE) {
     // the_coords.pop(); // get rid of name
     var _ne_load_test = ne_load_test(TEST_NUMBER_1_TO_11);
@@ -26455,7 +26635,7 @@ function startTestTiles(test_direction) {
     test_xyz_camera = _ne_load_test2[1];
     test_xyz_lookat = _ne_load_test2[2];
     test_name = _ne_load_test2[3];
-    ee("main start test coord ne", the_coords);
+    (0, _consoleShort.ee)("main start test coord ne", the_coords);
   } else if (TEST_DIRECTION == HEX_CONST.TEST_SW) {
     // the_coords.pop(); // get rid of name
     var _sw_load_test = sw_load_test(TEST_NUMBER_1_TO_11);
@@ -26472,7 +26652,7 @@ function startTestTiles(test_direction) {
     test_xyz_camera = _nw_load_test2[1];
     test_xyz_lookat = _nw_load_test2[2];
     test_name = _nw_load_test2[3];
-    ee("main start test coord nw", the_coords);
+    (0, _consoleShort.ee)("main start test coord nw", the_coords);
   } else if (TEST_DIRECTION == HEX_CONST.TEST_SE) {
     // the_coords.pop(); // get rid of name
     var _se_load_test = se_load_test(TEST_NUMBER_1_TO_11);
@@ -26483,11 +26663,11 @@ function startTestTiles(test_direction) {
     test_name = _se_load_test2[3];
   }
   if (test_name !== "") {
-    ee("Physical mouse moving TEST NAME :: ".concat(test_name, " :: move forward to cause test"));
+    (0, _consoleShort.ee)("Physical mouse moving TEST NAME :: ".concat(test_name, " :: move forward to cause test"));
   }
 }
 
-},{"../constants.js":10,"./hex-tile.js":23}],37:[function(require,module,exports){
+},{"../console-short.js":10,"../constants.js":11,"./hex-tile.js":25}],38:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26544,15 +26724,16 @@ var SW_START_FINISHES = exports.SW_START_FINISHES = {
   13: SW_13_TEST
 };
 
-},{"../../constants.js":10}],38:[function(require,module,exports){
+},{"../../constants.js":11}],39:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.moveToSw = moveToSw;
+var _consoleShort = require("../../console-short.js");
 var _constants = require("../../constants.js");
-var _miscFunc = require("../misc-func.js");
+var _hexRoutines = require("../hex-routines.js");
 var _swConstants = require("./sw-constants.js");
 function swAllow(local_data, mess_1) {
   var run_or_test = local_data.run_or_test,
@@ -26560,7 +26741,7 @@ function swAllow(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    ee("TEST allowed SW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST allowed SW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_NEW_TILE;
 }
@@ -26570,7 +26751,7 @@ function swBlock(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    ee("TEST blocked SW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST blocked SW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_BLOCKED;
 }
@@ -26580,7 +26761,7 @@ function swFall(local_data, mess_1) {
     prev_tilt_up = local_data.prev_tilt_up,
     new_tilt_up = local_data.new_tilt_up;
   if (print_allowed == _constants.TESTING_PRINT) {
-    ee("TEST airborne SW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
+    (0, _consoleShort.ee)("TEST airborne SW :: ".concat(run_or_test, " :: ").concat(mess_1, " :: ").concat(prev_tilt_up, ", ").concat(new_tilt_up));
   }
   return _constants.MOVE_FALLING;
 }
@@ -26594,7 +26775,7 @@ function swAirborne(run_or_test, print_allowed) {
   return swFall(local_data, _swConstants.SW_AIRBORNE);
 }
 function swInAir(walkway_columns, new_index) {
-  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
   var current_xz_column = walkway_columns.get(current_xz_index);
   if (current_xz_column == undefined) {
     return true; // falling in a column with no tiles
@@ -26606,7 +26787,7 @@ function swInAir(walkway_columns, new_index) {
   return false;
 }
 function swHitSwWall(wall_squares, wall_columns, new_index) {
-  var current_xz_index = (0, _miscFunc.stripYindex)(new_index);
+  var current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
   var cur_xz_wall_column = wall_columns.get(current_xz_index);
   if (cur_xz_wall_column) {
     var possible_wall = wall_squares.get(new_index);
@@ -26726,7 +26907,7 @@ function moveToSw(current_data) {
 function swCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   var SE_to_SS = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_SS;
   if (SE_to_SS && lows_and_highs) {
-    ee("FLOWER CLOCK sw");
+    (0, _consoleShort.ee)("FLOWER CLOCK sw");
     return true;
   }
   return false;
@@ -26734,7 +26915,7 @@ function swCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
 function swCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   var NN_to_NW = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NW;
   if (NN_to_NW && lows_and_highs) {
-    ee("FLOWER COUNT sw");
+    (0, _consoleShort.ee)("FLOWER COUNT sw");
     return true;
   }
   return false;
@@ -26744,7 +26925,7 @@ function swCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
 function swCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   var NW_to_NN = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_NN;
   if (NW_to_NN && lows_and_highs) {
-    ee("hat CLOCK sw");
+    (0, _consoleShort.ee)("hat CLOCK sw");
     return true;
   }
   return false;
@@ -26752,7 +26933,7 @@ function swCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
 function swCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   var SS_to_SE = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_SE;
   if (SS_to_SE && lows_and_highs) {
-    ee("hat COUNT sw");
+    (0, _consoleShort.ee)("hat COUNT sw");
     return true;
   }
   return false;
@@ -26821,7 +27002,7 @@ function swDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
   return false;
 }
 
-},{"../../constants.js":10,"../misc-func.js":25,"./sw-constants.js":37}],39:[function(require,module,exports){
+},{"../../console-short.js":10,"../../constants.js":11,"../hex-routines.js":24,"./sw-constants.js":38}],40:[function(require,module,exports){
 "use strict";
 
 function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
@@ -26836,7 +27017,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.makeWalkway = makeWalkway;
-var _miscFuncs = require("../misc-funcs.js");
+var _consoleShort = require("../console-short.js");
 var HEX_CONST = _interopRequireWildcard(require("../constants.js"));
 var _hexTile = require("./hex-tile.js");
 function _interopRequireWildcard(e, t) {
@@ -26930,20 +27111,20 @@ function _interopRequireWildcard(e, t) {
 
 function coordsBad(x_index, y_level, z_index) {
   if (x_index % 1 != 0) {
-    (0, _miscFuncs.ee)("checkCoords error x_index ", x_index);
+    (0, _consoleShort.ee)("checkCoords error x_index ", x_index);
     return true;
   }
   if (y_level % 1 != 0 && y_level % 1 != 0.5) {
-    (0, _miscFuncs.ee)("checkCoords error y_level ", y_level);
+    (0, _consoleShort.ee)("checkCoords error y_level ", y_level);
     return true;
   }
   if (z_index % 1 != 0) {
-    (0, _miscFuncs.ee)("checkCoords error z_index ", z_index);
+    (0, _consoleShort.ee)("checkCoords error z_index ", z_index);
     return true;
   }
   return false;
 }
-function makeWalkway(the_scene, walkway_coords, walkway_meshes, walkway_tiles, walkway_columns) {
+function makeWalkway(the_scene, walkway_meshes, walkway_coords, walkway_tiles, walkway_columns) {
   for (var i = 0; i < walkway_coords.length; i++) {
     var ramp_piece = walkway_coords[i];
     if (Array.isArray(ramp_piece)) {
@@ -27019,7 +27200,7 @@ function makeWalkway(the_scene, walkway_coords, walkway_meshes, walkway_tiles, w
   return [walkway_meshes, walkway_tiles, walkway_columns];
 }
 
-},{"../constants.js":10,"../misc-funcs.js":18,"./hex-tile.js":23}],40:[function(require,module,exports){
+},{"../console-short.js":10,"../constants.js":11,"./hex-tile.js":25}],41:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -27032,6 +27213,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.walkwayIncline = walkwayIncline;
+var _consoleShort = require("../console-short.js");
 var _constants = require("../constants.js");
 var _maths = require("../maths.js");
 function hexIndex(x_hex_ind, y_height, z_hex_ind) {
@@ -27160,7 +27342,95 @@ function walkwayIncline(walkway_tiles, cam_pos) {
   return 0; // y_position + ABOVE_WALKWAY;
 }
 
-},{"../constants.js":10,"../maths.js":17}],41:[function(require,module,exports){
+},{"../console-short.js":10,"../constants.js":11,"../maths.js":18}],42:[function(require,module,exports){
+"use strict";
+
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.makeTrampolines = makeTrampolines;
+var _consoleShort = require("../console-short.js");
+var HEX_CONST = _interopRequireWildcard(require("../constants.js"));
+var _three = _interopRequireWildcard(require("three"));
+var THREE = _three;
+var _maths = require("../maths.js");
+function _interopRequireWildcard(e, t) {
+  if ("function" == typeof WeakMap) var r = new WeakMap(),
+    n = new WeakMap();
+  return (_interopRequireWildcard = function _interopRequireWildcard(e, t) {
+    if (!t && e && e.__esModule) return e;
+    var o,
+      i,
+      f = {
+        __proto__: null,
+        "default": e
+      };
+    if (null === e || "object" != _typeof(e) && "function" != typeof e) return f;
+    if (o = t ? n : r) {
+      if (o.has(e)) return o.get(e);
+      o.set(e, f);
+    }
+    for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]);
+    return f;
+  })(e, t);
+}
+//import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
+
+//import { roundTrampoline } from "./circle-trampoline.js";
+
+//function makeWalls(the_scene, wall_coords, walkway_meshes, wall_squares, walkway_columns, walkway_overlaps) {
+function makeTrampolines(the_scene, object_meshes, g_trampolines) {
+  var trampoline_columns = new Map();
+  for (var i = 0; i < g_trampolines.length; i++) {
+    var trampoline_data = g_trampolines[i];
+    var _trampoline_data = _slicedToArray(trampoline_data, 3),
+      x_str = _trampoline_data[0],
+      y_str = _trampoline_data[1],
+      z_str = _trampoline_data[2];
+    var x_index = parseInt(x_str);
+    var y_index = parseInt(y_str);
+    var z_index = parseInt(z_str);
+    var two_circles = new _three.Group();
+    var circle_geometry = new THREE.CircleGeometry(0.8, 32); // Radius 5, 32 segments
+    var circle_material = new THREE.MeshBasicMaterial({
+      color: 0x00ff00
+    });
+    var a_circle = new THREE.Mesh(circle_geometry, circle_material);
+    a_circle.material.side = THREE.DoubleSide;
+    var _ref = (0, _maths.tileCenterCoord)(x_index, z_index),
+      _ref2 = _slicedToArray(_ref, 2),
+      x_center = _ref2[0],
+      z_center = _ref2[1];
+    a_circle.position.set(x_center, y_index / 100, z_center);
+    a_circle.rotation.x = 2 * Math.PI / 4;
+    two_circles.add(a_circle);
+    var circle_geometry2 = new THREE.CircleGeometry(0.7, 32); // Radius 5, 32 segments
+    var circle_material2 = new THREE.MeshBasicMaterial({
+      color: 0x003300
+    });
+    var a_circle2 = new THREE.Mesh(circle_geometry2, circle_material2);
+    a_circle2.material.side = THREE.DoubleSide;
+    //  let [x_center, z_center] = tileCenterCoord(x_index, z_index);
+    a_circle2.position.set(x_center, y_index / 100 + 0.001, z_center);
+    a_circle2.rotation.x = 2 * Math.PI / 4;
+    two_circles.add(a_circle2);
+    the_scene.add(two_circles);
+    var trampoline_index = "".concat(x_str, ",").concat(y_str, ",").concat(z_str);
+    (0, _consoleShort.tt)("dasdf", trampoline_index);
+    trampoline_columns.set(trampoline_index, trampoline_index);
+  }
+  (0, _consoleShort.tt)("trampoline_columns", trampoline_columns);
+  return [object_meshes, trampoline_columns];
+}
+
+},{"../console-short.js":10,"../constants.js":11,"../maths.js":18,"three":3}],43:[function(require,module,exports){
 "use strict";
 
 function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
@@ -27191,13 +27461,13 @@ Object.defineProperty(exports, "tileCenterCoord", {
   }
 });
 exports.wallRectangles = wallRectangles;
+var _consoleShort = require("../console-short.js");
 var _three = require("three");
 var _wallMesh = require("./wall-mesh.js");
 var _geoMesh = require("../geo-mesh.js");
-var _miscFuncs = require("../misc-funcs.js");
 var _maths = require("../maths.js");
 var _constants = require("../constants.js");
-var sqrt_3 = Math.sqrt(3);
+var SQRT_3 = Math.sqrt(3);
 
 /*
                           square_up_left  
@@ -27221,7 +27491,7 @@ function wallRectangles(hex_points) {
   var hexagon_triangles = [].concat(_toConsumableArray(square_up_left), _toConsumableArray(square_down_right));
   return hexagon_triangles;
 }
-function SquareWall(the_scene, walkway_meshes, walkway_tiles, x_y_z, tile_color, wall_position, wall_height) {
+function SquareWall(the_scene, object_meshes, walkway_tiles, x_y_z, tile_color, wall_position, wall_height) {
   var _x_y_z = _slicedToArray(x_y_z, 3),
     x_index = _x_y_z[0],
     y_index = _x_y_z[1],
@@ -27240,8 +27510,8 @@ function SquareWall(the_scene, walkway_meshes, walkway_tiles, x_y_z, tile_color,
   (0, _geoMesh.geoMesh)(a_tile, top_triangles, tile_color);
   the_scene.add(a_tile);
   (0, _wallMesh.wallCoords)(a_tile, x_y_z, wall_position, wall_height);
-  walkway_meshes.set(xyz_index, a_tile);
-  return [walkway_meshes, walkway_tiles];
+  object_meshes.set(xyz_index, a_tile);
+  return [object_meshes, walkway_tiles];
 }
 
 //    ["000", "010", "000", "green", TILT_NN, 10], just the objects
@@ -27351,13 +27621,13 @@ function squarePoints(tile_radius, y_100_height, wall_position, wall_height) {
     bot_rght = [top_rght_x, top_height, top_rght_z];
     bot_left = [top_left_x, top_height, top_left_z];
   } else {
-    (0, _miscFuncs.ee)("squarePoints unknown  wall_position==", wall_position);
+    (0, _consoleShort.ee)("squarePoints unknown  wall_position==", wall_position);
   }
   var wall_corners = [top_left, top_rght, bot_rght, bot_left];
   return wall_corners;
 }
 
-},{"../constants.js":10,"../geo-mesh.js":13,"../maths.js":17,"../misc-funcs.js":18,"./wall-mesh.js":43,"three":3}],42:[function(require,module,exports){
+},{"../console-short.js":10,"../constants.js":11,"../geo-mesh.js":14,"../maths.js":18,"./wall-mesh.js":45,"three":3}],44:[function(require,module,exports){
 "use strict";
 
 function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
@@ -27372,6 +27642,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.makeWalls = makeWalls;
+var _consoleShort = require("../console-short.js");
 var HEX_CONST = _interopRequireWildcard(require("../constants.js"));
 var _squareWalls = require("./square-walls.js");
 function _interopRequireWildcard(e, t) {
@@ -27396,8 +27667,8 @@ function _interopRequireWildcard(e, t) {
 }
 //import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
 
-//function makeWalls(the_scene, wall_coords, walkway_meshes, wall_squares, walkway_columns, walkway_overlaps) {
-function makeWalls(the_scene, wall_coords, walkway_meshes, wall_squares, wall_columns) {
+//function makeWalls(the_scene, wall_coords, object_meshes, wall_squares, walkway_columns, walkway_overlaps) {
+function makeWalls(the_scene, object_meshes, wall_coords, wall_squares, wall_columns) {
   for (var i = 0; i < wall_coords.length; i++) {
     var ramp_piece = wall_coords[i];
     if (Array.isArray(ramp_piece)) {
@@ -27414,12 +27685,12 @@ function makeWalls(the_scene, wall_coords, walkway_meshes, wall_squares, wall_co
         tile_color = _ramp_piece2[3],
         wall_position = _ramp_piece2[4],
         wall_height = _ramp_piece2[5];
-      var _ref = (0, _squareWalls.SquareWall)(the_scene, walkway_meshes, wall_squares, ramp_xyz, tile_color, wall_position,
+      var _ref = (0, _squareWalls.SquareWall)(the_scene, object_meshes, wall_squares, ramp_xyz, tile_color, wall_position,
       // wall_position
       wall_height // wall_height
       );
       var _ref2 = _slicedToArray(_ref, 2);
-      walkway_meshes = _ref2[0];
+      object_meshes = _ref2[0];
       wall_squares = _ref2[1];
     }
   }
@@ -27455,10 +27726,10 @@ function makeWalls(the_scene, wall_coords, walkway_meshes, wall_squares, wall_co
   } finally {
     _iterator.f();
   }
-  return [walkway_meshes, wall_squares, wall_columns];
+  return [object_meshes, wall_squares, wall_columns];
 }
 
-},{"../constants.js":10,"./square-walls.js":41}],43:[function(require,module,exports){
+},{"../console-short.js":10,"../constants.js":11,"./square-walls.js":43}],45:[function(require,module,exports){
 "use strict";
 
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -27471,6 +27742,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.wallCoords = wallCoords;
+var _consoleShort = require("../console-short.js");
 var _three = require("three");
 var _constants = require("../constants.js");
 var _FontLoader = require("three/examples/jsm/loaders/FontLoader.js");
@@ -27526,7 +27798,7 @@ function wallCoords(a_tile, x_y_z, wall_position, wall_height) {
     x = +0.9;
     z = 0.25;
   } else {
-    ee(" wallCoords() unknown wall_position", wall_position);
+    (0, _consoleShort.ee)(" wallCoords() unknown wall_position", wall_position);
   }
   text_mesh.position.x = x;
   text_mesh.position.z = z;
@@ -27535,4 +27807,4 @@ function wallCoords(a_tile, x_y_z, wall_position, wall_height) {
 
 //, geoMesh };
 
-},{"../constants.js":10,"../helvetiker_regular.typeface.js":14,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}]},{},[15]);
+},{"../console-short.js":10,"../constants.js":11,"../helvetiker_regular.typeface.js":15,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}]},{},[16]);

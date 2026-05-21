@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../misc-funcs.js";
+import { ee, tt, EE, TT } from "../console-short.js";
 
 import {
     EdgesGeometry,
@@ -22,7 +22,7 @@ import { hexPoints, tileTriangles, tileCenterCoord } from "./hex-tile.js";
 import { addCoords } from "./mesh-tiles.js";
 import { geoMesh } from "../geo-mesh.js";
 
-function ground_field(hex_tiles, ground_tiles, the_scene, start_x, end_x, base_color) {
+function ground_field(the_scene, hex_tiles, ground_tiles, start_x, end_x, base_color) {
     for (let x = start_x; x < end_x; x++) {
         [hex_tiles, ground_tiles] = groundRow(hex_tiles, ground_tiles, the_scene, x, -10, 10, base_color);
     }

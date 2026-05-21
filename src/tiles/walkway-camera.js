@@ -1,3 +1,5 @@
+import { ee, tt, EE, TT } from "../console-short.js";
+
 import { pointInsideTile } from "./walkway-overlaps.js";
 import { coords2HexIndexes } from "./hex-tile.js";
 import { DROP_PER_TICK_FLOAT } from "../constants.js";

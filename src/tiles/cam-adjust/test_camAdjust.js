@@ -1,3 +1,5 @@
+import { ee, tt, EE, TT } from "../../console-short.js";
+
 import { AScene } from "../../a-scene.js";
 import { C____GREEN, C_____BLUE, C___YELLOW, TILT_NE, TILT_NONE, TILT_NN, TILT_SW } from "../../constants.js";
 import { makeWalkway } from "../walkway-coords.js";

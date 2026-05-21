@@ -1,10 +1,11 @@
+import { ee, tt, EE, TT } from "../console-short.js";
 //import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
 import * as HEX_CONST from "../constants.js";
 
 import { SquareWall } from "./square-walls.js";
 
-//function makeWalls(the_scene, wall_coords, walkway_meshes, wall_squares, walkway_columns, walkway_overlaps) {
-function makeWalls(the_scene, wall_coords, walkway_meshes, wall_squares, wall_columns) {
+//function makeWalls(the_scene, wall_coords, object_meshes, wall_squares, walkway_columns, walkway_overlaps) {
+function makeWalls(the_scene, object_meshes, wall_coords, wall_squares, wall_columns) {
     for (var i = 0; i < wall_coords.length; i++) {
         const ramp_piece = wall_coords[i];
         if (Array.isArray(ramp_piece)) {
@@ -17,9 +18,9 @@ function makeWalls(the_scene, wall_coords, walkway_meshes, wall_squares, wall_co
 
             const [, , , tile_color, wall_position, wall_height] = ramp_piece;
 
-            [walkway_meshes, wall_squares] = SquareWall(
+            [object_meshes, wall_squares] = SquareWall(
                 the_scene,
-                walkway_meshes,
+                object_meshes,
                 wall_squares,
 
                 ramp_xyz,
@@ -50,7 +51,7 @@ function makeWalls(the_scene, wall_coords, walkway_meshes, wall_squares, wall_co
             cur_x_z_column.set(a_y_index, xyz_index);
         }
     }
-    return [walkway_meshes, wall_squares, wall_columns];
+    return [object_meshes, wall_squares, wall_columns];
 }
 
 export { makeWalls };

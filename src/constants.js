@@ -101,6 +101,7 @@ export {
     COL_1,
     COL_2,
     MOVE_FALLING,
+    MOVE_RISING,
     MOVE_SAME_TILE,
     MOVE_NEW_TILE,
     TEST_TILE_MOVE,

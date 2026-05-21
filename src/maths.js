@@ -1,4 +1,6 @@
-const sqrt_3 = Math.sqrt(3);
+import { ee, tt, EE, TT } from "./console-short.js";
+
+const SQRT_3 = Math.sqrt(3);
 
 function distance2hexpoints(hex_point_1, hex_point_2) {
     let x_diff = hex_point_2[0] - hex_point_1[0];
@@ -30,14 +32,14 @@ function coords2HexIndexes(x_coord, z_coord) {
     var y = z_coord / 1;
     // cartesian to hex
     var q = (2 / 3) * x;
-    var r = (-1 / 3) * x + (sqrt_3 / 3) * y;
+    var r = (-1 / 3) * x + (SQRT_3 / 3) * y;
     let ar = axial_round(q, r);
     return ar;
 }
 
 function tileCenterCoord(x_tile, z_tile) {
     const x_coord = (3 / 2) * x_tile;
-    const z_coord = (sqrt_3 / 2) * x_tile + sqrt_3 * z_tile;
+    const z_coord = (SQRT_3 / 2) * x_tile + SQRT_3 * z_tile;
     coords2HexIndexes(x_coord, z_coord);
     return [x_coord, z_coord];
 }

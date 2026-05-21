@@ -1,3 +1,5 @@
+import { ee, tt, EE, TT } from "./console-short.js";
+
 import * as THREE from "three";
 
 /*

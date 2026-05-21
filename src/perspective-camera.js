@@ -1,3 +1,5 @@
+import { ee, tt, EE, TT } from "./console-short.js";
+
 import { PerspectiveCamera } from "three";
 
 function PerspCamera(the_fov, width_height, nf_planes, xyz_pos) {

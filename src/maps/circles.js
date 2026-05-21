@@ -1,3 +1,5 @@
+import { ee, tt, EE, TT } from "../console-short.js";
+
 import * as HEX_CONST from "../constants.js";
 
 const x_start = 2;
@@ -144,8 +146,8 @@ const CIRCLE_WALKWAYFLOWER = [
 
     ["004", "1", "006", HEX_CONST.C____GREEN, HEX_CONST.TILT_SE, 1.0],
     ["003", "1", "007", HEX_CONST.C____GREEN, HEX_CONST.TILT_SS, 1.0],
-
     ["002", "1", "007", HEX_CONST.C____GREEN, HEX_CONST.TILT_SW, 1.0],
+
     ["002", "1", "006", HEX_CONST.C____GREEN, HEX_CONST.TILT_NW, 1.0],
     ["003", "1", "005", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1.0],
     ["004", "1", "005", HEX_CONST.C____GREEN, HEX_CONST.TILT_NE, 1.0]
@@ -233,17 +235,17 @@ const CIRCLE_WALLS = [
 ];
 
 const CIRCLE_WALKWAY = [
-    [0, 605, 0], //[0, 900, -2], //  [0, 6, 0], // start
-    [0, 500, -2], // [0, 1, 3],
-    ["000", "350", "003"], //["000", "3.5", "003"],
+    [0, 605, 1], //[0, 900, -2], //  [0, 6, 0], // start
+    [-4, 500, 2], // [0, 1, 3],
+    ["000", "350", "003", 0xffff00], //["000", "3.5", "003"],
 
-    ["000", "200", "003"], //    ["000", "2.0", "003"],
+    ["000", "200", "003", 0x0000ff], //    ["000", "2.0", "003"],
 
-    ["000", "200", "002"], //   ["000", "2.0", "002"],
-    ["000", "200", "001"], //["000", "2.0", "001"],
-    ["000", "200", "000"], //["000", "2.0", "000"],
+    ["000", "200", "002", 0xffffff], //   ["000", "2.0", "002"],
+    ["000", "200", "001", 0x0000ff], //["000", "2.0", "001"],
+    ["000", "200", "000", 0x0000ff], //["000", "2.0", "000"],
 
-    ["000", "200", "-01", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1], //["000", "2.0", "-01", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1],
+    ["000", "200", "-01", 0x1010ff, HEX_CONST.TILT_NN, 1], //["000", "2.0", "-01", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1],
     ["000", "300", "-02"], //["000", "3.0", "-02"],
     ["001", "300", "-02", HEX_CONST.C______RED, HEX_CONST.TILT_SE, 1], //    ["001", "3.0", "-02", HEX_CONST.C______RED, HEX_CONST.TILT_SE, 1],
     ["002", "400", "-02"], //["002", "4.0", "-02"],
@@ -254,10 +256,21 @@ const CIRCLE_WALKWAY = [
     ["000", "600", "-03"], // ["000", "6.0", "-3"],
     ["000", "600", "-04"], //["000", "6.0", "-4"],
     ["001", "600", "-04"], //["001", "6.0", "-4"],
-    ["002", "600", "-04"] //["002", "6.0", "-4"]
+    ["002", "600", "-04"], //["002", "6.0", "-4"],
+    ////////////////////////////////
+
+    ["-4", "700", "3", HEX_CONST.C___YELLOW, HEX_CONST.TILT_SE, 1.0],
+    ["-5", "700", "4", HEX_CONST.C___YELLOW, HEX_CONST.TILT_SS, 1.0],
+    ["-6", "700", "4", HEX_CONST.C___YELLOW, HEX_CONST.TILT_SW, 1.0],
+
+    ["-6", "700", "3", HEX_CONST.C___YELLOW, HEX_CONST.TILT_NW, 1.0],
+    ["-5", "700", "2", HEX_CONST.C___YELLOW, HEX_CONST.TILT_NN, 1.0],
+    ["-4", "700", "2", HEX_CONST.C___YELLOW, HEX_CONST.TILT_NE, 1.0]
 ];
 // NB only 1.0  1.5
 
-const CIRCLE_TRAMPOLINES = [["-04", "200", "-04", HEX_CONST.C____GREEN]];
+const CIRCLE_TRAMPOLINES = [["-2", "0", "2", HEX_CONST.C____GREEN]];
 
-export { CIRCLE_WALKWAY, CIRCLE_WALLS, CIRCLE_TRAMPOLINES };
+const CIRCLE_PENTAGONS = [["0", "270", "3", HEX_CONST.C____GREEN]];
+
+export { CIRCLE_WALKWAY, CIRCLE_WALLS, CIRCLE_TRAMPOLINES, CIRCLE_PENTAGONS };

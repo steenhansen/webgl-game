@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../../misc-funcs.js";
+import { ee, tt, EE, TT } from "../../console-short.js";
 
 import {
     MOVE_FALLING,
@@ -15,7 +15,7 @@ import {
     TILT_SW,
     TILT_NW
 } from "../../constants.js";
-import { stripYindex } from "../misc-func.js";
+import { stripYindex } from "../hex-routines.js";
 
 import {
     NN_AIRBORNE,
