@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../console-short.js";
+import { ee, tt, EE, TT } from "../misc/console-short.js";
 //import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
 import * as HEX_CONST from "../constants.js";
 

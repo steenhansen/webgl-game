@@ -1,6 +1,21 @@
 
+we use hexagons for trampolines
+
+  
+/*
+
+huge edge for trampoline and orange
 
 
+                          square_up_left  
+                             /---------\
+                            / |\ g   / |\       
+             triangle_left /r | \  / b |r\ triangle_right
+                           \  |b / \   | /
+                            \ |/  g \  |/      
+                             \---------/
+                               square_down_right   
+*/
 
 
 

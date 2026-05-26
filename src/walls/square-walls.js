@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../console-short.js";
+import { ee, tt, EE, TT } from "../misc/console-short.js";
 
 import {
     EdgesGeometry,
@@ -70,7 +70,7 @@ function SquareWall(the_scene, object_meshes, walkway_tiles, x_y_z, tile_color, 
 
     walkway_tiles = offsetWallPoints(walkway_tiles, x_y_z, wall_position, square_points);
     const top_triangles = wallRectangles(square_points);
-    geoMesh(a_tile, top_triangles, tile_color);
+    geoMesh(a_tile, top_triangles, tile_color, tile_color);
     the_scene.add(a_tile);
     wallCoords(a_tile, x_y_z, wall_position, wall_height);
     object_meshes.set(xyz_index, a_tile);

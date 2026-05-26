@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../../console-short.js";
+import { ee, tt, EE, TT } from "../../misc/console-short.js";
 
 import * as HEX_CONST from "../../constants.js";
 
@@ -77,8 +77,7 @@ function transition2Tile(run_or_test, print_allowed, walkway_tiles, walkway_colu
     } else if (move_dir == HEX_CONST.MOVE_SE) {
         return nearTestSE(walkway_tiles, new_x_ind, cur_level_y, new_z_ind, current_data);
     } else {
-        //  tt("waht dircection??", move_dir);
-        no_old_new_tile = HEX_CONST.MOVE_NEW_TILE; //"unknown tile condition";
+        no_old_new_tile = HEX_CONST.MOVE_SAME_TILE; //"unknown tile condition";
         return { move_result: no_old_new_tile, level_y: cur_level_y };
     }
 }

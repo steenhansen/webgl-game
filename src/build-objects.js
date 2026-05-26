@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "./console-short.js";
+import { ee, tt, EE, TT } from "./misc/console-short.js";
 
 import { makeWalkway } from "./tiles/walkway-coords.js";
 import { makeWalls } from "./walls/wall-coords.js";
@@ -6,35 +6,48 @@ import { makeTrampolines } from "./trampoline/trampoline-coords.js";
 import { makePentagon } from "./pentagon/pentagon-coords.js";
 import { ground_field } from "./tiles/ground-tiles.js";
 
-function buildObjects(the_scene, GAME_WALLS, g_walkway_coords, g_trampolines, g_pentagons) {
+import { projMatrix } from "./perspective-camera.js";
+
+//function buildObjects(the_scene, GAME_WALLS, g_walkway_coords, g_trampolines, g_pentagons, top_3colors, outline_3colors) {
+function buildObjects(the_scene, GAME_WALLS, g_walkway_coords, g_trampolines, g_pentagons, tile_3colors) {
     var g_ground_tiles = new Map([]);
     var g_object_meshes = new Map([]);
     var g_walkway_tiles = new Map([]);
+    var g_walkway_colors = new Map([]);
+
     var g_wall_squares = new Map([]);
     var g_walkway_columns = new Map([]);
     var g_wall_columns = new Map([]);
     const g_game_walls_coords = GAME_WALLS;
-
-    [g_object_meshes, g_walkway_tiles, g_walkway_columns] = makeWalkway(the_scene, g_object_meshes, g_walkway_coords, g_walkway_tiles, g_walkway_columns);
+    [g_object_meshes, g_walkway_tiles, g_walkway_colors, g_walkway_columns] = makeWalkway(
+        the_scene,
+        g_object_meshes,
+        g_walkway_coords,
+        g_walkway_tiles,
+        g_walkway_colors,
+        g_walkway_columns,
+        tile_3colors
+    );
     [g_object_meshes, g_wall_squares, g_wall_columns] = makeWalls(the_scene, g_object_meshes, g_game_walls_coords, g_wall_squares, g_wall_columns);
     [g_object_meshes, g_ground_tiles] = ground_field(the_scene, g_object_meshes, g_ground_tiles, -10, 10, 0x3366ee, 0x33ee66);
-    /////
-    tt(g_trampolines);
 
-    [g_object_meshes, g_trampolines] = makeTrampolines(the_scene, g_object_meshes, g_trampolines);
-    let the_pentagon_mesh;
-    [the_pentagon_mesh, g_pentagons] = makePentagon(the_scene, g_object_meshes, g_pentagons);
+    let trampoline_meshes;
+    [trampoline_meshes, g_trampolines] = makeTrampolines(the_scene, g_object_meshes, g_trampolines);
+    let pentagon_meshes;
+    [pentagon_meshes, g_pentagons] = makePentagon(the_scene, g_object_meshes, g_pentagons);
 
     return {
         g_object_meshes,
         g_walkway_tiles,
+        g_walkway_colors,
         g_walkway_columns,
         g_wall_squares,
         g_wall_columns,
         g_ground_tiles,
         g_trampolines,
+        trampoline_meshes,
         g_pentagons,
-        the_pentagon_mesh
+        pentagon_meshes
     };
 }
 const HI_DPI_ENABLE = Math.min(window.devicePixelRatio, 2);

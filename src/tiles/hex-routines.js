@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../console-short.js";
+import { ee, tt, EE, TT } from "../misc/console-short.js";
 
 function hexIndex(x_hex_ind, y_height, z_hex_ind) {
     let y_fixed_to_10ths = Math.trunc(y_height * 10) / 10;

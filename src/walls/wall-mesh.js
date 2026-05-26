@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../console-short.js";
+import { ee, tt, EE, TT } from "../misc/console-short.js";
 
 import {
     EdgesGeometry,
@@ -37,7 +37,7 @@ import {
 } from "../constants.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
-import { type_face } from "../helvetiker_regular.typeface.js";
+import { type_face } from "../misc/helvetiker_regular.typeface.js";
 
 var loader2 = new FontLoader();
 

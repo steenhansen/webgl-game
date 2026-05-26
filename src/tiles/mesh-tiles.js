@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../console-short.js";
+import { ee, tt, EE, TT } from "../misc/console-short.js";
 
 import {
     EdgesGeometry,
@@ -20,7 +20,7 @@ import {
 import { X_INDX, Y_INDX, Z_INDX, TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW, TILT_NONE } from "../constants.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
-import { type_face } from "../helvetiker_regular.typeface.js";
+import { type_face } from "../misc/helvetiker_regular.typeface.js";
 
 var loader2 = new FontLoader();
 
@@ -38,7 +38,7 @@ function addCoords(a_tile, x_y_z, slope_direction, incline_amount) {
         emissive: 0xffffff,
         color: WHITE_LABELS
     });
-    var textGeometry = new TextGeometry(`${x_index},${z_index}`, {
+    var textGeometry = new TextGeometry(`${x_index},${y_100_index},${z_index}`, {
         font: the_font,
         size: 0.2,
         depth: 0,

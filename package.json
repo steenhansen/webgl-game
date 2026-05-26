@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "gl-bench": "^1.0.42",
-    "three": "^0.182.0"
+    "three": "^0.182.0",
+    "three-addons": "^1.2.0"
   }
 }

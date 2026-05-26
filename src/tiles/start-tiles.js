@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../console-short.js";
+import { ee, tt, EE, TT } from "../misc/console-short.js";
 
 import { tileCenterCoord } from "./hex-tile.js";
 import * as HEX_CONST from "../constants.js";
@@ -13,7 +13,20 @@ function startGameTiles(GAME_WALKWAY) {
 
     const walkway_coords = GAME_WALKWAY;
     const start_xyz_lookat = GAME_WALKWAY.shift();
-    return { walkway_coords, start_xyz_camera, start_xyz_lookat };
+
+    const start_3colors = GAME_WALKWAY.shift();
+    const light_3colors = GAME_WALKWAY.shift();
+    const dark_3colors = GAME_WALKWAY.shift();
+    const edge_3colors = GAME_WALKWAY.shift(); // edge_color
+
+    const tile_3colors = { start_3colors, light_3colors, dark_3colors, edge_3colors };
+
+    //    const top_3colors = GAME_WALKWAY.shift();
+    // const top_3colors = GAME_WALKWAY.shift();
+
+    //  const outline_3colors = GAME_WALKWAY.shift();
+    //return { walkway_coords, start_xyz_camera, start_xyz_lookat, top_3colors, outline_3colors };
+    return { walkway_coords, start_xyz_camera, start_xyz_lookat, tile_3colors };
 }
 
 function startTestTiles(test_direction) {

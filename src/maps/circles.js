@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../console-short.js";
+import { ee, tt, EE, TT } from "../misc/console-short.js";
 
 import * as HEX_CONST from "../constants.js";
 
@@ -225,33 +225,41 @@ const CIRCLE_WALKWAY_curvy = [
 ];
 
 const CIRCLE_WALLS = [
-    ["001", "200", "002", HEX_CONST.C_____BLUE, HEX_CONST.WALL_SW, 1.5], //["001", "2", "02", HEX_CONST.C_____BLUE, HEX_CONST.WALL_SW, 1.5],
+    ["001", "200", "002", HEX_CONST.C_____BLUE, HEX_CONST.WALL_SW, 0.5], //["001", "2", "02", HEX_CONST.C_____BLUE, HEX_CONST.WALL_SW, 1.5],
     ["001", "200", "003", HEX_CONST.C___YELLOW, HEX_CONST.WALL_NW, 0.5], //["001", "2", "3", HEX_CONST.C___YELLOW, HEX_CONST.WALL_NW, 0.5],
 
-    ["000", "200", "004", HEX_CONST.C______RED, HEX_CONST.WALL_NN, 1.5], //["00", "2", "004", HEX_CONST.C______RED, HEX_CONST.WALL_NN, 1.5],
+    ["000", "200", "004", HEX_CONST.C______RED, HEX_CONST.WALL_NN, 0.5], //["00", "2", "004", HEX_CONST.C______RED, HEX_CONST.WALL_NN, 1.5],
 
     ["-01", "200", "004", HEX_CONST.C___PURPLE, HEX_CONST.WALL_NE, 0.5], ///  ["-1", "2", "004", HEX_CONST.C___PURPLE, HEX_CONST.WALL_NE, 0.5],
-    ["-01", "200", "003", HEX_CONST.C____BROWN, HEX_CONST.WALL_SE, 1.5] ///["-1", "2", "003", HEX_CONST.C____BROWN, HEX_CONST.WALL_SE, 1.5]
+    ["-01", "200", "003", HEX_CONST.C____BROWN, HEX_CONST.WALL_SE, 0.5] ///["-1", "2", "003", HEX_CONST.C____BROWN, HEX_CONST.WALL_SE, 1.5]
 ];
 
 const CIRCLE_WALKWAY = [
-    [0, 605, 1], //[0, 900, -2], //  [0, 6, 0], // start
-    [-4, 500, 2], // [0, 1, 3],
-    ["000", "350", "003", 0xffff00], //["000", "3.5", "003"],
+    [-2, 305, 0], //[0, 900, -2], //  [0, 6, 0], // start
+    [7, 0, -6], // [0, 1, 3],
+    [0x005500, 0x550000, 0x000055], // start
+    [0x00ff00, 0xff0000, 0x0000ff], // light
+    [0x00bb00, 0xbb0000, 0x0000bb], // dark
+    [0xc0ffc0, 0xffc0c0, 0xc0c0ff], // edge
 
-    ["000", "200", "003", 0x0000ff], //    ["000", "2.0", "003"],
+    ["000", "400", "003"],
+    // ["000", "350", "003"],
 
-    ["000", "200", "002", 0xffffff], //   ["000", "2.0", "002"],
-    ["000", "200", "001", 0x0000ff], //["000", "2.0", "001"],
-    ["000", "200", "000", 0x0000ff], //["000", "2.0", "000"],
+    ["000", "200", "003"], //    ["000", "2.0", "003"],
 
-    ["000", "200", "-01", 0x1010ff, HEX_CONST.TILT_NN, 1], //["000", "2.0", "-01", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1],
+    ["000", "200", "002"], //   ["000", "2.0", "002"],
+    ["000", "200", "001"], //["000", "2.0", "001"],
+    ["000", "200", "000"], //["000", "2.0", "000"],
+
+    ["000", "200", "-01", HEX_CONST.TILT_NN, 1], //["000", "2.0", "-01", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1],
     ["000", "300", "-02"], //["000", "3.0", "-02"],
-    ["001", "300", "-02", HEX_CONST.C______RED, HEX_CONST.TILT_SE, 1], //    ["001", "3.0", "-02", HEX_CONST.C______RED, HEX_CONST.TILT_SE, 1],
+    ["001", "300", "-02", HEX_CONST.TILT_SE, 1], //    ["001", "3.0", "-02", HEX_CONST.C______RED, HEX_CONST.TILT_SE, 1],
     ["002", "400", "-02"], //["002", "4.0", "-02"],
-    ["001", "400", "-01", HEX_CONST.C______RED, HEX_CONST.TILT_SW, 1], //["001", "4.0", "-01", HEX_CONST.C______RED, HEX_CONST.TILT_SW, 1],
+    ["001", "400", "-01", HEX_CONST.TILT_SW, 1], //["001", "4.0", "-01", HEX_CONST.C______RED, HEX_CONST.TILT_SW, 1],
     ["000", "500", "000"], //["000", "5.0", "0"],
-    ["000", "500", "-01", HEX_CONST.C______RED, HEX_CONST.TILT_NN, 1], //["0", "5.0", "-01", HEX_CONST.C______RED, HEX_CONST.TILT_NN, 1],
+    ["000", "500", "001"], //["000", "5.0", "0"],
+
+    ["000", "500", "-01", HEX_CONST.TILT_NN, 1], //["0", "5.0", "-01", HEX_CONST.C______RED, HEX_CONST.TILT_NN, 1],
     ["000", "600", "-02"], //["000", "6.0", "-2"],
     ["000", "600", "-03"], // ["000", "6.0", "-3"],
     ["000", "600", "-04"], //["000", "6.0", "-4"],
@@ -259,17 +267,23 @@ const CIRCLE_WALKWAY = [
     ["002", "600", "-04"], //["002", "6.0", "-4"],
     ////////////////////////////////
 
-    ["-4", "700", "3", HEX_CONST.C___YELLOW, HEX_CONST.TILT_SE, 1.0],
-    ["-5", "700", "4", HEX_CONST.C___YELLOW, HEX_CONST.TILT_SS, 1.0],
-    ["-6", "700", "4", HEX_CONST.C___YELLOW, HEX_CONST.TILT_SW, 1.0],
-
-    ["-6", "700", "3", HEX_CONST.C___YELLOW, HEX_CONST.TILT_NW, 1.0],
-    ["-5", "700", "2", HEX_CONST.C___YELLOW, HEX_CONST.TILT_NN, 1.0],
-    ["-4", "700", "2", HEX_CONST.C___YELLOW, HEX_CONST.TILT_NE, 1.0]
+    ["-8", "800", "3", HEX_CONST.TILT_SE, 1.0],
+    ["-9", "800", "4", HEX_CONST.TILT_SS, 1.0],
+    ["-10", "800", "4", HEX_CONST.TILT_SW, 1.0],
+    ["-10", "800", "3", HEX_CONST.TILT_NW, 1.0],
+    ["-9", "800", "2", HEX_CONST.TILT_NN, 1.0],
+    ["-8", "800", "2", HEX_CONST.TILT_NE, 1.0]
 ];
 // NB only 1.0  1.5
 
-const CIRCLE_TRAMPOLINES = [["-2", "0", "2", HEX_CONST.C____GREEN]];
+//const CIRCLE_TRAMPOLINES = [["-2", "0", "2"]];
+const tnn = ["-2", "0", "0", HEX_CONST.TILT_NN, 1.0];
+const tss = ["-2", "0", "9", HEX_CONST.TILT_SS, 1.0];
+const tsw = ["2", "0", "1", HEX_CONST.TILT_SW, 1.0];
+const tne = ["4", "0", "-3", HEX_CONST.TILT_NE, 1.0];
+const tflat = ["-6", "500", "2"];
+
+const CIRCLE_TRAMPOLINES = [tnn, tss, tsw, tne, tflat];
 
 const CIRCLE_PENTAGONS = [["0", "270", "3", HEX_CONST.C____GREEN]];
 

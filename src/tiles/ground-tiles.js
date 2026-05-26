@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../console-short.js";
+import { ee, tt, EE, TT } from "../misc/console-short.js";
 
 import {
     EdgesGeometry,
@@ -21,6 +21,7 @@ import { X_INDX, Y_INDX, Z_INDX, TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TI
 import { hexPoints, tileTriangles, tileCenterCoord } from "./hex-tile.js";
 import { addCoords } from "./mesh-tiles.js";
 import { geoMesh } from "../geo-mesh.js";
+import { tile3color } from "../misc/tile-colors.js";
 
 function ground_field(the_scene, hex_tiles, ground_tiles, start_x, end_x, base_color) {
     for (let x = start_x; x < end_x; x++) {
@@ -30,25 +31,31 @@ function ground_field(the_scene, hex_tiles, ground_tiles, start_x, end_x, base_c
 }
 
 function groundRow(hex_tiles, ground_tiles, the_scene, x_row, start_z, end_z, base_color) {
-    const top_color = 0xff0000;
-    const outline_color = 0xff8888;
-    const tile_colors = [top_color, outline_color];
+    let start_3colors = [0x999900, 0xcccc00, 0xffff00];
+    let light_3colors = [0x999999, 0xcccccc, 0xffffff];
+    let dark_3colors = [0x000000, 0x333333, 0x666666];
+    const edge_3colors = [0x222222, 0x222222, 0x222222];
+    const tile_colors = { start_3colors, light_3colors, dark_3colors, edge_3colors };
     for (let z = start_z; z < end_z; z++) {
-        hex_tiles = groundTile(hex_tiles, the_scene, [x_row, -100, z], tile_colors);
+        const ground_indexes = [x_row, -100, z];
+        hex_tiles = groundTile(hex_tiles, the_scene, ground_indexes, tile_colors);
     }
     return [hex_tiles, ground_tiles];
 }
 
-function groundTile(hex_tiles, the_scene, x_y_z, tile_colors) {
+function groundTile(hex_tiles, the_scene, x_y_z, tile_3colors) {
     const [x_index, y_height, z_index] = x_y_z;
-    let [top_color, outline_color] = tile_colors;
+    let { _light_color, dark_color, edge_color } = tile3color(x_y_z, tile_3colors);
+
     let [x_center, z_center] = tileCenterCoord(x_index, z_index);
     const tile_radius = 1;
     const a_tile = new Group();
     a_tile.position.set(x_center, 0, z_center);
     const stair_tiles = hexPoints(tile_radius, y_height, TILT_NONE, 0);
     const top_triangles = tileTriangles(stair_tiles);
-    geoMesh(a_tile, top_triangles, top_color, outline_color);
+
+    geoMesh(a_tile, top_triangles, dark_color, edge_color);
+
     the_scene.add(a_tile);
     addCoords(a_tile, x_y_z, TILT_NONE, 0);
     const xyz_index = `${x_index},${y_height},${z_index}`;

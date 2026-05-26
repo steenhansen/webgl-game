@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../console-short.js";
+import { ee, tt, EE, TT } from "../misc/console-short.js";
 
 function setUpLiveTests(TEST_DIRECTION, TEST_NUMBER_1_TO_11) {
     if (TEST_DIRECTION == HEX_CONST.TEST_SS) {
