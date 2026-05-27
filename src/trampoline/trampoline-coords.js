@@ -25,7 +25,7 @@ import {
     RGB_ETC2_Format
 } from "three";
 
-function tileTriangles(hex_points) {
+function trampolineTriangles(hex_points) {
     const [top_left, top_right, right_tip, bot_right, bot_left, left_tip, middle_point] = hex_points;
 
     const t1 = [...middle_point, ...top_left, ...top_right];
@@ -35,11 +35,12 @@ function tileTriangles(hex_points) {
     const t5 = [...middle_point, ...bot_left, ...left_tip];
     const t6 = [...middle_point, ...left_tip, ...top_left];
 
-    let hexagon_triangles = [...t1, ...t2, ...t3, ...t4, ...t5, ...t6];
+    let hexagon_triangles = [t1, t2, t3, t4, t5, t6];
 
     return hexagon_triangles;
 }
 function makeTrampolines(the_scene, object_meshes, g_trampolines) {
+    tt("g_tramps", g_trampolines);
     var trampoline_columns = new Map();
     let trampoline_meshes = new Map();
     for (var i = 0; i < g_trampolines.length; i++) {
@@ -74,7 +75,9 @@ function makeTrampolines(the_scene, object_meshes, g_trampolines) {
         let tile_3colors = { dark_color: "red", light_color: "green", edge_color: "blue" };
 
         trampoline_columns = offsetTilePoints(trampoline_columns, x_y_z, slope_direction, incline_amount, tile_points, tile_3colors);
-        const top_triangles = tileTriangles(tile_points);
+        tt("tile_points", tile_points);
+        const top_triangles = trampolineTriangles(tile_points);
+        tt("top_triangles", top_triangles);
         trampolineMesh(a_tile, top_triangles, "red", "blue");
 
         the_scene.add(a_tile);

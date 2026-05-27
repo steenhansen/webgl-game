@@ -1,5 +1,5 @@
 import { ee, tt, EE, TT } from "../misc/console-short.js";
-
+//import * as THREE from "three";
 import {
     EdgesGeometry,
     Vector3,
@@ -13,13 +13,18 @@ import {
     MeshLambertMaterial,
     Group,
     Color,
+    // addons,
+    //   LineGeometry,
+    //    LineMaterial,
+    // Line2,
+    // lines,
     Mesh,
     DoubleSide,
     RGB_ETC2_Format
 } from "three";
-import { Line2 } from "three/addons/lines/Line2.js";
-import { LineMaterial } from "three/addons/lines/LineMaterial.js";
-import { LineGeometry } from "three/addons/lines/LineGeometry.js";
+// import { LineGeometry } from "three/addons/lines/LineGeometry.js";
+// import { LineMaterial } from "three/addons/lines/LineMaterial.js";
+// import { Line2 } from "three/addons/lines/Line2.js";
 // only ramp needs to be double sided
 
 //  777700  770077 007777
@@ -96,7 +101,7 @@ function geometricVertices(the_vertices) {
     return the_geometry;
 }
 
-function trampolineMesh(group, vertices_set, top_color, outline_color) {
+function trampolineMeshInCase(group, vertices_set, top_color, outline_color) {
     const side_geometry = geometricVertices(vertices_set);
     const side_material = new MeshLambertMaterial({ vertexColors: true, color: 0x888888, transparent: true, opacity: 1 });
     side_material.side = DoubleSide;
@@ -136,6 +141,21 @@ function trampolineMesh(group, vertices_set, top_color, outline_color) {
     line.scale.set(1, 1, 1);
     hexagon_side.add(line);
     group.add(hexagon_side);
+}
+//                     11       11         33        22         22      33
+const pie_colors = [0xffff00, 0xffff00, 0xff00ff, 0x00ffff, 0x00ffff, 0xff00ff];
+
+function trampolineMesh(group, vertices_set, top_color, outline_color) {
+    for (let i = 0; i < vertices_set.length; i += 1) {
+        let a_pie = vertices_set[i];
+
+        const side_geometry = geometricVertices(a_pie);
+        const side_material = new MeshLambertMaterial({ color: pie_colors[i], opacity: 1 });
+        side_material.side = DoubleSide;
+        const hexagon_side = new Mesh(side_geometry, side_material);
+        hexagon_side.name = "Hexagon-Part";
+        group.add(hexagon_side);
+    }
 }
 
 export { trampolineMesh };

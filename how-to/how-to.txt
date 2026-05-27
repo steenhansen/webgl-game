@@ -75,10 +75,14 @@ COMPRESS TO SINGLE FILE
 		npm install --save-dev babelify @babel/preset-react
 		npm install --save-dev babelify @babel/core
 
-		
+        npm install browserify --save-dev
+		npm install esmify --save-dev // didn't work
+            npm install -g esmify
+
+instead, group the trampline triangles, maybe only here have edges/
 
 	compile
-		npm run compile2-bundle
+	npm run compile2-bundle	
 			For  --> file:///C:/Users/16043/Documents/GitHub/aaa/index-bundled.html
 
 	compress	

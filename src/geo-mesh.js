@@ -16,23 +16,23 @@ import {
     DoubleSide,
     RGB_ETC2_Format
 } from "three";
-import { Line2 } from "three/addons/lines/Line2.js";
-import { LineMaterial } from "three/addons/lines/LineMaterial.js";
-import { LineGeometry } from "three/addons/lines/LineGeometry.js";
+// import { Line2 } from "three/addons/lines/Line2.js";
+// import { LineMaterial } from "three/addons/lines/LineMaterial.js";
+// import { LineGeometry } from "three/addons/lines/LineGeometry.js";
 // only ramp needs to be double sided
 function geoMesh(group, vertices_set, start_color, outline_color) {
     const side_geometry = geometricVertices(vertices_set);
     const side_material = new MeshLambertMaterial({ color: start_color, opacity: 1 });
+    side_material.side = DoubleSide;
     const hexagon_side = new Mesh(side_geometry, side_material);
     hexagon_side.name = "Hexagon-Part";
-    side_material.side = DoubleSide;
 
     const edges = new EdgesGeometry(side_geometry);
     const lineMaterial = new LineBasicMaterial({ color: outline_color, linewidth: 8 });
     lineMaterial.side = DoubleSide;
     const edgeLines = new LineSegments(edges, lineMaterial);
     hexagon_side.add(edgeLines);
-
+    group.add(hexagon_side);
     // const geometry = new LineGeometry();
     // geometry.setPositions(vertices_set);
     // // geometry.setColors(#646cff);
@@ -52,8 +52,6 @@ function geoMesh(group, vertices_set, start_color, outline_color) {
     // //  scene.add(line);
     // hexagon_side.add(line);
     ////////////////
-
-    group.add(hexagon_side);
 }
 
 function geometricVertices(the_vertices) {
