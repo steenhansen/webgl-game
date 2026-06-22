@@ -1,26 +1,25 @@
 import { ee, tt, EE, TT } from "../misc/console-short.js";
+import * as THREE from "three";
+import { seaColor } from "../misc/tile-colors.js";
+import { addCoords } from "./mesh-tiles.js";
+import { tileMesh } from "./tile-mesh.js";
+import { distance2hexpoints, axial_round, coords2Indexes, tileCenterCoord } from "../misc/hex-maths.js";
 
 import {
-    EdgesGeometry,
-    Vector3,
-    Box3,
-    LineBasicMaterial,
-    LineSegments,
-    BufferGeometry,
-    Float32BufferAttribute,
-    MeshLambertMaterial,
-    Group,
-    Mesh,
-    DoubleSide,
-    RGB_ETC2_Format
-} from "three";
-import { addCoords } from "./mesh-tiles.js";
-import { geoMesh } from "../geo-mesh.js";
-import { distance2hexpoints, axial_round, coords2HexIndexes, tileCenterCoord } from "../maths.js";
-//import { tile3color } from "../misc/tile-colors.js";
-
-import { X_INDX, Y_INDX, Z_INDX, TILT_SE90, TILT_NN90, TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW, TILT_NONE } from "../constants.js";
-const SQRT_3 = Math.sqrt(3);
+    SQRT_3,
+    X_INDX,
+    Y_INDX,
+    Z_INDX,
+    TILT_SE90,
+    TILT_NN90,
+    TILT_NN,
+    TILT_SS,
+    TILT_NW,
+    TILT_NE,
+    TILT_SE,
+    TILT_SW,
+    TILT_NONE
+} from "../values/the-constants.js";
 
 /*
                           square_up_left                                 top_left       top_right
@@ -76,38 +75,34 @@ function tileTriangles(hex_points) {
     return hexagon_triangles;
 }
 
-function HexTile(the_scene, walkway_meshes, walkway_tiles, x_y_z, tile_3colors, slope_direction, incline_amount) {
-    let { start_color, light_color, dark_color, edge_color } = tile_3colors;
-    //  tt(tile_3colors);
+function HexTile(g_scene, walkway_meshes, walkway_tiles, x_y_z, WALK_COLORS, WALK_EDGE, slope_tilt, incline_amount, is_transparent) {
+    //let { start_color, light_color, dark_color, edge_color } = d_tile_3colors;
     const [x_index, y_100_index, z_index] = x_y_z;
     const xyz_index = `${x_index},${y_100_index},${z_index}`;
-    if (slope_direction == undefined) {
-        slope_direction = TILT_NONE;
+    if (slope_tilt == undefined) {
+        slope_tilt = TILT_NONE;
         incline_amount = 0;
     }
-    if (incline_amount == undefined) {
-        incline_amount[(TILT_NONE, 0)];
-    }
-
     let [x_center, z_center] = tileCenterCoord(x_index, z_index);
     const tile_radius = 1;
 
-    const a_tile = new Group();
+    const a_tile = new THREE.Group();
     a_tile.position.set(x_center, 0, z_center);
-    const tile_points = hexPoints(tile_radius, y_100_index, slope_direction, incline_amount);
-    walkway_tiles = offsetTilePoints(walkway_tiles, x_y_z, slope_direction, incline_amount, tile_points, tile_3colors);
+    const tile_points = hexPoints(tile_radius, y_100_index, slope_tilt, incline_amount);
+    walkway_tiles = offsetTilePoints(walkway_tiles, x_y_z, slope_tilt, incline_amount, tile_points, WALK_COLORS);
     const top_triangles = tileTriangles(tile_points);
+    let walk_colors = 0xffff00;
+    walk_colors = seaColor(x_y_z, WALK_COLORS);
 
-    geoMesh(a_tile, top_triangles, start_color, edge_color);
+    tileMesh(a_tile, top_triangles, walk_colors, WALK_EDGE, is_transparent);
 
-    the_scene.add(a_tile);
-    addCoords(a_tile, x_y_z, slope_direction, incline_amount);
+    g_scene.add(a_tile);
+    addCoords(a_tile, x_y_z, slope_tilt, incline_amount);
     walkway_meshes.set(xyz_index, a_tile);
     return [walkway_meshes, walkway_tiles];
 }
 
-function offsetTilePoints(stair_tiles, x_y_z, slope_direction, incline_amount, tile_points, tile_3colors) {
-    let { light_color, dark_color, _edge_color } = tile_3colors;
+function offsetTilePoints(stair_tiles, x_y_z, slope_tilt, incline_amount, tile_points) {
     const [x_index, y_index, z_index] = x_y_z;
     const xyz_index = `${x_index},${y_index},${z_index}`;
     let [x_center, z_center] = tileCenterCoord(x_index, z_index);
@@ -125,26 +120,26 @@ function offsetTilePoints(stair_tiles, x_y_z, slope_direction, incline_amount, t
 
     let accross_length = 0;
     let top_point, bottom_point;
-    if (slope_direction == TILT_NW) {
+    if (slope_tilt == TILT_NW) {
         bottom_point = tile_positions[1];
         top_point = tile_positions[5];
         accross_length = distance2hexpoints(bottom_point, top_point);
-    } else if (slope_direction == TILT_NE) {
+    } else if (slope_tilt == TILT_NE) {
         bottom_point = tile_positions[0];
         top_point = tile_positions[2];
         accross_length = distance2hexpoints(bottom_point, top_point);
-    } else if (slope_direction == TILT_SW) {
+    } else if (slope_tilt == TILT_SW) {
         bottom_point = tile_positions[2];
         top_point = tile_positions[0];
         accross_length = distance2hexpoints(bottom_point, top_point);
-    } else if (slope_direction == TILT_SE) {
+    } else if (slope_tilt == TILT_SE) {
         bottom_point = tile_positions[5];
         top_point = tile_positions[2];
         accross_length = distance2hexpoints(bottom_point, top_point);
-    } else if (slope_direction == TILT_NN) {
+    } else if (slope_tilt == TILT_NN) {
         bottom_point = tile_positions[0];
         top_point = tile_positions[3];
-    } else if (slope_direction == TILT_SS) {
+    } else if (slope_tilt == TILT_SS) {
         bottom_point = tile_positions[3];
         top_point = tile_positions[0];
     } else {
@@ -167,14 +162,14 @@ function offsetTilePoints(stair_tiles, x_y_z, slope_direction, incline_amount, t
         x_center: x_center,
         y_position: y_index, //
         z_center: z_center,
-        tilt_up: slope_direction,
+        tilt_up: slope_tilt,
         angle_incline: incline_amount,
         accross_length: accross_length,
         tile_positions: tile_positions,
         x_z: `${x_index},${z_index}`, // a_c !!!
         xyz_index: xyz_index,
-        light_color: light_color,
-        dark_color: dark_color,
+        // light_color: light_color,
+        // dark_color: dark_color,
         high_y: top_point_y, // high_y,
         low_y: bottom_point_y // low_y
     };
@@ -184,7 +179,7 @@ function offsetTilePoints(stair_tiles, x_y_z, slope_direction, incline_amount, t
 //                              y_100_height
 function hexPoints(tile_radius, y_100_height, up_direction, angled_height) {
     const y_height = y_100_height / 100;
-    const hex_dist = (tile_radius * Math.sqrt(3)) / 2;
+    const hex_dist = (tile_radius * SQRT_3) / 2;
     const half_radius = tile_radius / 2;
     var top_left, bot_left, top_rght, bot_rght, left_tip, rght_tip;
 
@@ -283,4 +278,4 @@ function hexPoints(tile_radius, y_100_height, up_direction, angled_height) {
     return stair_tiles;
 }
 
-export { HexTile, hexPoints, tileTriangles, tileCenterCoord, coords2HexIndexes, offsetTilePoints };
+export { HexTile, hexPoints, tileTriangles, tileCenterCoord, coords2Indexes, offsetTilePoints };

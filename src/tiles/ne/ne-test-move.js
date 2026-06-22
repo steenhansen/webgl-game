@@ -1,10 +1,8 @@
 import { ee, tt, EE, TT } from "../../console-short.js";
 
 import { checkPrevNextTiles } from "../cam-adjust/test-funcs.js";
-import { TEST_PASSED, TEST_FAILED, MOVE_GO } from "../../constants.js";
+import { TEST_PASSED, TEST_FAILED, MOVE_GO } from "../../values/constants.js";
 import { tileCenterCoord } from "../hex-tile.js";
-
-import * as NE_CONST from "./ne-constants.js";
 
 function ne_load_test(test_number) {
     const test_start_finish = NE_CONST.NE_START_FINISHES[test_number];

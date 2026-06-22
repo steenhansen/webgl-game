@@ -1,10 +1,8 @@
 import { ee, tt, EE, TT } from "../../console-short.js";
 
 import { checkPrevNextTiles } from "../cam-adjust/test-funcs.js";
-import { TEST_PASSED, TEST_FAILED, MOVE_GO } from "../../constants.js";
+import { TEST_PASSED, TEST_FAILED, MOVE_GO } from "../../values/constants.js";
 import { tileCenterCoord } from "../hex-tile.js";
-
-import * as SS_CONST from "./ss-constants.js";
 
 function ss_load_test(test_number) {
     const test_start_finish = SS_CONST.SS_START_FINISHES[test_number];

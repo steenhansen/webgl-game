@@ -1,12 +1,14 @@
 import { ee, tt, EE, TT } from "../../misc/console-short.js";
-
+import { moveDescendOneStep, moveOntoTrampoline, moveIntoAir, undefTileDebugInfo, moveAllow, moveBlock } from "../ground-tiles.js";
 import {
-    MOVE_FALLING,
-    MOVE_NEW_TILE,
-    MOVE_SAME_TILE,
-    MOVE_BLOCKED,
-    TESTING_PRINT,
-    WALL_SS,
+    PRINT_ALLOWED,
+    RUN_OR_TEST,
+    MV_FALL_JUMP_STRAIGHT,
+    MV_TILE_NEW,
+    MV_TILE_SAME,
+    MV_FENCE_BLOCKED,
+    TESTINs_PRINT,
+    FENCE_SS,
     TILT_SS,
     TILT_NONE,
     TILT_NN,
@@ -14,8 +16,8 @@ import {
     TILT_SE,
     TILT_SW,
     TILT_NW
-} from "../../constants.js";
-import { stripYindex } from "../hex-routines.js";
+} from "../../values/the-constants.js";
+import { stripYindex, tileData, offWalkway, hitFence } from "../hex-routines.js";
 
 import {
     NN_AIRBORNE,
@@ -35,130 +37,56 @@ import {
     NN_14_BLOCKED
 } from "./nn-constants.js";
 
-function nnInAir(walkway_columns, new_index) {
-    let current_xz_index = stripYindex(new_index);
-    let current_xz_column = walkway_columns.get(current_xz_index);
-    if (current_xz_column == undefined) {
-        return true; // falling in a column with no tiles
+function moveToNn(the_objects, prev_hex, this_hex, is_a_trampoline) {
+    let { o_walkway_tiles, o_walkway_columns, o_fence_walls, o_fence_columns } = the_objects;
+    const { prev_new_data, data } = tileData(o_walkway_tiles, prev_hex, this_hex);
+
+    const { prev_tilt_up, new_tilt_up } = prev_new_data;
+    const local_data = { prev_tilt_up, new_tilt_up, prev_hex, this_hex };
+    if (hitFence(o_fence_walls, o_fence_columns, prev_hex, this_hex)) {
+        return moveBlock(local_data, NN_14_BLOCKED);
     }
-    let current_xyz_walkway_index = current_xz_column.get(new_index);
-
-    if (current_xyz_walkway_index == undefined) {
-        return true; // falling in a column with tiles, but no tile at this height
-    }
-    return false;
-}
-
-function nnAllow(local_data, mess_1) {
-    let { run_or_test, print_allowed, prev_tilt_up, new_tilt_up } = local_data;
-    if (print_allowed == TESTING_PRINT) {
-        ee(`TEST allowed NN :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-    }
-    return MOVE_NEW_TILE;
-}
-
-function nnBlock(local_data, mess_1) {
-    let { run_or_test, print_allowed, prev_tilt_up, new_tilt_up } = local_data;
-    if (print_allowed == TESTING_PRINT) {
-        ee(`TEST blocked NN :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-    }
-    return MOVE_BLOCKED;
-}
-
-function nnFall(local_data, mess_1) {
-    let { run_or_test, print_allowed, prev_tilt_up, new_tilt_up } = local_data;
-    if (print_allowed == TESTING_PRINT) {
-        ee(`TEST airborne NN :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-    }
-    return MOVE_FALLING;
-}
-
-function nnAirborne(run_or_test, print_allowed) {
-    const local_data = { run_or_test, print_allowed, prev_tilt_up: NN_AIRBORNE, new_tilt_up: NN_AIRBORNE };
-    return nnFall(local_data, NN_AIRBORNE);
-}
-
-function nnHitSsWall(wall_squares, wall_columns, new_index) {
-    let current_xz_index = stripYindex(new_index);
-    let cur_xz_wall_column = wall_columns.get(current_xz_index);
-    if (cur_xz_wall_column) {
-        let possible_wall = wall_squares.get(new_index);
-        if (possible_wall) {
-            return true;
+    if (offWalkway(o_walkway_columns, this_hex)) {
+        if (is_a_trampoline) {
+            return moveOntoTrampoline(local_data, NN_AIRBORNE);
+        } else {
+            return moveIntoAir(local_data, NN_AIRBORNE);
         }
     }
-    return false;
-}
-
-function nnTileData(walkway_tiles, prev_index, new_index) {
-    let current_walkway_tile = walkway_tiles.get(new_index);
-    const { tilt_up: new_tilt_up, low_y: new_low_y, high_y: new_high_y } = current_walkway_tile;
-    let prev_tilt_up, prev_low_y, prev_high_y;
-    let prev_walkway_tile = walkway_tiles.get(prev_index);
-    if (prev_walkway_tile) {
-        prev_tilt_up = prev_walkway_tile.tilt_up;
-        prev_low_y = prev_walkway_tile.low_y;
-        prev_high_y = prev_walkway_tile.high_y;
-    } else {
-        prev_tilt_up = new_tilt_up;
-        prev_low_y = new_low_y;
-        prev_high_y = new_high_y;
-    }
-    const low_to_low = prev_low_y == new_low_y;
-    const high_to_high = prev_high_y == new_high_y;
-    const lows_and_highs = low_to_low && high_to_high;
-    const high_to_low = prev_high_y == new_low_y;
-    const low_to_high = prev_low_y == new_high_y;
-
-    const prev_new_data = { prev_tilt_up, prev_low_y, prev_high_y, new_tilt_up, new_low_y, new_high_y };
-    const data = { low_to_low, high_to_high, lows_and_highs, high_to_low, low_to_high };
-    return { prev_new_data, data };
-}
-
-function moveToNn(current_data) {
-    const { run_or_test, print_allowed, walkway_tiles, walkway_columns, wall_squares, wall_columns, prev_index, new_index } = current_data;
-    if (nnHitSsWall(wall_squares, wall_columns, new_index)) {
-        return nnBlock(run_or_test, print_allowed, prev_index, new_index, NN_14_BLOCKED);
-    }
-    if (nnInAir(walkway_columns, new_index)) {
-        return nnAirborne(run_or_test, print_allowed);
-    }
-
-    const { prev_new_data, data } = nnTileData(walkway_tiles, prev_index, new_index);
-    const { prev_tilt_up, new_tilt_up } = prev_new_data;
-
     const { low_to_low, high_to_high, lows_and_highs, high_to_low, low_to_high } = data;
-    const local_data = { run_or_test, print_allowed, prev_tilt_up, new_tilt_up };
     if (nnCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-        return nnAllow(local_data, NN_1_UP_UP_CLOCK); //      ⭮
+        return moveAllow(local_data, NN_1_UP_UP_CLOCK); //      ⭮
     } else if (nnCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-        return nnAllow(local_data, NN_2_UP_UP_COUNTER); //      ⭯
+        return moveAllow(local_data, NN_2_UP_UP_COUNTER); //      ⭯
     } else if (nnCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-        return nnAllow(local_data, NN_3_DOWN_DOWN_CLOCK); //  ⭮
+        return moveAllow(local_data, NN_3_DOWN_DOWN_CLOCK); //  ⭮
     } else if (nnCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-        return nnAllow(local_data, NN_4_DOWN_DOWN_COUNTER); //  ⭯
+        return moveAllow(local_data, NN_4_DOWN_DOWN_COUNTER); //  ⭯
     } else if (nnFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-        return nnAllow(local_data, NN_5_FLAT__FLAT); // - -
+        return moveAllow(local_data, NN_5_FLAT__FLAT); // - -
     } else if (nnFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-        return nnAllow(local_data, NN_6_FLAT__UP); //   _⭜
+        return moveAllow(local_data, NN_6_FLAT__UP); //   _⭜
     } else if (nnUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-        return nnAllow(local_data, NN_7_UP__FLAT); //   ↗¯¯
+        return moveAllow(local_data, NN_7_UP__FLAT); //   ↗¯¯
     } else if (nnDownToFlat(prev_tilt_up, new_tilt_up, low_to_high)) {
-        return nnAllow(local_data, NN_8_DOWN__FLAT); // ↘__
+        return moveAllow(local_data, NN_8_DOWN__FLAT); // ↘__
     } else if (nnFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-        return nnAllow(local_data, NN_9_FLAT__DOWN); // ¯⭝
+        return moveAllow(local_data, NN_9_FLAT__DOWN); // ¯⭝
     } else if (nnUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-        return nnAllow(local_data, NN_10_UP__UP); //     ↗↗
+        return moveAllow(local_data, NN_10_UP__UP); //     ↗↗
     } else if (nnDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-        return nnAllow(local_data, NN_11_DOWN__DOWN); // ↘↘
+        return moveAllow(local_data, NN_11_DOWN__DOWN); // ↘↘
     } else if (nnUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-        return nnAllow(local_data, NN_12_UP__DOWN); //  ↗↘
+        return moveAllow(local_data, NN_12_UP__DOWN); //  ↗↘
     } else if (nnDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-        return nnAllow(local_data, NN_13_DOWN__UP); //  ↘↗
-    } else if (prev_index == new_index) {
-        return MOVE_SAME_TILE;
+        return moveAllow(local_data, NN_13_DOWN__UP); //  ↘↗
+    } else if (prev_hex == this_hex) {
+        return MV_TILE_SAME;
     }
-    return nnAllow(local_data, NN_14_BLOCKED);
+    if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
+        return moveDescendOneStep(local_data, NN_AIRBORNE);
+    }
+    return moveBlock(local_data, NN_14_BLOCKED);
 }
 
 function nnFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low) {

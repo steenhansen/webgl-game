@@ -1,10 +1,8 @@
 import { ee, tt, EE, TT } from "../../console-short.js";
 
 import { checkPrevNextTiles } from "../cam-adjust/test-funcs.js";
-import { TEST_PASSED, TEST_FAILED, MOVE_GO } from "../../constants.js";
+import { TEST_PASSED, TEST_FAILED, MOVE_GO } from "../../values/constants.js";
 import { tileCenterCoord } from "../hex-tile.js";
-
-import * as NW_CONST from "./nw-constants.js";
 
 function nw_load_test(test_number) {
     const test_start_finish = NW_CONST.NW_START_FINISHES[test_number];

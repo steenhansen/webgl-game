@@ -1,8 +1,8 @@
 import { ee, tt, EE, TT } from "../console-short.js";
 
 import { pointInsideTile } from "./walkway-overlaps.js";
-import { coords2HexIndexes } from "./hex-tile.js";
-import { DROP_PER_TICK_FLOAT } from "../constants.js";
+import { coords2Indexes } from "./hex-tile.js";
+import { DROP_PER_TICK_FLOAT } from "../values/constants.js";
 
 // hex_column_ac='1,3'   imagine testing this .... so no memorizing
 
@@ -11,7 +11,7 @@ import { DROP_PER_TICK_FLOAT } from "../constants.js";
 function walkwayCamera(cam_xyz, walkway_heights, walkway_bottoms, walkway_tiles, ground_tiles) {
     //let [a_int, c_int] = hex_column_ac.split(",");
     // const ground_ac_index = `${a_int},-1,${c_int}`;
-    let [a_hex_index, c_hex_index] = coords2HexIndexes(cam_xyz.x, cam_xyz.z);
+    let [a_hex_index, c_hex_index] = coords2Indexes(cam_xyz.x, cam_xyz.z);
     let hex_column_ac = `${a_hex_index},${c_hex_index}`; // b is y height
     let tile_column = walkway_heights.get(hex_column_ac);
 

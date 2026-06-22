@@ -1,0 +1,24 @@
+const new_movement = tile_transition.move_result;
+if (new_movement !== HEX_CONST.MOVE_FALLING) {
+    if (tile_index !== prev_tile_index) {
+        const new_y_100_pos = tile_transition.level_y;
+        let new_tile_index = hexIndex(prev_x_ind, new_y_100_pos, prev_z_ind);
+        if (g_walkway_tiles.has(new_tile_index)) {
+            let current_tile = g_walkway_tiles.get(new_tile_index);
+            let cur_light_dark = g_walkway_colors.get(new_tile_index);
+            let changed_color;
+            if (cur_light_dark == "dark-color") {
+                changed_color = current_tile.light_color;
+                cur_light_dark = "light-color";
+            } else {
+                changed_color = current_tile.dark_color;
+                cur_light_dark = "dark-color";
+            }
+            g_walkway_colors.set(new_tile_index, cur_light_dark);
+            let tile_mesh = g_object_meshes.get(new_tile_index);
+            const retrievedMesh = tile_mesh.getObjectByName("Hexagon-Part");
+            retrievedMesh.material.color.setHex(changed_color);
+            prev_tile_index = new_tile_index;
+        }
+    }
+}

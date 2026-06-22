@@ -1,5 +1,3 @@
-// 2 hex-routines.js  and console-short.js
-
 /*
 cons ole.log("hexPoints unknown  up_direction==", up_direction);
  ee("hexPoints unknown  up_direction==", up_direction);
@@ -16,17 +14,29 @@ const ee = (...args) => {
 };
 
 /*
-cons ole.log(`TEST allowed NW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-tt(`allowed NW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
+cons ole.log(`TEST allowed NW :: ${RUN_OR_TEST} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
+t t(`allowed NW :: ${RUN_OR_TEST} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
 */
 const tt = (...args) => {
-    const prefix = `TEST `;
-    if (typeof args[0] === "string") {
-        args[0] = `${prefix} ${args[0]}`;
+    let max_prints = 100;
+    if (window.HEX_VARS == undefined) {
+        max_prints = 100;
     } else {
-        args.unshift(prefix);
+        max_prints = window.HEX_VARS.MAX_PRINTS;
+        max_prints--;
+        window.HEX_VARS.MAX_PRINTS = max_prints;
     }
-    window["con" + "sole"].log(...args);
+
+    if (max_prints > 0) {
+        //        const tt_prefix = `TT ${max_prints} \\`;
+        const tt_prefix = `TT \\`;
+        if (typeof args[0] === "string") {
+            args[0] = `${tt_prefix} ${args[0]}`;
+        } else {
+            args.unshift(tt_prefix);
+        }
+        window["con" + "sole"].log(...args);
+    }
 };
 
 const TT = tt;

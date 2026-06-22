@@ -1,6 +1,6 @@
 import { ee, tt, EE, TT } from "../console-short.js";
 
-import { X_INDX, Y_INDX, Z_INDX, TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
+import { X_INDX, Y_INDX, Z_INDX, TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../values/constants.js";
 
 import { tileCenterCoord } from "./hex-tile.js";
 
@@ -44,7 +44,7 @@ function possibleOverlapNEW(walkway_overlaps, xz_column, xyz_index, y_int) {
         current_arr[y_int] = xyz_index;
         walkway_overlaps.set(xz_column, current_arr);
     } else {
-        let start_array = Array(g_highest_y_tile).fill("");
+        let start_array = Array(s_highest_y_tile).fill("");
         start_array[y_int] = xyz_index;
         walkway_overlaps.set(xz_column, start_array);
     }

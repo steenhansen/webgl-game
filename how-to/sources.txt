@@ -1,0 +1,25 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+https://www.robscanlon.com/hexasphere/
+
+https://github.com/arscan/hexasphere.js
+https://github.com/arscan/hexasphere.js/blob/master/main.js
+
+https://discoverthreejs.com/tips-and-tricks/
+object.matrixAutoUpdate = false for static or rarely moving objects
+
+

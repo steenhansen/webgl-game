@@ -1,17 +1,19 @@
 import { ee, tt, EE, TT } from "../misc/console-short.js";
 
+import { TEST_SS, TEST_NN, TEST_NE, TEST_SW, TEST_NW, TEST_SE } from "../values/the-constants.js";
+
 function setUpLiveTests(TEST_DIRECTION, TEST_NUMBER_1_TO_11) {
-    if (TEST_DIRECTION == HEX_CONST.TEST_SS) {
+    if (TEST_DIRECTION == TEST_SS) {
         [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = ss_load_test(TEST_NUMBER_1_TO_11);
-    } else if (TEST_DIRECTION == HEX_CONST.TEST_NN) {
+    } else if (TEST_DIRECTION == TEST_NN) {
         [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = nn_load_test(TEST_NUMBER_1_TO_11);
-    } else if (TEST_DIRECTION == HEX_CONST.TEST_NE) {
+    } else if (TEST_DIRECTION == TEST_NE) {
         [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = ne_load_test(TEST_NUMBER_1_TO_11);
-    } else if (TEST_DIRECTION == HEX_CONST.TEST_SW) {
+    } else if (TEST_DIRECTION == TEST_SW) {
         [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = sw_load_test(TEST_NUMBER_1_TO_11);
-    } else if (TEST_DIRECTION == HEX_CONST.TEST_NW) {
+    } else if (TEST_DIRECTION == TEST_NW) {
         [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = nw_load_test(TEST_NUMBER_1_TO_11);
-    } else if (TEST_DIRECTION == HEX_CONST.TEST_SE) {
+    } else if (TEST_DIRECTION == TEST_SE) {
         [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = se_load_test(TEST_NUMBER_1_TO_11);
     }
 
@@ -22,15 +24,15 @@ function setUpLiveTests(TEST_DIRECTION, TEST_NUMBER_1_TO_11) {
 }
 
 function staticTests() {
-    var g_tests = new Map([]);
+    var s_tests = new Map([]);
 
-    // g_tests = test_ss_move(g_tests);
-    //g_tests = test_sw_move(g_tests);
-    // g_tests = test_nn_move(g_tests);
-    // g_tests = test_ne_move(g_tests);
-    // g_tests = test_nw_move(g_tests);
-    // g_tests = test_se_move(g_tests);
-    //ee("the tests:", g_tests);
+    // s_tests = test_ss_move(s_tests);
+    //s_tests = test_sw_move(s_tests);
+    // s_tests = test_nn_move(s_tests);
+    // s_tests = test_ne_move(s_tests);
+    // s_tests = test_nw_move(s_tests);
+    // s_tests = test_se_move(s_tests);
+    //ee("the tests:", s_tests);
 }
 
 export { setUpLiveTests, staticTests };

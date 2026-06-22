@@ -1,12 +1,14 @@
 import { ee, tt, EE, TT } from "../../misc/console-short.js";
 
 import {
-    MOVE_FALLING,
-    MOVE_NEW_TILE,
-    MOVE_SAME_TILE,
-    MOVE_BLOCKED,
-    TESTING_PRINT,
-    WALL_NE,
+    PRINT_ALLOWED,
+    RUN_OR_TEST,
+    MV_FALL_JUMP_STRAIGHT,
+    MV_TILE_NEW,
+    MV_TILE_SAME,
+    MV_FENCE_BLOCKED,
+    TESTINs_PRINT,
+    FENCE_NE,
     TILT_SS,
     TILT_NONE,
     TILT_NN,
@@ -14,9 +16,9 @@ import {
     TILT_SE,
     TILT_SW,
     TILT_NW
-} from "../../constants.js";
-import { stripYindex } from "../hex-routines.js";
-
+} from "../../values/the-constants.js";
+import { stripYindex, tileData, offWalkway, hitFence } from "../hex-routines.js";
+import { moveDescendOneStep, moveOntoTrampoline, moveIntoAir, undefTileDebugInfo, moveAllow, moveBlock } from "../ground-tiles.js";
 import {
     SW_AIRBORNE,
     SW_1_UP_UP_CLOCK,
@@ -35,132 +37,58 @@ import {
     SW_14_BLOCKED
 } from "./sw-constants.js";
 
-function swAllow(local_data, mess_1) {
-    let { run_or_test, print_allowed, prev_tilt_up, new_tilt_up } = local_data;
-    if (print_allowed == TESTING_PRINT) {
-        ee(`TEST allowed SW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
+function moveToSw(the_objects, prev_hex, this_hex, is_a_trampoline) {
+    let { o_walkway_tiles, o_walkway_columns, o_fence_walls, o_fence_columns } = the_objects;
+    const { prev_new_data, data } = tileData(o_walkway_tiles, prev_hex, this_hex);
+    const { prev_tilt_up, new_tilt_up } = prev_new_data;
+    const local_data = { prev_tilt_up, new_tilt_up, prev_hex, this_hex };
+    if (hitFence(o_fence_walls, o_fence_columns, prev_hex, this_hex)) {
+        const is_blocked = moveBlock(local_data, SW_14_BLOCKED);
+        return is_blocked;
     }
-    return MOVE_NEW_TILE;
-}
-
-function swBlock(local_data, mess_1) {
-    let { run_or_test, print_allowed, prev_tilt_up, new_tilt_up } = local_data;
-    if (print_allowed == TESTING_PRINT) {
-        ee(`TEST blocked SW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-    }
-    return MOVE_BLOCKED;
-}
-
-function swFall(local_data, mess_1) {
-    let { run_or_test, print_allowed, prev_tilt_up, new_tilt_up } = local_data;
-    if (print_allowed == TESTING_PRINT) {
-        ee(`TEST airborne SW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-    }
-    return MOVE_FALLING;
-}
-
-function swAirborne(run_or_test, print_allowed) {
-    const local_data = { run_or_test, print_allowed, prev_tilt_up: SW_AIRBORNE, new_tilt_up: SW_AIRBORNE };
-    return swFall(local_data, SW_AIRBORNE);
-}
-
-function swInAir(walkway_columns, new_index) {
-    let current_xz_index = stripYindex(new_index);
-    let current_xz_column = walkway_columns.get(current_xz_index);
-    if (current_xz_column == undefined) {
-        return true; // falling in a column with no tiles
-    }
-    let current_xyz_walkway_index = current_xz_column.get(new_index);
-    if (current_xyz_walkway_index == undefined) {
-        return true; // falling in a column with tiles, but no tile at this height
-    }
-    return false;
-}
-
-function swHitSwWall(wall_squares, wall_columns, new_index) {
-    let current_xz_index = stripYindex(new_index);
-    let cur_xz_wall_column = wall_columns.get(current_xz_index);
-    if (cur_xz_wall_column) {
-        let possible_wall = wall_squares.get(new_index);
-        if (possible_wall) {
-            return true;
+    if (offWalkway(o_walkway_columns, this_hex)) {
+        if (is_a_trampoline) {
+            return moveOntoTrampoline(local_data, SW_AIRBORNE);
+        } else {
+            return moveIntoAir(local_data, SW_AIRBORNE);
         }
     }
-    return false;
-}
-
-function swTileData(walkway_tiles, prev_index, new_index) {
-    let current_walkway_tile = walkway_tiles.get(new_index);
-    const { tilt_up: new_tilt_up, low_y: new_low_y, high_y: new_high_y } = current_walkway_tile;
-    let prev_tilt_up, prev_low_y, prev_high_y;
-    let prev_walkway_tile = walkway_tiles.get(prev_index);
-    if (prev_walkway_tile) {
-        prev_tilt_up = prev_walkway_tile.tilt_up;
-        prev_low_y = prev_walkway_tile.low_y;
-        prev_high_y = prev_walkway_tile.high_y;
-    } else {
-        prev_tilt_up = new_tilt_up;
-        prev_low_y = new_low_y;
-        prev_high_y = new_high_y;
-    }
-    const low_to_low = prev_low_y == new_low_y;
-    const high_to_high = prev_high_y == new_high_y;
-    const lows_and_highs = low_to_low && high_to_high;
-    const high_to_low = prev_high_y == new_low_y;
-    const low_to_high = prev_low_y == new_high_y;
-
-    const prev_new_data = { prev_tilt_up, prev_low_y, prev_high_y, new_tilt_up, new_low_y, new_high_y };
-    const data = { low_to_low, high_to_high, lows_and_highs, high_to_low, low_to_high };
-    return { prev_new_data, data };
-}
-
-function moveToSw(current_data) {
-    const { run_or_test, print_allowed, walkway_tiles, walkway_columns, wall_squares, wall_columns, prev_index, new_index } = current_data;
-
-    if (swHitSwWall(wall_squares, wall_columns, new_index)) {
-        return swBlock(run_or_test, print_allowed, prev_index, new_index, SW_14_BLOCKED);
-    }
-    if (swInAir(walkway_columns, new_index)) {
-        return swAirborne(run_or_test, print_allowed);
-    }
-    const { prev_new_data, data } = swTileData(walkway_tiles, prev_index, new_index);
-
-    const { prev_tilt_up, new_tilt_up } = prev_new_data;
     const { low_to_low, high_to_high, lows_and_highs, high_to_low, low_to_high } = data;
-    const local_data = { run_or_test, print_allowed, prev_tilt_up, new_tilt_up };
-
-    if (prev_index == new_index) {
-        return MOVE_SAME_TILE;
+    if (prev_hex == this_hex) {
+        return MV_TILE_SAME;
     } else if (swCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-        return swAllow(local_data, SW_1_UP_UP_CLOCK); //      ⭮
+        return moveAllow(local_data, SW_1_UP_UP_CLOCK); //      ⭮
     } else if (swCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-        return swAllow(local_data, SW_2_UP_UP_COUNTER); //      ⭯
+        return moveAllow(local_data, SW_2_UP_UP_COUNTER); //      ⭯
     } else if (swCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-        return swAllow(local_data, SW_3_DOWN_DOWN_CLOCK); //  ⭮
+        return moveAllow(local_data, SW_3_DOWN_DOWN_CLOCK); //  ⭮
     } else if (swCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-        return swAllow(local_data, SW_4_DOWN_DOWN_COUNTER); //  ⭯
+        return moveAllow(local_data, SW_4_DOWN_DOWN_COUNTER); //  ⭯
     } else if (swFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-        return swAllow(local_data, SW_5_FLAT__FLAT); // - -
+        return moveAllow(local_data, SW_5_FLAT__FLAT); // - -
     } else if (swFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-        return swAllow(local_data, SW_6_FLAT__UP); //   _⭜
+        return moveAllow(local_data, SW_6_FLAT__UP); //   _⭜
     } else if (swUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-        return swAllow(local_data, SW_7_UP__FLAT); //   ↗¯¯
+        return moveAllow(local_data, SW_7_UP__FLAT); //   ↗¯¯
     } else if (swDownToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-        return swAllow(local_data, SW_8_DOWN__FLAT); // ↘__
+        ///////////
+        return moveAllow(local_data, SW_8_DOWN__FLAT); // ↘__
+        ////////////
     } else if (swFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-        return swAllow(local_data, SW_9_FLAT__DOWN); // ¯⭝
+        return moveAllow(local_data, SW_9_FLAT__DOWN); // ¯⭝
     } else if (swUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-        return swAllow(local_data, SW_10_UP__UP); //     ↗↗
+        return moveAllow(local_data, SW_10_UP__UP); //     ↗↗
     } else if (swDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-        return swAllow(local_data, SW_10_DOWN__DOWN); // ↘↘
+        return moveAllow(local_data, SW_10_DOWN__DOWN); // ↘↘
     } else if (swUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-        return swAllow(local_data, SW_11_UP__DOWN); //  ↗↘
+        return moveAllow(local_data, SW_11_UP__DOWN); //  ↗↘
     } else if (swDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-        return swAllow(local_data, SW_13_DOWN__UP); //  ↘↗
-    } else if (prev_index == new_index) {
-        return MOVE_SAME_TILE;
+        return moveAllow(local_data, SW_13_DOWN__UP); //  ↘↗
     }
-    return swAllow(local_data, SW_13_DOWN__UP); //  ↘↗
+    if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
+        return moveDescendOneStep(local_data, SW_AIRBORNE);
+    }
+    return moveBlock(local_data, SW_14_BLOCKED); //  ↘↗
 }
 
 /*  curve_up__curve_up.png   like a flower */

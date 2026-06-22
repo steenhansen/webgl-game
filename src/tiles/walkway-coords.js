@@ -1,12 +1,11 @@
 import { ee, tt, EE, TT } from "../misc/console-short.js";
 
-//import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
-import * as HEX_CONST from "../constants.js";
+//import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../values/constants.js";
 
 import { HexTile } from "./hex-tile.js";
-import { tile3color } from "../misc/tile-colors.js";
+import { seaColor } from "../misc/tile-colors.js";
 
-// const walkway_coords = [
+// const o_walkway_ndxs = [
 //     // x,     y,      z,  incline_dir, incline_amount
 //     ["001", "040", "002"],
 //     ["001", "040", "001"],
@@ -40,7 +39,7 @@ import { tile3color } from "../misc/tile-colors.js";
 //     ["000", "008", "007", "yellow", TILT_NE, 0.4], // 0.7       0.8
 
 //     // 0.8 ==> 8       /10
-//     // 5 ==> 50  therefore we can have g_walkway_height as ints
+//     // 5 ==> 50  therefore we can have s_walkway_height as ints
 
 //     // so we modify the indexs of x,z now y as well
 
@@ -60,18 +59,10 @@ import { tile3color } from "../misc/tile-colors.js";
 // ];
 
 //
-//         x,      y,      z,  hex_color, slope_direction, incline_amount
+//         x,      y,      z,  hex_color, slope_tilt, incline_amount
 //    ["-001", "00.5", "-001",  c____red,         TILT_NN, 0.1]
 //    ["0000", "0000", "0000",  c_yellow,         TILT_NN, 1]    // more better way !!!!!!!!!!
 //    ["-003", "0050", "-002",  c_purple]
-
-// const walkway_coords = [
-//     // x,     y,      z,  incline_dir, incline_amount
-//     ["0000", "1", "0000", HEX_CONST.C____GREEN],
-//     //    ["-99.1", "099.1", "-99.1", TILT_NN, "0.1" "green"]
-//     ["0001", "1", "-001", HEX_CONST.C_____BLUE, HEX_CONST.TILT_NE, 10]
-//     //  ["003", "050", "002", "yellow"]
-// ];
 
 function coordsBad(x_index, y_level, z_index) {
     if (x_index % 1 != 0) {
@@ -89,41 +80,47 @@ function coordsBad(x_index, y_level, z_index) {
     return false;
 }
 
-function makeWalkway(the_scene, walkway_meshes, walkway_coords, walkway_tiles, walkway_colors, walkway_columns, tile_3colors) {
-    for (var i = 0; i < walkway_coords.length; i++) {
-        const ramp_piece = walkway_coords[i];
+function makeWalkway(g_scene, walkway_meshes, o_walkway_ndxs, walkway_tiles, walkway_columns, WALK_COLORS, WALK_EDGE) {
+    for (var i = 0; i < o_walkway_ndxs.length; i++) {
+        const ramp_piece = o_walkway_ndxs[i];
         if (Array.isArray(ramp_piece)) {
             const [x_str, y_str, z_str] = ramp_piece;
             const x_index = parseInt(x_str);
             const y_100_index = parseInt(y_str); /// y_level
-
             const z_index = parseInt(z_str);
-
-            const xyz_index = `${x_index},${y_100_index},${z_index}`;
-            walkway_colors.set(xyz_index, "dark-color");
-
             if (coordsBad(x_index, y_100_index, z_index)) {
                 debugger;
             }
 
             const ramp_xyz = [x_index, y_100_index, z_index];
-            let tile_3_colors = tile3color(ramp_xyz, tile_3colors);
 
             if (ramp_piece.length == 3) {
-                [walkway_meshes, walkway_tiles] = HexTile(the_scene, walkway_meshes, walkway_tiles, ramp_xyz, tile_3_colors);
+                [walkway_meshes, walkway_tiles] = HexTile(g_scene, walkway_meshes, walkway_tiles, ramp_xyz, WALK_COLORS, WALK_EDGE);
             } else {
-                const slope_direction = ramp_piece[3];
+                const slope_tilt = ramp_piece[3];
                 const incline_amount = ramp_piece[4];
-                [walkway_meshes, walkway_tiles] = HexTile(the_scene, walkway_meshes, walkway_tiles, ramp_xyz, tile_3_colors, slope_direction, incline_amount);
+                const is_transparent = ramp_piece[5];
+                [walkway_meshes, walkway_tiles] = HexTile(
+                    g_scene,
+                    walkway_meshes,
+                    walkway_tiles,
+                    ramp_xyz,
+                    WALK_COLORS,
+                    WALK_EDGE,
+                    slope_tilt,
+                    incline_amount,
+                    is_transparent
+                );
             }
         }
     }
+
     var walkway_columns = new Map();
     for (const [_key, a_tile] of walkway_tiles) {
         const x_z = a_tile.x_z;
         const xyz_index = a_tile.xyz_index;
-        const missing_x_z_column = !walkway_columns.has(x_z);
-        if (missing_x_z_column) {
+        const missins_x_z_column = !walkway_columns.has(x_z);
+        if (missins_x_z_column) {
             let empty_x_z_column = new Map();
             walkway_columns.set(x_z, empty_x_z_column);
         }
@@ -136,7 +133,7 @@ function makeWalkway(the_scene, walkway_meshes, walkway_coords, walkway_tiles, w
             cur_x_z_column.set(a_y_index, xyz_index);
         }
     }
-    return [walkway_meshes, walkway_tiles, walkway_colors, walkway_columns];
+    return [walkway_meshes, walkway_tiles, walkway_columns];
 }
 
 export { makeWalkway };

@@ -1,0 +1,20 @@
+const { move_result: new_movement, level_y: new_level_y } = tile_transition;
+if (new_movement !== MOVE_FALLING) {
+    const new_y_adj_idx = hexIndex(new_x_ind, new_level_y, new_z_ind);
+    prev_tile_index = flipTileColor(new_idx_y_not_adj, prev_tile_index, new_y_adj_idx);
+}
+
+function flipTileColor(new_idx_y_not_adj, prev_tile_index, new_y_adj_idx) {
+    if (new_idx_y_not_adj === prev_tile_index) return prev_tile_index;
+    if (!g_walkway_tiles.has(new_y_adj_idx)) return prev_tile_index;
+    const change_tile = g_walkway_tiles.get(new_y_adj_idx); 
+    const tile_mesh = g_object_meshes.get(new_y_adj_idx).getObjectByName("Hexagon-Part");
+    if (g_walkway_colors.get(new_idx_y_not_adj) == "dark-color") {
+        tile_mesh.material.color.setHex(change_tile.light_color);
+        g_walkway_colors.set(new_idx_y_not_adj, "light-color");
+    } else {
+        tile_mesh.material.color.setHex(change_tile.dark_color);
+        g_walkway_colors.set(new_idx_y_not_adj, "dark-color");
+    }
+    return new_idx;
+}

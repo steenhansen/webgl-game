@@ -21594,259 +21594,44 @@ function createPath(char, scale, offsetX, offsetY, data) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.XyzDot = XyzDot;
-var _consoleShort = require("./misc/console-short.js");
-var THREE = _interopRequireWildcard(require("three"));
-function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-/*
-XyzDot 4 0 4.497165515241812 4.333399999998501
-XyzDot 3 0 3.0431959310833934 4.30019999999552
-*/
-
-function XyzDot(the_scene, x, y, z, the_color) {
-  const y_floor = Math.floor(y);
-  if (x >= 0 && x < 1 && z > 2 && z < 6) {} else {}
-  const dotGeometry = new THREE.BufferGeometry();
-  dotGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array([x, y - 0.5, z]), 3));
-  const dotMaterial = new THREE.PointsMaterial({
-    size: 0.04,
-    color: the_color
-  });
-  const dot = new THREE.Points(dotGeometry, dotMaterial);
-
-  // dot.position.x = 7.5;
-  // dot.position.y = 0;
-  // dot.position.z = 7.5;
-
-  the_scene.add(dot);
-}
-
-},{"./misc/console-short.js":17,"three":3}],8:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.AScene = AScene;
-var _consoleShort = require("./misc/console-short.js");
-var _three = require("three");
-function AScene(background_color) {
-  const a_scene = new _three.Scene();
-  const ambientLight = new _three.AmbientLight(0xffffff, 1);
-  a_scene.add(ambientLight);
-  a_scene.background = new _three.Color(background_color);
-  return a_scene;
-}
-
-},{"./misc/console-short.js":17,"three":3}],9:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.buildListener = buildListener;
-exports.buildObjects = buildObjects;
-exports.buildRenderer = buildRenderer;
-exports.buildScene = buildScene;
-var _consoleShort = require("./misc/console-short.js");
-var _walkwayCoords = require("./tiles/walkway-coords.js");
-var _wallCoords = require("./walls/wall-coords.js");
-var _trampolineCoords = require("./trampoline/trampoline-coords.js");
-var _pentagonCoords = require("./pentagon/pentagon-coords.js");
-var _groundTiles = require("./tiles/ground-tiles.js");
-var _perspectiveCamera = require("./perspective-camera.js");
-var _aScene = require("./a-scene.js");
-var THREE = _interopRequireWildcard(require("three"));
-var _glBench = _interopRequireDefault(require("gl-bench/dist/gl-bench.module"));
-function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
-function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-//function buildObjects(the_scene, GAME_WALLS, g_walkway_coords, g_trampolines, g_pentagons, top_3colors, outline_3colors) {
-function buildObjects(the_scene, GAME_WALLS, g_walkway_coords, g_trampolines, g_pentagons, tile_3colors) {
-  var g_ground_tiles = new Map([]);
-  var g_object_meshes = new Map([]);
-  var g_walkway_tiles = new Map([]);
-  var g_walkway_colors = new Map([]);
-  var g_wall_squares = new Map([]);
-  var g_walkway_columns = new Map([]);
-  var g_wall_columns = new Map([]);
-  const g_game_walls_coords = GAME_WALLS;
-  [g_object_meshes, g_walkway_tiles, g_walkway_colors, g_walkway_columns] = (0, _walkwayCoords.makeWalkway)(the_scene, g_object_meshes, g_walkway_coords, g_walkway_tiles, g_walkway_colors, g_walkway_columns, tile_3colors);
-  [g_object_meshes, g_wall_squares, g_wall_columns] = (0, _wallCoords.makeWalls)(the_scene, g_object_meshes, g_game_walls_coords, g_wall_squares, g_wall_columns);
-  [g_object_meshes, g_ground_tiles] = (0, _groundTiles.ground_field)(the_scene, g_object_meshes, g_ground_tiles, -10, 10, 0x3366ee, 0x33ee66);
-  let trampoline_meshes;
-  [trampoline_meshes, g_trampolines] = (0, _trampolineCoords.makeTrampolines)(the_scene, g_object_meshes, g_trampolines);
-  let pentagon_meshes;
-  [pentagon_meshes, g_pentagons] = (0, _pentagonCoords.makePentagon)(the_scene, g_object_meshes, g_pentagons);
-  return {
-    g_object_meshes,
-    g_walkway_tiles,
-    g_walkway_colors,
-    g_walkway_columns,
-    g_wall_squares,
-    g_wall_columns,
-    g_ground_tiles,
-    g_trampolines,
-    trampoline_meshes,
-    g_pentagons,
-    pentagon_meshes
-  };
-}
-const HI_DPI_ENABLE = Math.min(window.devicePixelRatio, 2);
-function buildScene(test_xyz_camera) {
-  const the_width = window.innerWidth - 200;
-  const the_height = window.innerHeight - 300;
-  const dark_gray = 0x202025;
-  const the_scene = (0, _aScene.AScene)(dark_gray);
-  const the_fov = 75;
-  const width_height = [the_width, the_height];
-  const nf_planes = [0.1, 1000];
-  const persp_camera = (0, _perspectiveCamera.PerspCamera)(the_fov, width_height, nf_planes, test_xyz_camera);
-  return {
-    the_scene,
-    persp_camera,
-    the_width,
-    the_height
-  };
-}
-function buildRenderer(the_scene, the_width, the_height) {
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-  the_scene.add(ambientLight);
-  const pointLight = new THREE.PointLight(0xffffff, 10);
-  pointLight.position.set(2, 3, 4);
-  the_scene.add(pointLight);
-  const axesHelper = new THREE.AxesHelper(5); // xyz -> rgb
-  the_scene.add(axesHelper);
-  const a_renderer = new THREE.WebGLRenderer({
-    antialias: true
-  });
-  a_renderer.setSize(the_width, the_height);
-  a_renderer.setPixelRatio(HI_DPI_ENABLE);
-  document.body.appendChild(a_renderer.domElement);
-  let bench = new _glBench.default(a_renderer.getContext());
-  return {
-    a_renderer,
-    bench
-  };
-}
-function buildListener(persp_camera) {
-  window.addEventListener("resize", () => {
-    let new_width = window.innerWidth;
-    let new_height = window.innerHeight;
-    (0, _perspectiveCamera.projMatrix)(persp_camera, [new_width, new_height]);
-    a_renderer.setSize(new_width, new_height);
-    a_renderer.setPixelRatio(HI_DPI_ENABLE);
-  });
-}
-
-},{"./a-scene.js":8,"./misc/console-short.js":17,"./pentagon/pentagon-coords.js":20,"./perspective-camera.js":21,"./tiles/ground-tiles.js":24,"./tiles/walkway-coords.js":41,"./trampoline/trampoline-coords.js":43,"./walls/wall-coords.js":46,"gl-bench/dist/gl-bench.module":1,"three":3}],10:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.Z_INDX = exports.Y_INDX = exports.X_INDX = exports.WALL_SW = exports.WALL_SS = exports.WALL_SE = exports.WALL_NW = exports.WALL_NN = exports.WALL_NE = exports.TILT_SW = exports.TILT_SS = exports.TILT_SE90 = exports.TILT_SE = exports.TILT_NW = exports.TILT_NONE = exports.TILT_NN90 = exports.TILT_NN = exports.TILT_NE = exports.TEST_TILE_MOVE = exports.TEST_SW = exports.TEST_SS = exports.TEST_SE = exports.TEST_PASSED = exports.TEST_NW = exports.TEST_NN = exports.TEST_NE = exports.TEST_FAILED = exports.TESTING_PRINT = exports.START_Z_LOOK = exports.START_Z_HEX = exports.START_Y_LOOK = exports.START_Y_HEX = exports.START_X_LOOK = exports.START_X_HEX = exports.START_XYZ = exports.SQRT_3 = exports.RUNNING_NO_PRINT = exports.PHYS_TILE_MOVE = exports.ON_OLD_TILE = exports.ON_NO_TILE = exports.ON_NEW_TILE = exports.MOVE_SW = exports.MOVE_STOP = exports.MOVE_SS = exports.MOVE_SE = exports.MOVE_SAME_TILE = exports.MOVE_RISING = exports.MOVE_NW = exports.MOVE_NO = exports.MOVE_NN = exports.MOVE_NEW_TILE = exports.MOVE_NE = exports.MOVE_GO = exports.MOVE_FALLING = exports.MOVE_BLOCKED = exports.HEIGHT_ABOVE_WALKWAY = exports.DROP_PER_TICK_FLOAT = exports.C______RED = exports.C_____BLUE = exports.C____GREEN = exports.C____BROWN = exports.C___YELLOW = exports.C___PURPLE = exports.C_NONE = exports.COL_2 = exports.COL_1 = void 0;
-const HEIGHT_ABOVE_WALKWAY = exports.HEIGHT_ABOVE_WALKWAY = 0.0;
-const START_X_LOOK = exports.START_X_LOOK = 3;
-const START_Y_LOOK = exports.START_Y_LOOK = 1; // *10 !!!!!!!!!!!!
-const START_Z_LOOK = exports.START_Z_LOOK = 3;
-const START_X_HEX = exports.START_X_HEX = 0;
-const START_Y_HEX = exports.START_Y_HEX = 1 + HEIGHT_ABOVE_WALKWAY; //  *10  !!!!!!!!!!!!
-const START_Z_HEX = exports.START_Z_HEX = 0;
-const START_XYZ = exports.START_XYZ = `${START_X_HEX},${START_Y_HEX},${START_Z_HEX}`;
-const X_INDX = exports.X_INDX = 0;
-const Y_INDX = exports.Y_INDX = 1;
-const Z_INDX = exports.Z_INDX = 2;
-
-//[top_left, top_rght, rght_tip, bot_rght, bot_left, left_tip];
-const TOP_LEFT_HEX_IND = 0;
-const TOP_RGHT_HEX_IND = 1;
-const RGHT_TIP_HEX_IND = 2;
-const BOT_RGHT_HEX_IND = 3;
-const BOT_LEFT_HEX_IND = 4;
-const LEFT_TIP_HEX_IND = 5;
-const MOVE_NN = exports.MOVE_NN = "MOVE_NN";
-const MOVE_SS = exports.MOVE_SS = "MOVE_SS";
-const MOVE_NW = exports.MOVE_NW = "MOVE_NW";
-const MOVE_NE = exports.MOVE_NE = "MOVE_NE";
-const MOVE_SE = exports.MOVE_SE = "MOVE_SE";
-const MOVE_SW = exports.MOVE_SW = "MOVE_SW";
-const MOVE_NO = exports.MOVE_NO = "MOVE_NO";
-const TILT_NN = exports.TILT_NN = "TILT_NN";
-const TILT_NN90 = exports.TILT_NN90 = "TILT_NN90";
-const WALL_NN = exports.WALL_NN = "WALL_NN";
-const WALL_SS = exports.WALL_SS = "WALL_SS";
-const WALL_NW = exports.WALL_NW = "WALL_NW";
-const WALL_NE = exports.WALL_NE = "WALL_NE";
-const WALL_SE = exports.WALL_SE = "WALL_SE";
-const WALL_SW = exports.WALL_SW = "WALL_SW";
-const TILT_SS = exports.TILT_SS = "TILT_SS";
-const TILT_NW = exports.TILT_NW = "TILT_NW";
-const TILT_NE = exports.TILT_NE = "TILT_NE";
-const TILT_SE = exports.TILT_SE = "TILT_SE";
-const TILT_SW = exports.TILT_SW = "TILT_SW";
-const TILT_NONE = exports.TILT_NONE = "TILT_NONE";
-const TILT_SE90 = exports.TILT_SE90 = "TILT_SE90";
-const TEST_NN = exports.TEST_NN = "TEST_NN";
-const TEST_SS = exports.TEST_SS = "TEST_SS";
-const TEST_NW = exports.TEST_NW = "TEST_NW";
-const TEST_NE = exports.TEST_NE = "TEST_NE";
-const TEST_SE = exports.TEST_SE = "TEST_SE";
-const TEST_SW = exports.TEST_SW = "TEST_SW";
-const TEST_NONE = "TEST_NONE";
-const HIGHEST_Y = 10;
-const DROP_PER_TICK_FLOAT = exports.DROP_PER_TICK_FLOAT = 0.05;
-const SQRT_3 = exports.SQRT_3 = Math.sqrt(3);
-const C______RED = exports.C______RED = "red";
-const C_____BLUE = exports.C_____BLUE = "blue";
-const C____GREEN = exports.C____GREEN = "green";
-const C___YELLOW = exports.C___YELLOW = "yellow";
-const C___PURPLE = exports.C___PURPLE = "purple";
-const C____BROWN = exports.C____BROWN = "brown";
-const C_NONE = exports.C_NONE = "pink";
-const COL_1 = exports.COL_1 = C___YELLOW;
-const COL_2 = exports.COL_2 = C___PURPLE;
-const TEST_PASSED = exports.TEST_PASSED = "pass";
-const TEST_FAILED = exports.TEST_FAILED = "FAIL !";
-const MOVE_GO = exports.MOVE_GO = "Go";
-const MOVE_STOP = exports.MOVE_STOP = "Stop";
-const TESTING_PRINT = exports.TESTING_PRINT = "TESTING_PRINT"; // print_moves
-const RUNNING_NO_PRINT = exports.RUNNING_NO_PRINT = "RUNNING_NO_PRINT"; // hide_moves
-
-const ON_NO_TILE = exports.ON_NO_TILE = "ON_NO_TILE"; //  kill
-const ON_OLD_TILE = exports.ON_OLD_TILE = "ON_OLD_TILE"; // kill tile_blocked
-const ON_NEW_TILE = exports.ON_NEW_TILE = "ON_NEW_TILE"; // kill tile_allowed
-
-const TEST_TILE_MOVE = exports.TEST_TILE_MOVE = "TEST_TILE_MOVE";
-const PHYS_TILE_MOVE = exports.PHYS_TILE_MOVE = "PHYS_TILE_MOVE";
-const MOVE_SAME_TILE = exports.MOVE_SAME_TILE = "MOVE_SAME_TILE";
-const MOVE_NEW_TILE = exports.MOVE_NEW_TILE = "MOVE_NEW_TILE";
-const MOVE_BLOCKED = exports.MOVE_BLOCKED = "MOVE_BLOCKED";
-const MOVE_FALLING = exports.MOVE_FALLING = "MOVE_FALLING";
-const MOVE_RISING = exports.MOVE_RISING = "MOVE_RISING";
-
-},{}],11:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 exports.makeControls = makeControls;
 exports.moveKeys = moveKeys;
 var _consoleShort = require("../misc/console-short.js");
 var _PointerLockControls = require("three/examples/jsm/controls/PointerLockControls.js");
-//var controls;
+var _moveConsts = require("../values/move-consts.js");
 let moveForward = false;
 let moveBackward = false;
 let moveLeft = false;
 let moveRight = false;
-function makeControls(persp_camera) {
-  const controls = new _PointerLockControls.PointerLockControls(persp_camera, document.body);
+const consLog = window["con" + "sole"].log;
+function makeControls(g_camera, e_enemy_points, e_do_click) {
+  const g_key_controls = new _PointerLockControls.PointerLockControls(g_camera, document.body);
 
-  // controls.minPolarAngle = Math.PI / 2; // Limit upward rotation
-  // controls.maxPolarAngle = Math.PI / 2; // Limit downward rotation (e.g., no looking behind)
+  // g_key_controls.minPolarAngle = Math.PI / 2; // Limit upward rotation
+  // g_key_controls.maxPolarAngle = Math.PI / 2; // Limit downward rotation (e.g., no looking behind)
 
   const onKeyDown = function (event) {
     switch (event.code) {
+      case "KeyO":
+        e_enemy_points.copy_output = " const PENTAGON_POINTS_X = [";
+        consLog("******************************");
+        consLog("******************************");
+        consLog("******************************");
+        consLog("******************************");
+        consLog("******************************");
+        consLog("** START PENTAGON RECORDING **");
+        break;
+      case "KeyP":
+        const enemy_moves = e_enemy_points.copy_output + "];";
+        consLog("** STOP PENTAGON RECORDING ***");
+        consLog("******************************");
+        consLog("******************************");
+        consLog("******************************");
+        consLog("******************************");
+        consLog("******************************");
+        consLog("******************************");
+        consLog(enemy_moves);
+        break;
       case "ArrowUp":
       case "KeyW":
         moveForward = true;
@@ -21886,635 +21671,924 @@ function makeControls(persp_camera) {
     }
   };
   document.body.addEventListener("click", () => {
-    controls.lock();
+    if (event.button === 0) {
+      g_key_controls.lock();
+      e_do_click.was_clicked = true;
+    } else if (event.button === 2) {
+      event.preventDefault();
+      g_key_controls.unlock();
+    }
   });
   document.addEventListener("keydown", onKeyDown);
   document.addEventListener("keyup", onKeyUp);
-  return controls;
+  return g_key_controls;
 }
-function moveKeys(delta, controls) {
+function moveKeys(delta, g_key_controls) {
   // const delta = clock.getDelta();
-  //    const speed = 10 * delta;
-  const speed = 2 * delta;
-  if (moveForward) controls.moveForward(speed);
-  if (moveBackward) controls.moveForward(-speed);
-  if (moveLeft) controls.moveRight(-speed);
-  if (moveRight) controls.moveRight(speed);
+  const speed = _moveConsts.X_Z_2D_INCREMENT * delta;
+  //const speed = 2 * delta;
+
+  if (moveForward) g_key_controls.moveForward(speed);
+  if (moveBackward) g_key_controls.moveForward(-speed);
+  if (moveLeft) g_key_controls.moveRight(-speed);
+  if (moveRight) g_key_controls.moveRight(speed);
 }
 
-},{"../misc/console-short.js":17,"three/examples/jsm/controls/PointerLockControls.js":4}],12:[function(require,module,exports){
+},{"../misc/console-short.js":17,"../values/move-consts.js":50,"three/examples/jsm/controls/PointerLockControls.js":4}],8:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.gameLoop = gameLoop;
-var _consoleShort = require("./misc/console-short.js");
-var HEX_CONST = _interopRequireWildcard(require("./constants.js"));
-var _hexTile = require("./tiles/hex-tile.js");
-function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-function gameLoop(prev_pos, next_pos, cur_y_100_pos, tile_transition, cam_pos) {
-  const {
-    move_result,
-    level_y
-  } = tile_transition;
-  if (move_result == HEX_CONST.MOVE_SAME_TILE) {
-    prev_pos = next_pos;
-  } else if (move_result == HEX_CONST.MOVE_NEW_TILE) {
-    prev_pos = next_pos;
-    next_pos.y = level_y;
-    cur_y_100_pos = level_y;
-  } else if (move_result == HEX_CONST.MOVE_FALLING) {
-    prev_pos = next_pos;
-    // cur_y_100_pos = cur_y_100_pos - 5;
-  } else if (move_result == HEX_CONST.MOVE_BLOCKED) {
-    let [xx, zz] = (0, _hexTile.coords2HexIndexes)(prev_pos.x, prev_pos.z);
-    let [xc, zc] = (0, _hexTile.tileCenterCoord)(xx, zz);
-    prev_pos.x = xc;
-    prev_pos.z = zc;
-    cam_pos.x = prev_pos.x;
-    cam_pos.y = prev_pos.y / 100;
-    cam_pos.z = prev_pos.z;
-    next_pos = prev_pos;
-  } else {
-    //  ee("move in gameLoop");
-  }
-  return [prev_pos, next_pos, cur_y_100_pos];
-}
-
-},{"./constants.js":10,"./misc/console-short.js":17,"./tiles/hex-tile.js":26}],13:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.geoMesh = geoMesh;
-var _consoleShort = require("./misc/console-short.js");
-var _three = require("three");
-// import { Line2 } from "three/addons/lines/Line2.js";
-// import { LineMaterial } from "three/addons/lines/LineMaterial.js";
-// import { LineGeometry } from "three/addons/lines/LineGeometry.js";
-// only ramp needs to be double sided
-function geoMesh(group, vertices_set, start_color, outline_color) {
-  const side_geometry = geometricVertices(vertices_set);
-  const side_material = new _three.MeshLambertMaterial({
-    color: start_color,
-    opacity: 1
-  });
-  side_material.side = _three.DoubleSide;
-  const hexagon_side = new _three.Mesh(side_geometry, side_material);
-  hexagon_side.name = "Hexagon-Part";
-  const edges = new _three.EdgesGeometry(side_geometry);
-  const lineMaterial = new _three.LineBasicMaterial({
-    color: outline_color,
-    linewidth: 8
-  });
-  lineMaterial.side = _three.DoubleSide;
-  const edgeLines = new _three.LineSegments(edges, lineMaterial);
-  hexagon_side.add(edgeLines);
-  group.add(hexagon_side);
-  // const geometry = new LineGeometry();
-  // geometry.setPositions(vertices_set);
-  // // geometry.setColors(#646cff);
-
-  // let matLine = new LineMaterial({
-  //     color: 0xcccccc,
-  //     linewidth: 10, // in world units with size attenuation, pixels otherwise
-  //     vertexColors: false,
-
-  //     dashed: false,
-  //     alphaToCoverage: true
-  // });
-
-  // let line = new Line2(geometry, matLine);
-  // line.computeLineDistances();
-  // line.scale.set(1, 1, 1);
-  // //  scene.add(line);
-  // hexagon_side.add(line);
-  ////////////////
-}
-function geometricVertices(the_vertices) {
-  const float_vertices = new Float32Array(the_vertices);
-  const the_geometry = new _three.BufferGeometry();
-  the_geometry.setAttribute("position", new _three.Float32BufferAttribute(float_vertices, 3));
-  return the_geometry;
-}
-
-},{"./misc/console-short.js":17,"three":3}],14:[function(require,module,exports){
-"use strict";
-
-var _consoleShort = require("./misc/console-short.js");
+exports.PerspCamera = PerspCamera;
+exports.followCamera = followCamera;
+exports.projMatrix = projMatrix;
+var _consoleShort = require("../misc/console-short.js");
 var THREE = _interopRequireWildcard(require("three"));
-var _constants = _interopRequireWildcard(require("./constants.js"));
-var HEX_CONST = _constants;
-var _circles = require("./maps/circles.js");
-var _walkwayHeights = require("./tiles/walkway-heights.js");
-var _hexTile = require("./tiles/hex-tile.js");
-var _camAdjust = require("./tiles/cam-adjust/camAdjust.js");
-var _liveTest = require("./tests/live-test.js");
-var _keyControls = require("./controls/key-controls.js");
-var _aDot = require("./a-dot.js");
-var _startTiles = require("./tiles/start-tiles.js");
-var _buildObjects = require("./build-objects.js");
-var _gameLoop = require("./game-loop.js");
-var _hexRoutines = require("./tiles/hex-routines.js");
+var _theConstants = require("../values/the-constants.js");
+var _moveConsts = require("../values/move-consts.js");
+var _hexTile = require("../tiles/hex-tile.js");
+var _hexRoutines = require("../tiles/hex-routines.js");
+var _camAdjust = require("../tiles/cam-adjust/camAdjust.js");
+var _colorsTiles = require("../tiles/colors-tiles.js");
+var _trampolineMoves = require("../vertical-movement/trampoline-moves.js");
+var _playerMoves = require("../vertical-movement/player-moves.js");
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-// 2 hex-routines.js  and console-short.js
-
-let the_coords, test_xyz_camera, test_xyz_lookat, test_name;
-const g_walkway_coords = the_coords;
-const TEST_DIRECTION = HEX_CONST.TEST_SW; //
-const TEST_NUMBER_1_TO_11 = 0; // if 0 then none
-const GAME_WALKWAY = _circles.CIRCLE_WALKWAY;
-const GAME_WALLS = _circles.CIRCLE_WALLS;
-const GAME_TRAMPOLINES = _circles.CIRCLE_TRAMPOLINES;
-const GAME_PENTAGONS = _circles.CIRCLE_PENTAGONS;
-const GET_ABOVE_TILES = 1;
-let g_tile_3colors; //g_top_3colors, g_outline_3colors;
-
-if (TEST_NUMBER_1_TO_11 == 0) {
-  //  let { walkway_coords, start_xyz_camera, start_xyz_lookat, top_3colors, outline_3colors } = startGameTiles(GAME_WALKWAY);
-  let {
-    walkway_coords,
-    start_xyz_camera,
-    start_xyz_lookat,
-    tile_3colors
-  } = (0, _startTiles.startGameTiles)(GAME_WALKWAY);
-  the_coords = walkway_coords;
-  test_xyz_camera = start_xyz_camera;
-  test_xyz_lookat = start_xyz_lookat;
-  g_tile_3colors = tile_3colors;
-  //  g_top_3colors = top_3colors;
-  //  g_outline_3colors = outline_3colors;
-  test_name = "";
-} else {
-  [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = (0, _liveTest.setUpLiveTests)(TEST_DIRECTION, TEST_NUMBER_1_TO_11);
-}
-const {
-  the_scene,
-  persp_camera,
-  the_width,
-  the_height
-} = (0, _buildObjects.buildScene)(test_xyz_camera);
-
-//persp_camera.position.set(...test_xyz_camera);
-persp_camera.position.set(test_xyz_camera[0], test_xyz_camera[1] / 100, test_xyz_camera[2]);
-persp_camera.lookAt(test_xyz_lookat[0], test_xyz_lookat[1] / 100, test_xyz_lookat[2]);
-the_scene.add(persp_camera);
-
-//const built_objects = buildObjects(the_scene, GAME_WALLS, the_coords, GAME_TRAMPOLINES, GAME_PENTAGONS, g_top_3colors, g_outline_3colors);
-const built_objects = (0, _buildObjects.buildObjects)(the_scene, GAME_WALLS, the_coords, GAME_TRAMPOLINES, GAME_PENTAGONS, g_tile_3colors);
-const {
-  g_object_meshes,
-  g_walkway_tiles,
-  g_walkway_colors,
-  g_walkway_columns,
-  g_wall_squares,
-  g_wall_columns,
-  g_ground_tiles,
-  g_trampolines,
-  trampoline_meshes,
-  g_pentagons,
-  pentagon_meshes
-} = built_objects;
-(0, _liveTest.staticTests)();
-const {
-  a_renderer,
-  bench
-} = (0, _buildObjects.buildRenderer)(the_scene, the_width, the_height);
-(0, _buildObjects.buildListener)(persp_camera);
-let key_controls = (0, _keyControls.makeControls)(persp_camera);
-
-/**
- * 7. ANIMATION LOOP
- */
-const clock = new THREE.Clock();
-const vector_3 = new THREE.Vector3(); // create once and reuse it!
-
-const cam_start = persp_camera.position;
-let prev_pos = {
-  x: cam_start.x,
-  y: cam_start.y,
-  z: cam_start.z
-};
-let cur_y_100_pos = cam_start.y * 100; // 1, 1.5, 2 ...
-let next_pos;
-let prev_tile_index;
-// cur_y_100_pos = 600; since we minus 5
-let tile_transition = {
-  move_result: HEX_CONST.MOVE_FALLING,
-  level_y: cur_y_100_pos
-};
-const RISE_XZ_SPEED_SLOW = 4;
-const RISE_Y_ADD = 25;
-const FALL_Y_SUB = 5;
-const RISE_NN_Z_DIFF = +1 / RISE_XZ_SPEED_SLOW; ///0.25;
-const RISE_SS_Z_DIFF = -1 / RISE_XZ_SPEED_SLOW; ///0.25;
-
-let tramp_z = 0;
-let tramp_x = 0;
-const tick = () => {
-  const clock_delta = clock.getDelta();
-  const cam_pos = persp_camera.position;
-  next_pos = {
-    x: cam_pos.x,
-    y: cur_y_100_pos,
-    z: cam_pos.z
-  };
-  let [prev_x_ind, prev_z_ind] = (0, _hexTile.coords2HexIndexes)(cam_pos.x, cam_pos.z);
-  let tile_index = (0, _hexRoutines.hexIndex)(prev_x_ind, cur_y_100_pos, prev_z_ind);
-  if (tile_transition.move_result == HEX_CONST.MOVE_RISING) {
-    //    tt("rising");
-    //        cur_y_100_pos = cur_y_100_pos + 25;
-    cur_y_100_pos = cur_y_100_pos + RISE_Y_ADD;
-    if (cur_y_100_pos >= 1600) {
-      tile_transition.move_result = HEX_CONST.MOVE_FALLING;
+function followCamera(the_objects, frame_vars, e_do_click, g_camera) {
+  function isWalkwayClick() {
+    const on_walkway = f_move_result == _theConstants.MV_TILE_SAME || f_move_result == _theConstants.MV_TILE_NEW || f_move_result == _theConstants.MV_FENCE_BLOCKED;
+    const MV_CLICK_ON_WALKWAY = e_do_click.was_clicked && on_walkway;
+    return MV_CLICK_ON_WALKWAY;
+  }
+  function doStartJumpingUp() {
+    let jump_data = (0, _playerMoves.jumpClick)(f_prev_coords, f_this_coords);
+    ({
+      f_jump_x_step,
+      f_jump_z_step,
+      f_bounce_speed
+    } = jump_data);
+    ({
+      f_rise_step_size,
+      f_fall_step_size,
+      f_step_iterations
+    } = jump_data);
+    f_move_result = _theConstants.MV_RISE_JUMP_STRAIGHT;
+  }
+  function isJumpingUp() {
+    return f_move_result == _theConstants.MV_RISE_JUMP_STRAIGHT;
+  }
+  function doJumpUp() {
+    [changed_move, f_y100_height] = (0, _playerMoves.doRiseJump)(f_step_iterations, f_rise_step_size, f_y100_height);
+    f_move_result = changed_move;
+  }
+  function isJumpingDown() {
+    return f_move_result == _theConstants.MV_FALL_JUMP_STRAIGHT;
+  }
+  function doJumpDown() {
+    [changed_move, f_y100_height] = (0, _playerMoves.doFallJump)(fall_data);
+    f_move_result = changed_move;
+  }
+  function isSteppingOff() {
+    return f_move_result == _theConstants.MV_FALL_STEP_OFF;
+  }
+  function doStepOff() {
+    f_move_result = (0, _camAdjust.transition2NewTile)(the_objects, f_prev_coords, f_this_coords, false);
+    [f_move_result, f_y100_height] = (0, _playerMoves.doFallPlayer)(fall_data);
+  }
+  function isStartTrampoline() {
+    return f_move_result == _theConstants.MV_START_TRAMPOLINE;
+  }
+  function doStartBounceUp(o_trampolines) {
+    let bounced_data = (0, _trampolineMoves.trampolineLift)(o_trampolines, f_this_hex);
+    ({
+      f_jump_x_step,
+      f_jump_z_step,
+      f_bounce_speed
+    } = bounced_data);
+    ({
+      f_rise_step_size,
+      f_fall_step_size,
+      f_step_iterations
+    } = bounced_data);
+    f_move_result = _theConstants.MV_RISE_TRAMPOLINE;
+  }
+  function isBouncingUp() {
+    return f_move_result == _theConstants.MV_RISE_TRAMPOLINE;
+  }
+  function doBounceUp() {
+    [changed_move, f_y100_height] = (0, _trampolineMoves.doRiseTrampoline)(f_step_iterations, f_rise_step_size, f_y100_height);
+    f_move_result = changed_move;
+  }
+  function isBouncingDown() {
+    return f_move_result == _theConstants.MV_FALL_TRAMPOLINE;
+  }
+  function doBounceDown(o_trampolines) {
+    [changed_move, f_y100_height] = (0, _trampolineMoves.doFallTrampoline)(fall_data);
+    let is_a_trampoline = o_trampolines.has(f_this_hex);
+    if (is_a_trampoline) {
+      f_step_iterations = _moveConsts.TRAMPOLINE_ITERATIONS;
     }
-    // next_pos.x = next_pos.x + x_tramp;
-  } else if (tile_transition.move_result == HEX_CONST.MOVE_FALLING) {
-    //   tt("falling");
-    // let [prev_x_ind, prev_z_ind] = coords2HexIndexes(cam_pos.x, cam_pos.z);
-    // let tile_index = hexIndex(prev_x_ind, cur_y_100_pos, prev_z_ind);
+    f_move_result = changed_move;
+  }
+  function isFenceBlocked() {
+    return f_move_result == _theConstants.MV_FENCE_BLOCKED;
+  }
+  function doFenceBlock() {
+    let is_a_trampoline = false;
+    f_move_result = (0, _camAdjust.transition2NewTile)(the_objects, f_prev_coords, f_this_coords, is_a_trampoline);
+    g_camera.position.x = f_prev_coords.x;
+    g_camera.position.z = f_prev_coords.z;
+  }
+  function isOnNewTile() {
+    return f_move_result == _theConstants.MV_TILE_NEW;
+  }
+  function doNewTile(the_objects) {
+    let {
+      o_trampolines
+    } = the_objects;
+    let is_a_trampoline = o_trampolines.has(f_this_hex);
+    f_move_result = (0, _camAdjust.transition2NewTile)(the_objects, f_prev_coords, f_this_coords, is_a_trampoline);
+    if (is_a_trampoline) {
+      f_step_iterations = _moveConsts.TRAMPOLINE_ITERATIONS;
+    }
+    (0, _colorsTiles.flipTileColorG)(the_objects, f_this_hex, f_prev_hex);
+  }
+  function _isOnSameTile() {
+    return f_move_result == _theConstants.MV_TILE_NEW;
+  }
+  function doSameTile(the_objects) {
+    f_move_result = (0, _camAdjust.transition2NewTile)(the_objects, f_prev_coords, f_this_coords, false);
+    (0, _colorsTiles.flipTileColorG)(the_objects, f_this_hex, f_prev_hex);
+  }
 
-    if (g_walkway_tiles.has(tile_index)) {
-      tile_transition = {
-        move_result: HEX_CONST.MOVE_SAME_TILE,
-        level_y: cur_y_100_pos
-      };
-    } else if (g_trampolines.has(tile_index)) {
-      let the_trampo = g_trampolines.get(tile_index);
-      (0, _consoleShort.tt)(the_trampo.tilt_up);
-      tile_transition.move_result = HEX_CONST.MOVE_RISING;
-      tramp_z = 0;
-      tramp_x = 0;
-      const tamp_tilt = the_trampo.tilt_up;
-      if (tamp_tilt == HEX_CONST.TILT_NN) {
-        tramp_z = RISE_NN_Z_DIFF;
-        tramp_x = 0;
-      } else if (tamp_tilt == HEX_CONST.TILT_SS) {
-        tramp_z = RISE_SS_Z_DIFF;
-        tramp_x = 0;
-      } else if (tamp_tilt == HEX_CONST.TILT_SW) {
-        //https://www.dummies.com/article/academics-the-arts/math/pre-calculus/quick-guide-to-the-30-60-90-degree-triangle-168056/
-        tramp_z = -0.5 / RISE_XZ_SPEED_SLOW;
-        tramp_x = +(0.5 * Math.sqrt(3)) / RISE_XZ_SPEED_SLOW;
-      } else if (tamp_tilt == HEX_CONST.TILT_NE) {
-        tramp_z = +0.5 / RISE_XZ_SPEED_SLOW;
-        tramp_x = -(0.5 * Math.sqrt(3)) / RISE_XZ_SPEED_SLOW;
+  /////////////////////////////////////////
+  let {
+    f_move_result,
+    f_cam_vect,
+    f_prev_hex,
+    f_this_hex,
+    f_step_iterations,
+    f_bounce_speed,
+    f_rise_step_size,
+    f_fall_step_size,
+    f_y100_height,
+    f_jump_x_step,
+    f_jump_z_step,
+    f_prev_coords,
+    f_this_coords
+  } = frame_vars;
+  let changed_move;
+  let [ndx_x, ndx_z] = (0, _hexTile.coords2Indexes)(f_cam_vect.x, f_cam_vect.z);
+  f_this_hex = (0, _hexRoutines.hexIndex)(ndx_x, f_y100_height, ndx_z);
+  let {
+    o_walkway_tiles,
+    o_trampolines
+  } = the_objects;
+  let fall_data = {
+    o_walkway_tiles,
+    o_trampolines,
+    f_this_hex,
+    f_y100_height,
+    f_fall_step_size
+  };
+  if (isWalkwayClick()) {
+    doStartJumpingUp();
+  } else if (isJumpingUp()) {
+    doJumpUp();
+  } else if (isJumpingDown()) {
+    doJumpDown();
+  } else if (isSteppingOff()) {
+    doStepOff();
+  } else if (isStartTrampoline()) {
+    doStartBounceUp(o_trampolines);
+  } else if (isBouncingUp()) {
+    doBounceUp();
+  } else if (isBouncingDown()) {
+    doBounceDown(o_trampolines);
+  } else if (isFenceBlocked()) {
+    doFenceBlock();
+  } else if (isOnNewTile()) {
+    doNewTile(the_objects);
+  } else {
+    //_isOnSameTile();
+    doSameTile(the_objects);
+  }
+  f_prev_hex = f_this_hex;
+  const changed_vars = {
+    f_move_result,
+    f_y100_height,
+    f_jump_x_step,
+    f_jump_z_step,
+    f_bounce_speed,
+    f_rise_step_size,
+    f_fall_step_size,
+    f_step_iterations,
+    f_prev_hex,
+    f_this_hex,
+    f_prev_coords,
+    f_this_coords
+  };
+  e_do_click.was_clicked = false;
+  return changed_vars;
+}
+function PerspCamera(the_fov, width_height, nf_planes) {
+  const [camera_width, camera_height] = width_height;
+  const [near_plane, far_plane] = nf_planes;
+  const camera_aspect = camera_width / camera_height;
+  const g_camera = new THREE.PerspectiveCamera(the_fov, camera_aspect, near_plane, far_plane);
+  return g_camera;
+}
+function projMatrix(the_camera, width_height) {
+  const [camera_width, camera_height] = width_height;
+  const camera_aspect = camera_width / camera_height;
+  the_camera.aspect = camera_aspect;
+  the_camera.updateProjectionMatrix();
+}
+
+},{"../misc/console-short.js":17,"../tiles/cam-adjust/camAdjust.js":27,"../tiles/colors-tiles.js":28,"../tiles/hex-routines.js":30,"../tiles/hex-tile.js":31,"../values/move-consts.js":50,"../values/the-constants.js":52,"../vertical-movement/player-moves.js":54,"../vertical-movement/trampoline-moves.js":58,"three":3}],9:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.buildFence = buildFence;
+Object.defineProperty(exports, "coords2Indexes", {
+  enumerable: true,
+  get: function () {
+    return _hexMaths.coords2Indexes;
+  }
+});
+exports.fenceRectangles = fenceRectangles;
+exports.squarePoints = squarePoints;
+Object.defineProperty(exports, "tileCenterCoord", {
+  enumerable: true,
+  get: function () {
+    return _hexMaths.tileCenterCoord;
+  }
+});
+var _consoleShort = require("../misc/console-short.js");
+var THREE = _interopRequireWildcard(require("three"));
+var _fenceMesh = require("./fence-mesh.js");
+var _tileMesh = require("../tiles/tile-mesh.js");
+var _colorConsts = require("../values/color-consts.js");
+var _theConstants = require("../values/the-constants.js");
+var _hexMaths = require("../misc/hex-maths.js");
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
+function buildFence(g_scene, object_meshes, o_fence_walls, x_y_z_1, x_y_z_2, fence_position, fence_height) {
+  const [x1_index, y1_index, z1_index] = x_y_z_1;
+  const [x2_index, y2_index, z2_index] = x_y_z_2;
+  const xyz1_index = `${x1_index},${y1_index},${z1_index}`;
+  const xyz2_index = `${x2_index},${y2_index},${z2_index}`;
+  const xyz_index = `${xyz1_index}${_theConstants.HEX_PAIR_DIVIDER}${xyz2_index}`;
+  let [x_center, z_center] = (0, _hexMaths.tileCenterCoord)(x1_index, z1_index);
+  const tile_radius = 1;
+  const a_tile = new THREE.Group();
+  a_tile.position.set(x_center, 0, z_center);
+  const square_points = squarePoints(tile_radius, y1_index, fence_position, fence_height);
+  o_fence_walls = offsetfencePoints(o_fence_walls, x_y_z_1, x_y_z_2, fence_position, square_points);
+  const top_triangles = fenceRectangles(square_points);
+  (0, _tileMesh.tileMesh)(a_tile, top_triangles, _colorConsts.BARRIER_MIDDLE_COLOR, _colorConsts.BARRIER_EDGE_COLOR);
+  g_scene.add(a_tile);
+  (0, _fenceMesh.fenceCoords)(a_tile, x_y_z_1, fence_position, fence_height);
+  object_meshes.set(xyz_index, a_tile);
+  return [object_meshes, o_fence_walls];
+}
+
+/*
+a_fence = [ {x_ndx:0, z_ndx:0}, {x_ndx:0, z_ndx:-1} ]
+
+                             /---------\
+                            /           \       
+                           /     0,-1    \ 
+                           \             /
+                            \           /      
+                             \---------/
+                               fence  
+                             /---------\
+                            /           \       
+                           /     0,0     \ 
+                           \             /
+                            \           /      
+                             \---------/
+                            
+*/
+
+function fenceRectangles(hex_points) {
+  const [top_left, top_right, bot_right, bot_left] = hex_points;
+  const square_up_left = [...bot_left, ...top_left, ...top_right];
+  const square_down_right = [...bot_left, ...top_right, ...bot_right];
+  const hexagon_triangles = [...square_up_left, ...square_down_right];
+  return hexagon_triangles;
+}
+
+//    ["000", "010", "000", "green", TILT_NN, 10], just the objects
+
+function offsetfencePoints(stair_tiles, x_y_z_1, x_y_z_2, fence_position, square_points) {
+  //function offsetfencePoints(stair_tiles, x_y_z, fence_position, square_points) {
+  const [x1_index, y1_index, z1_index] = x_y_z_1;
+  const [x2_index, y2_index, z2_index] = x_y_z_2;
+  //const [x_index, y_index, z_index] = x_y_z;
+
+  const xyz1_index = `${x1_index},${y1_index},${z1_index}`;
+  const xyz2_index = `${x2_index},${y2_index},${z2_index}`;
+  //const xyz_index = `${x_index},${y_index},${z_index}`;
+
+  let [x_center, z_center] = (0, _hexMaths.tileCenterCoord)(x1_index, z1_index);
+  let tile_positions = [];
+  for (let i = 0; i < square_points.length; i++) {
+    let tile_point = square_points[i];
+    if (Array.isArray(tile_point)) {
+      let [x, y, z] = tile_point;
+      x = x + x_center;
+      z = z + z_center;
+      tile_positions.push([x, y, z]);
+    }
+  }
+  let top_point_y = tile_positions[3][1];
+  let bottom_point_y = tile_positions[0][1];
+  if (top_point_y === bottom_point_y) {
+    top_point_y = top_point_y; // * 10;
+    bottom_point_y = top_point_y;
+  } else {
+    top_point_y = top_point_y; // * 10; // - 0.0001;
+    bottom_point_y = bottom_point_y; // * 10; // + 0.0001;
+  }
+  var tile_obj = {
+    x_center: x_center,
+    y_position: y1_index,
+    z_center: z_center,
+    // fence_side: square_position
+    fence_side: fence_position,
+    tile_positions: tile_positions,
+    // square_positions
+    x_z: `${x1_index},${z1_index}`,
+    xyz1_index: xyz1_index,
+    xyz2_index: xyz2_index,
+    // xyz_index: xyz_index,
+
+    high_y: top_point_y,
+    // - 0.0001,
+    low_y: bottom_point_y // why?????????/
+  };
+  const xyz_1_2_index = `${xyz1_index}${_theConstants.HEX_PAIR_DIVIDER}${xyz2_index}`;
+  stair_tiles.set(xyz_1_2_index, tile_obj);
+  const xyz_2_1_index = `${xyz2_index}${_theConstants.HEX_PAIR_DIVIDER}${xyz1_index}`;
+  stair_tiles.set(xyz_2_1_index, tile_obj);
+  return stair_tiles;
+}
+
+// these must flip around
+function squarePoints(tile_radius, y_100_height, fence_position, fence_height) {
+  fence_height = fence_height / 1000;
+  const y_height = y_100_height / 100;
+  tile_radius = tile_radius - 0.0; // - 0.2;
+
+  const hex_dist = tile_radius * _theConstants.SQRT_3 / 2;
+  const half_radius = tile_radius / 2;
+  var top_left, bot_left, top_rght, bot_rght; //, left_tip, rght_tip;
+
+  const top_height = y_height + fence_height;
+  const bot_height = y_height;
+  const top_left_x = 0 - half_radius;
+  const bot_left_x = 0 - half_radius;
+  const top_rght_x = 0 + half_radius;
+  const bot_rght_x = 0 + half_radius;
+  const left_tip_x = 0 - tile_radius;
+  const rght_tip_x = 0 + tile_radius;
+  const top_left_z = 0 + hex_dist;
+  const bot_left_z = 0 - hex_dist;
+  const top_rght_z = 0 + hex_dist;
+  const bot_rght_z = 0 - hex_dist;
+  const left_tip_z = 0;
+  const rght_tip_z = 0;
+  if (fence_position === _theConstants.FENCE_NN) {
+    top_rght = [bot_rght_x, bot_height, bot_rght_z];
+    top_left = [bot_left_x, bot_height, bot_left_z];
+    bot_rght = [bot_rght_x, top_height, bot_rght_z];
+    bot_left = [bot_left_x, top_height, bot_left_z];
+  } else if (fence_position === _theConstants.FENCE_NE) {
+    bot_left = [bot_rght_x, top_height, bot_rght_z];
+    bot_rght = [rght_tip_x, top_height, rght_tip_z];
+    top_left = [bot_rght_x, bot_height, bot_rght_z];
+    top_rght = [rght_tip_x, bot_height, rght_tip_z];
+  } else if (fence_position === _theConstants.FENCE_SW) {
+    bot_left = [top_left_x, top_height, top_left_z];
+    bot_rght = [left_tip_x, top_height, left_tip_z];
+    top_left = [top_left_x, bot_height, top_left_z];
+    top_rght = [left_tip_x, bot_height, left_tip_z];
+  } else if (fence_position === _theConstants.FENCE_NW) {
+    bot_left = [bot_left_x, top_height, bot_left_z];
+    bot_rght = [left_tip_x, top_height, left_tip_z];
+    top_left = [bot_left_x, bot_height, bot_left_z];
+    top_rght = [left_tip_x, bot_height, left_tip_z];
+  } else if (fence_position === _theConstants.FENCE_SE) {
+    bot_left = [top_rght_x, top_height, top_rght_z];
+    bot_rght = [rght_tip_x, top_height, rght_tip_z];
+    top_rght = [rght_tip_x, bot_height, rght_tip_z];
+    top_left = [top_rght_x, bot_height, top_rght_z];
+  } else if (fence_position === _theConstants.FENCE_SS) {
+    top_left = [top_left_x, bot_height, top_left_z];
+    top_rght = [top_rght_x, bot_height, top_rght_z];
+    bot_rght = [top_rght_x, top_height, top_rght_z];
+    bot_left = [top_left_x, top_height, top_left_z];
+  } else {
+    (0, _consoleShort.ee)("squarePoints unknown  fence_position==", fence_position);
+  }
+  const fence_corners = [top_left, top_rght, bot_rght, bot_left];
+  return fence_corners;
+}
+
+},{"../misc/console-short.js":17,"../misc/hex-maths.js":19,"../tiles/tile-mesh.js":46,"../values/color-consts.js":49,"../values/the-constants.js":52,"./fence-mesh.js":10,"three":3}],10:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.fenceCoords = fenceCoords;
+var _consoleShort = require("../misc/console-short.js");
+var THREE = _interopRequireWildcard(require("three"));
+var _theConstants = require("../values/the-constants.js");
+var _FontLoader = require("three/examples/jsm/loaders/FontLoader.js");
+var _TextGeometry = require("three/examples/jsm/geometries/TextGeometry.js");
+var _helvetiker_regularTypeface = require("../misc/helvetiker_regular.typeface.js");
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
+var loader2 = new _FontLoader.FontLoader();
+const WHITE_LABELS = 0xffffff;
+var the_font = loader2.parse(_helvetiker_regularTypeface.type_face);
+function fenceCoords(a_tile, x_y_z, fence_position, fence_height) {
+  const [x_index, y_index, z_index] = x_y_z;
+  var textMaterial = new THREE.MeshLambertMaterial({
+    emissive: 0xffffff,
+    color: WHITE_LABELS
+  });
+  const fence_text = `${x_index},${z_index}`; // ${fence_position}`;
+  var textGeometry = new _TextGeometry.TextGeometry(fence_text, {
+    font: the_font,
+    size: 0.2,
+    depth: 0,
+    curveSegments: 12
+  });
+  var text_mesh = new THREE.Mesh(textGeometry, textMaterial);
+  text_mesh.position.y = y_index + fence_height + 0.4;
+  if (fence_position != _theConstants.TILT_NONE) {
+    text_mesh.rotation.y = -Math.PI / 2;
+    text_mesh.rotation.z = -Math.PI / 2;
+  }
+  let x, z;
+  if (fence_position == _theConstants.TILT_NONE) {
+    x = -0.15;
+    z = 0.1;
+  } else if (fence_position == _theConstants.FENCE_NN) {
+    x = -0.15;
+    z = -0.55;
+  } else if (fence_position == _theConstants.FENCE_NE) {
+    x = 0.3;
+    z = -0.25;
+  } else if (fence_position == _theConstants.FENCE_SE) {
+    x = 1;
+    z = 0.4;
+    //text_mesh.position.y -= 0.1;
+  } else if (fence_position == _theConstants.FENCE_SS) {
+    x = -0.15;
+    z = 0.48;
+  } else if (fence_position == _theConstants.FENCE_SW) {
+    x = -0.6;
+    z = 0.4;
+  } else if (fence_position == _theConstants.FENCE_NW) {
+    x = +0.9;
+    z = 0.25;
+  } else {
+    (0, _consoleShort.ee)(" fenceCoords() unknown fence_position", fence_position);
+  }
+  text_mesh.position.x = x;
+  text_mesh.position.z = z;
+  a_tile.add(text_mesh);
+}
+
+//, tileMesh };
+
+},{"../misc/console-short.js":17,"../misc/helvetiker_regular.typeface.js":18,"../values/the-constants.js":52,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}],11:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.makeFences = makeFences;
+var _consoleShort = require("../misc/console-short.js");
+var _theConstants = require("../values/the-constants.js");
+var _fenceCoords = require("./fence-coords.js");
+//  buildBarrier
+
+function xyz2int(fence_xyz) {
+  const [x_str, y_str, z_str] = fence_xyz;
+  const x_index = parseInt(x_str);
+  const y_index = parseInt(y_str);
+  const z_index = parseInt(z_str);
+  const ramp_xyz = [x_index, y_index, z_index];
+  return ramp_xyz;
+}
+function makeFences(g_scene, object_meshes, fence_ndxs, o_fence_walls, fence_columns) {
+  for (var i = 0; i < fence_ndxs.length; i++) {
+    const fence_pair = fence_ndxs[i];
+    const fence_a = xyz2int(fence_pair[0]);
+    const fence_b = xyz2int(fence_pair[1]);
+    const fence_height = parseInt(fence_pair[2]);
+    const [x_a, _y_a, z_a] = fence_a;
+    const [x_b, _y_b, z_b] = fence_b;
+    let fence_position;
+    if (x_a == x_b) {
+      if (z_a > z_b) {
+        fence_position = _theConstants.FENCE_NN;
+      } else {
+        fence_position = _theConstants.FENCE_SS;
+      }
+    } else if (z_a == z_b) {
+      if (x_a > x_b) {
+        fence_position = _theConstants.FENCE_NW;
+      } else {
+        fence_position = _theConstants.FENCE_SE;
       }
     } else {
-      //  cur_y_100_pos = cur_y_100_pos - 5;
-      cur_y_100_pos = cur_y_100_pos - FALL_Y_SUB;
-    }
-  } else {
-    //  tt("neither");
-    tile_transition = (0, _camAdjust.transition2Tile)(HEX_CONST.PHYS_TILE_MOVE, _constants.RUNNING_NO_PRINT, g_walkway_tiles, g_walkway_columns, g_wall_squares, g_wall_columns, prev_pos, next_pos);
-    const new_movement = tile_transition.move_result;
-    if (new_movement !== HEX_CONST.MOVE_FALLING) {
-      if (tile_index !== prev_tile_index) {
-        const new_y_100_pos = tile_transition.level_y;
-        let new_tile_index = (0, _hexRoutines.hexIndex)(prev_x_ind, new_y_100_pos, prev_z_ind);
-        //  tt("new_tile_index", new_tile_index);
-        if (g_walkway_tiles.has(new_tile_index)) {
-          let current_tile = g_walkway_tiles.get(new_tile_index);
-          //tt("current_tile", current_tile);
-          let cur_light_dark = g_walkway_colors.get(new_tile_index);
-          // tt("cur_light_dark", cur_light_dark);
-          let changed_color;
-          if (cur_light_dark == "dark-color") {
-            changed_color = current_tile.light_color;
-            cur_light_dark = "light-color";
-          } else {
-            changed_color = current_tile.dark_color;
-            cur_light_dark = "dark-color";
-          }
-          g_walkway_colors.set(new_tile_index, cur_light_dark);
-          let tile_mesh = g_object_meshes.get(new_tile_index);
-          const retrievedMesh = tile_mesh.getObjectByName("Hexagon-Part");
-          retrievedMesh.material.color.setHex(changed_color);
-          prev_tile_index = new_tile_index;
-        }
+      if (x_a > x_b) {
+        fence_position = _theConstants.FENCE_SW;
+      } else {
+        fence_position = _theConstants.FENCE_NE;
       }
     }
+    [object_meshes, o_fence_walls] = (0, _fenceCoords.buildFence)(g_scene, object_meshes, o_fence_walls, fence_a, fence_b, fence_position, fence_height);
   }
-  [prev_pos, next_pos, cur_y_100_pos] = (0, _gameLoop.gameLoop)(prev_pos, next_pos, cur_y_100_pos, tile_transition, cam_pos);
-  persp_camera.getWorldDirection(vector_3);
-  (0, _keyControls.moveKeys)(clock_delta, key_controls);
-  const inc_y = (0, _walkwayHeights.walkwayIncline)(g_walkway_tiles, next_pos);
-  persp_camera.position.y = cur_y_100_pos / 100 + GET_ABOVE_TILES + inc_y;
-
-  // XyzDot(the_scene, cam_pos.x, persp_camera.position.y, cam_pos.z, 0x666666);
-
-  // the spinning
-  for (const [xyz_index, pentagon_mesh] of pentagon_meshes) {
-    pentagon_mesh.rotation.y += 0.02;
-    pentagon_mesh.material.color.setHex(0xff9900);
+  var fence_columns = new Map();
+  for (const [_key, a_fence] of o_fence_walls) {
+    const x_z = a_fence.x_z;
+    const xyz_index = a_fence.xyz_index;
+    const missins_x_z_column = !fence_columns.has(x_z);
+    if (missins_x_z_column) {
+      let empty_x_z_column = new Map();
+      fence_columns.set(x_z, empty_x_z_column);
+    }
+    let cur_x_z_column = fence_columns.get(x_z);
+    const [x_index, z_index] = x_z.split(",");
+    let low_y_10 = a_fence.low_y * 10;
+    let high_y_10 = a_fence.high_y * 10;
+    for (let y_10_index = low_y_10; y_10_index <= high_y_10; y_10_index++) {
+      const a_y_index = `${x_index},${y_10_index / 10},${z_index}`;
+      cur_x_z_column.set(a_y_index, xyz_index);
+    }
   }
-  if (tile_transition.move_result == HEX_CONST.MOVE_RISING) {
-    persp_camera.position.z += tramp_z;
-    persp_camera.position.x += tramp_x;
-  }
-  a_renderer.render(the_scene, persp_camera);
-  if (cur_y_100_pos < -100) {
-    cur_y_100_pos = 1600;
-  }
-
-  // if (persp_camera.position.y > 0) {
-  //     //  persp_camera.position.y -= GET_ABOVE_TILES;
-  // }
-  window.requestAnimationFrame(tick);
-};
-tick();
-function draw(now) {
-  bench.begin();
-  // monitored code
-  bench.end();
-  bench.nextFrame(now);
+  return [object_meshes, o_fence_walls, fence_columns];
 }
-a_renderer.setAnimationLoop(now => draw(now));
 
-},{"./a-dot.js":7,"./build-objects.js":9,"./constants.js":10,"./controls/key-controls.js":11,"./game-loop.js":12,"./maps/circles.js":15,"./misc/console-short.js":17,"./tests/live-test.js":22,"./tiles/cam-adjust/camAdjust.js":23,"./tiles/hex-routines.js":25,"./tiles/hex-tile.js":26,"./tiles/start-tiles.js":38,"./tiles/walkway-heights.js":42,"three":3}],15:[function(require,module,exports){
+},{"../misc/console-short.js":17,"../values/the-constants.js":52,"./fence-coords.js":9}],12:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.CIRCLE_WALLS = exports.CIRCLE_WALKWAY = exports.CIRCLE_TRAMPOLINES = exports.CIRCLE_PENTAGONS = void 0;
+exports.createStartFigure = createStartFigure;
+exports.figurePathway = figurePathway;
+exports.translateFigure = translateFigure;
 var _consoleShort = require("../misc/console-short.js");
-var HEX_CONST = _interopRequireWildcard(require("../constants.js"));
-function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-const x_start = 2;
-const y_start = 1;
-const z_start = 7;
-const x_look = 3;
-const y_look = 1;
-const z_look = 3;
+//   http://localhost:5173/index-dev.html?figure=loop-walk
+function figurePathway() {
+  const location_search = window.location.search;
+  const url_params = new URLSearchParams(location_search);
+  if (url_params.has("figure")) {
+    const url_name = url_params.get("figure");
+    return url_name;
+  }
+  return "";
+}
+function translatePoint(x_org, y_org, z_org, x_shift, y_shift, z_shift) {
+  let x_moved = parseInt(x_org) + x_shift;
+  let y_moved = parseInt(y_org) + y_shift;
+  let z_moved = parseInt(z_org) + z_shift;
+  return [x_moved, y_moved, z_moved];
+}
+function createFigure(figure_name) {
+  const empty_figure = {
+    figure_name: figure_name,
+    walkway_locs: [],
+    fence_locs: [],
+    trampoline_locs: [],
+    pentagon_locs: []
+  };
+  return empty_figure;
+}
+function createStartFigure(figure_name, start_tile) {
+  const empty_figure = {
+    figure_name: figure_name,
+    walkway_locs: [start_tile],
+    fence_locs: [],
+    trampoline_locs: [],
+    pentagon_locs: []
+  };
+  return empty_figure;
+}
+function translateHex(walkway_tile, x_shift, y_shift, z_shift) {
+  let translated_tile = [...walkway_tile];
+  const [x_str, y_str, z_str] = walkway_tile;
+  let x_moved = parseInt(x_str) + x_shift;
+  let y_moved = parseInt(y_str) + y_shift;
+  let z_moved = parseInt(z_str) + z_shift;
+  translated_tile[0] = x_moved;
+  translated_tile[1] = y_moved;
+  translated_tile[2] = z_moved;
+  return translated_tile;
+}
+function translateFigure(a_figure, x_shift, y_shift, z_shift) {
+  const translated_figure = createFigure(a_figure.figure_name);
+  let {
+    walkway_locs,
+    fence_locs,
+    trampoline_locs
+  } = a_figure;
+  for (const walkway_tile of walkway_locs) {
+    let translated_tile = translateHex(walkway_tile, x_shift, y_shift, z_shift);
+    translated_figure.walkway_locs.push(translated_tile);
+  }
+  for (const fence_pair of fence_locs) {
+    const [x_a, y_a, z_a] = fence_pair.hex_a;
+    const [x_b, _y_b, z_b] = fence_pair.hex_b;
+    const y_height = fence_pair.fence_height;
+    const fence_a = [x_a, y_a, z_a];
+    const fence_b = [x_b, y_a, z_b];
+    let translated_fence_a = translateHex(fence_a, x_shift, y_shift, z_shift);
+    let translated_fence_b = translateHex(fence_b, x_shift, y_shift, z_shift);
+    const fence_translated = [translated_fence_a, translated_fence_b, y_height];
+    translated_figure.fence_locs.push(fence_translated);
+  }
+  for (const trampoline_tile of trampoline_locs) {
+    let translated_trampoline = translateHex(trampoline_tile, x_shift, y_shift, z_shift);
+    translated_figure.trampoline_locs.push(translated_trampoline);
+  }
+  return translated_figure;
+}
 
-// const CIRCLE_WALKWAY_ANGLED = [
-//     [x_start, y_start, z_start],
-//     [x_look, y_look, z_look],
-//     ["003", "0.2", "006", HEX_CONST.C_____BLUE, HEX_CONST.TILT_SE, 1.0],
-
-//     ["004", "1.2", "006", HEX_CONST.C____GREEN, HEX_CONST.TILT_SE, 1.0],
-//     ["003", "1.2", "007", HEX_CONST.C____GREEN, HEX_CONST.TILT_SS, 1.0],
-
-//     ["002", "1.2", "007", HEX_CONST.C____GREEN, HEX_CONST.TILT_SW, 1.0],
-//     ["002", y_start, "006", HEX_CONST.C____GREEN, HEX_CONST.TILT_NW, 1.0],
-//     ["003", "1.2", "005", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1.0],
-//     ["004", "1.2", "005", HEX_CONST.C____GREEN, HEX_CONST.TILT_NE, 1.0],
-//     ["001", "2.2", "006", HEX_CONST.C______RED, HEX_CONST.TILT_NW, 1.0]
-// ];
-
-// we don't do hexPoints, but instead 2 triangles vertical with no incline angles can also do a band, not meet at bottom
-
-const CIRCLE_WALKWAY_nn = [[x_start, y_start, z_start],
-// fix me
-[x_look, y_look, z_look], ["003", "1.0", "006"], ["004", "1.0", "006", HEX_CONST.C______RED], ["003", "1.0", "007", HEX_CONST.C___PURPLE], ["002", "1.0", "007", HEX_CONST.C____BROWN], ["002", "1.0", "006", HEX_CONST.C____GREEN], ["004", "1.0", "005", HEX_CONST.C___YELLOW], ["003", "2.0", "004", HEX_CONST.C_____BLUE], ["003", "1.0", "005", HEX_CONST.C_____BLUE, HEX_CONST.TILT_NN, 1]];
-const CIRCLE_WALKWAY_ne = [[x_start, y_start, z_start],
-// fix me
-[x_look, y_look, z_look], ["003", "1.0", "006"], ["004", "1.0", "006", HEX_CONST.C______RED], ["003", "1.0", "007", HEX_CONST.C___PURPLE], ["002", "1.0", "007", HEX_CONST.C____BROWN], ["002", "1.0", "006", HEX_CONST.C____GREEN], ["003", "2.0", "004", HEX_CONST.C_____BLUE], ["004", "1.0", "005", HEX_CONST.C___YELLOW], ["005", "1.0", "004", HEX_CONST.C___YELLOW, HEX_CONST.TILT_NE, 1], ["006", "2.0", "003", HEX_CONST.C___YELLOW]];
-const CIRCLE_WALKWAY_NW = [[x_start, y_start, z_start],
-// fix me
-[x_look, y_look, z_look], ["003", "1.0", "006"], ["004", "1.0", "006", HEX_CONST.C______RED], ["003", "1.0", "007", HEX_CONST.C___PURPLE], ["002", "1.0", "007", HEX_CONST.C____BROWN], ["002", "1.0", "006", HEX_CONST.C____GREEN], ["003", "2.0", "004", HEX_CONST.C_____BLUE], ["002", "1.0", "006", HEX_CONST.C___YELLOW], ["001", "1.0", "006", HEX_CONST.C___YELLOW, HEX_CONST.TILT_NW, 1], ["000", "2.0", "006", HEX_CONST.C___YELLOW]];
-const CIRCLE_WALKWAY__ss = [[x_start, y_start, z_start],
-// fix me
-[x_look, y_look, z_look], ["003", "1.0", "006"], ["004", "1.0", "006", HEX_CONST.C______RED], ["002", "1.0", "007", HEX_CONST.C____BROWN], ["002", "1.0", "006", HEX_CONST.C____GREEN], ["004", "1.0", "005", HEX_CONST.C___YELLOW], ["003", "1.0", "007", HEX_CONST.C___PURPLE], ["003", "1.0", "008", HEX_CONST.C___PURPLE, HEX_CONST.TILT_SS, 1], ["003", "2.0", "009", HEX_CONST.C___PURPLE]];
-const CIRCLE_WALKWAY_sw = [[x_start, y_start, z_start],
-// fix me
-[x_look, y_look, z_look], ["003", "1.0", "006"], ["004", "1.0", "006", HEX_CONST.C______RED],
-//   ["002", "1.0", "007", HEX_CONST.C____BROWN],
-["002", "1.0", "006", HEX_CONST.C____GREEN], ["004", "1.0", "005", HEX_CONST.C___YELLOW], ["002", "1.0", "007", HEX_CONST.C____BROWN], ["001", "1.0", "008", HEX_CONST.C____BROWN, HEX_CONST.TILT_SW, 1], ["000", "2.0", "009", HEX_CONST.C____BROWN]];
-const CIRCLE_WALKWAYse = [[x_start, y_start, z_start],
-// fix me
-[x_look, y_look, z_look], ["003", "1.0", "006"],
-// ["004", "1.0", "006", HEX_CONST.C______RED],
-//   ["002", "1.0", "007", HEX_CONST.C____BROWN],
-["002", "1.0", "006", HEX_CONST.C____GREEN], ["004", "1.0", "005", HEX_CONST.C___YELLOW], ["004", "1.0", "006", HEX_CONST.C______RED], ["005", "1.0", "006", HEX_CONST.C______RED, HEX_CONST.TILT_SE, 1], ["006", "2.0", "006", HEX_CONST.C______RED]];
-const CIRCLE_WALKWAY_smnp = [[x_start, y_start, z_start],
-// fix me
-[x_look, y_look, z_look], ["004", "1.2", "006", HEX_CONST.C____GREEN], ["003", "1.2", "007", HEX_CONST.C______RED], ["002", "1.2", "007", HEX_CONST.C___YELLOW], ["002", y_start, "006", HEX_CONST.C___PURPLE], ["003", "1.2", "005", HEX_CONST.C_____BLUE], ["004", "1.2", "005", HEX_CONST.C____BROWN]];
-const CIRCLE_WALKWAYttt = [[0, 2, 0],
-// fix me
-[0, 1, 0], ["000", "2.0", "000"], ["000", "1.0", "-01", HEX_CONST.C___YELLOW, HEX_CONST.TILT_SS, 1] //nnDownToFlat
-];
-const CIRCLE_WALKWAYFLOWER = [
-// FLOWER
-[x_start, y_start, z_start], [x_look, y_look, z_look],
-//    ["003", "0.2", "006", HEX_CONST.C_____BLUE, HEX_CONST.TILT_SE, 1.0],
-
-["004", "1", "006", HEX_CONST.C____GREEN, HEX_CONST.TILT_SE, 1.0], ["003", "1", "007", HEX_CONST.C____GREEN, HEX_CONST.TILT_SS, 1.0], ["002", "1", "007", HEX_CONST.C____GREEN, HEX_CONST.TILT_SW, 1.0], ["002", "1", "006", HEX_CONST.C____GREEN, HEX_CONST.TILT_NW, 1.0], ["003", "1", "005", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1.0], ["004", "1", "005", HEX_CONST.C____GREEN, HEX_CONST.TILT_NE, 1.0]
-//  ["001", "2.2", "006", HEX_CONST.C______RED, HEX_CONST.TILT_NW, 1.0]
-];
-const CIRCLE_WALKWAY_HAT = [
-// hat
-[x_start, y_start, z_start], [x_look, y_look, z_look],
-//    ["003", "0.2", "006", HEX_CONST.C_____BLUE, HEX_CONST.TILT_SE, 1.0],
-
-["004", "1", "006", HEX_CONST.C____GREEN, HEX_CONST.TILT_NW, 1.0], ["003", "1", "007", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1.0], ["002", "1", "007", HEX_CONST.C____GREEN, HEX_CONST.TILT_NE, 1.0], ["002", "1", "006", HEX_CONST.C____GREEN, HEX_CONST.TILT_SE, 1.0], ["003", "1", "005", HEX_CONST.C____GREEN, HEX_CONST.TILT_SS, 1.0], ["004", "1", "005", HEX_CONST.C____GREEN, HEX_CONST.TILT_SW, 1.0]
-//  ["001", "2.2", "006", HEX_CONST.C______RED, HEX_CONST.TILT_NW, 1.0]
-];
-const CIRCLE_WALLS_e = [
-  //  ["000", "3", "-03", HEX_CONST.C_____BLUE, HEX_CONST.WALL_SS, 1]
-  // ["003", "1.3", "008", HEX_CONST.C______RED, HEX_CONST.WALL_NN, 0.6],
-  // ["004", "1.4", "006", HEX_CONST.C____GREEN, HEX_CONST.WALL_NW, 0.9],
-  // ["001", "1.5", "006", HEX_CONST.C___PURPLE, HEX_CONST.WALL_SE, 2.0],
-  // ["005", "1.2", "004", HEX_CONST.C____BROWN, HEX_CONST.WALL_SW, 3.0],
-  // ["001", "1.2", "008", HEX_CONST.C___YELLOW, HEX_CONST.WALL_NE, 1.0]
-];
-const CIRCLE_WALKWAY_loop = [[0, 2, 0],
-// fix me
-[0, 1, 0], ["000", "2.0", "000"], ["000", "2.0", "-01", HEX_CONST.C_____BLUE],
-//nnFlatToFlat
-
-["000", "2.0", "-02", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1],
-// flattoUP
-
-["000", "4.0", "-02", HEX_CONST.C____GREEN, HEX_CONST.TILT_SS, 1],
-// flattoUP
-
-["000", "5.0", "-01", HEX_CONST.C_____BLUE] //nnFlatToFlat
-];
-const CIRCLE_WALKWAY_curvy = [
-//    [0, 2, 0], // start
-[0, 3, -6],
-// start
-[0, 1, -7],
-//[0, 1, 0],
-["000", "2.0", "000"], ["000", "2.0", "-01", HEX_CONST.C_____BLUE],
-//nnFlatToFlat
-
-["000", "2.0", "-02", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1],
-// flattoUP
-
-["000", "3.0", "-03", HEX_CONST.C___YELLOW, HEX_CONST.TILT_NN, 1],
-//UPtoflat
-
-["000", "4.0", "-04", HEX_CONST.C___PURPLE],
-// uptoFLAT
-
-["000", "3.0", "-05", HEX_CONST.C___YELLOW, HEX_CONST.TILT_SS, 1],
-//nnDownToFlat
-["000", "3.0", "-06", HEX_CONST.C______RED, HEX_CONST.TILT_NN, 1],
-//nnDownToFlat
-["000", "4.0", "-07", HEX_CONST.C______RED],
-//nnDownToFlat
-
-["100", "4.0", "-07", HEX_CONST.C______RED, HEX_CONST.TILT_NE, 1],
-//nnDownToFlat
-
-["000", "2.0", "1", HEX_CONST.C____GREEN, HEX_CONST.TILT_SS, 1],
-// flattoUP
-
-["000", "3.0", "2", HEX_CONST.C____GREEN],
-// flattoUP
-
-["-1", "3.0", "2", HEX_CONST.C____GREEN],
-// flattoUP
-["-1", "3.0", "1", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1],
-// flattoUP
-["-1", "4.0", "0", HEX_CONST.C____GREEN],
-// flattoUP
-["0", "4.0", "0", HEX_CONST.C____GREEN] // flattoUP
-];
-const CIRCLE_WALLS = exports.CIRCLE_WALLS = [["001", "200", "002", HEX_CONST.C_____BLUE, HEX_CONST.WALL_SW, 0.5],
-//["001", "2", "02", HEX_CONST.C_____BLUE, HEX_CONST.WALL_SW, 1.5],
-["001", "200", "003", HEX_CONST.C___YELLOW, HEX_CONST.WALL_NW, 0.5],
-//["001", "2", "3", HEX_CONST.C___YELLOW, HEX_CONST.WALL_NW, 0.5],
-
-["000", "200", "004", HEX_CONST.C______RED, HEX_CONST.WALL_NN, 0.5],
-//["00", "2", "004", HEX_CONST.C______RED, HEX_CONST.WALL_NN, 1.5],
-
-["-01", "200", "004", HEX_CONST.C___PURPLE, HEX_CONST.WALL_NE, 0.5],
-///  ["-1", "2", "004", HEX_CONST.C___PURPLE, HEX_CONST.WALL_NE, 0.5],
-["-01", "200", "003", HEX_CONST.C____BROWN, HEX_CONST.WALL_SE, 0.5] ///["-1", "2", "003", HEX_CONST.C____BROWN, HEX_CONST.WALL_SE, 1.5]
-];
-const CIRCLE_WALKWAY = exports.CIRCLE_WALKWAY = [[-2, 305, 0],
-//[0, 900, -2], //  [0, 6, 0], // start
-[7, 0, -6],
-// [0, 1, 3],
-[0x005500, 0x550000, 0x000055],
-// start
-[0x00ff00, 0xff0000, 0x0000ff],
-// light
-[0x00bb00, 0xbb0000, 0x0000bb],
-// dark
-[0xc0ffc0, 0xffc0c0, 0xc0c0ff],
-// edge
-
-["000", "400", "003"],
-// ["000", "350", "003"],
-
-["000", "200", "003"],
-//    ["000", "2.0", "003"],
-
-["000", "200", "002"],
-//   ["000", "2.0", "002"],
-["000", "200", "001"],
-//["000", "2.0", "001"],
-["000", "200", "000"],
-//["000", "2.0", "000"],
-
-["000", "200", "-01", HEX_CONST.TILT_NN, 1],
-//["000", "2.0", "-01", HEX_CONST.C____GREEN, HEX_CONST.TILT_NN, 1],
-["000", "300", "-02"],
-//["000", "3.0", "-02"],
-["001", "300", "-02", HEX_CONST.TILT_SE, 1],
-//    ["001", "3.0", "-02", HEX_CONST.C______RED, HEX_CONST.TILT_SE, 1],
-["002", "400", "-02"],
-//["002", "4.0", "-02"],
-["001", "400", "-01", HEX_CONST.TILT_SW, 1],
-//["001", "4.0", "-01", HEX_CONST.C______RED, HEX_CONST.TILT_SW, 1],
-["000", "500", "000"],
-//["000", "5.0", "0"],
-["000", "500", "001"],
-//["000", "5.0", "0"],
-
-["000", "500", "-01", HEX_CONST.TILT_NN, 1],
-//["0", "5.0", "-01", HEX_CONST.C______RED, HEX_CONST.TILT_NN, 1],
-["000", "600", "-02"],
-//["000", "6.0", "-2"],
-["000", "600", "-03"],
-// ["000", "6.0", "-3"],
-["000", "600", "-04"],
-//["000", "6.0", "-4"],
-["001", "600", "-04"],
-//["001", "6.0", "-4"],
-["002", "600", "-04"],
-//["002", "6.0", "-4"],
-////////////////////////////////
-
-["-8", "800", "3", HEX_CONST.TILT_SE, 1.0], ["-9", "800", "4", HEX_CONST.TILT_SS, 1.0], ["-10", "800", "4", HEX_CONST.TILT_SW, 1.0], ["-10", "800", "3", HEX_CONST.TILT_NW, 1.0], ["-9", "800", "2", HEX_CONST.TILT_NN, 1.0], ["-8", "800", "2", HEX_CONST.TILT_NE, 1.0]];
-// NB only 1.0  1.5
-
-//const CIRCLE_TRAMPOLINES = [["-2", "0", "2"]];
-const tnn = ["-2", "0", "0", HEX_CONST.TILT_NN, 1.0];
-const tss = ["-2", "0", "9", HEX_CONST.TILT_SS, 1.0];
-const tsw = ["2", "0", "1", HEX_CONST.TILT_SW, 1.0];
-const tne = ["4", "0", "-3", HEX_CONST.TILT_NE, 1.0];
-const tflat = ["-6", "500", "2"];
-const CIRCLE_TRAMPOLINES = exports.CIRCLE_TRAMPOLINES = [tnn, tss, tsw, tne, tflat];
-const CIRCLE_PENTAGONS = exports.CIRCLE_PENTAGONS = [["0", "270", "3", HEX_CONST.C____GREEN]];
-
-},{"../constants.js":10,"../misc/console-short.js":17}],16:[function(require,module,exports){
+},{"../misc/console-short.js":17}],13:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.axial_round = axial_round;
-exports.coords2HexIndexes = coords2HexIndexes;
-exports.distance2hexpoints = distance2hexpoints;
-exports.tileCenterCoord = tileCenterCoord;
-var _consoleShort = require("./misc/console-short.js");
-const SQRT_3 = Math.sqrt(3);
-function distance2hexpoints(hex_point_1, hex_point_2) {
-  let x_diff = hex_point_2[0] - hex_point_1[0];
-  let z_diff = hex_point_2[2] - hex_point_1[2];
-  let length = Math.sqrt(x_diff * x_diff + z_diff * z_diff);
-  return length;
+exports.TRIE_FIGURE = void 0;
+var _theConstants = require("../values/the-constants.js");
+var _trampolineConst = require("../vertical-movement/trampoline-const.js");
+const TRIE_WALKWAY = [["1", _theConstants.HEIGHT_Y___11, "-1"], ["1", _theConstants.HEIGHT_Y___11, "0"], ["2", _theConstants.HEIGHT_Y___11, "0"], ["3", _theConstants.HEIGHT_Y___11, "0"], ["0", _theConstants.HEIGHT_Y___11, "0"], ["001", _theConstants.HEIGHT_Y___11, "-2"], ["001", _theConstants.HEIGHT_Y___11, "-3"], ["001", _theConstants.HEIGHT_Y___11, "-4"],
+//    ["000", HEIGHT_Y___11, "-1"],
+["000", _theConstants.HEIGHT_Y____9, "-1"], ["-01", _theConstants.HEIGHT_Y___11, "2"], ["-01", _theConstants.HEIGHT_Y___11, "1"], ["-01", _theConstants.HEIGHT_Y___11, "0"], ["-02", _theConstants.HEIGHT_Y___11, "0"], ["-03", _theConstants.HEIGHT_Y___11, "0"]];
+
+//const fence_1 = { hex_a: ["0", HEIGHT_Y___11, "0"], hex_b: ["0", HEIGHT_Y___11, "-1"], fence_height: HEIGHT_Y____5 }; //     NN
+const fence_1 = {
+  hex_a: ["0", _theConstants.HEIGHT_Y___11, "-1"],
+  hex_b: ["0", _theConstants.HEIGHT_Y___11, "0"],
+  fence_height: _theConstants.HEIGHT_Y____5
+}; //   SS       NORTH OF 0,0
+
+//const fence_2 = { hex_a: ["0", HEIGHT_Y___11, "0"], hex_b: ["0", HEIGHT_Y___11, "1"], fence_height: HEIGHT_Y____5 }; // SS
+const fence_2 = {
+  hex_a: ["0", _theConstants.HEIGHT_Y___11, "1"],
+  hex_b: ["0", _theConstants.HEIGHT_Y___11, "0"],
+  fence_height: _theConstants.HEIGHT_Y____5
+}; //  NN             SOUTH of 0,0
+
+//const fence_4 = { hex_a: ["0", HEIGHT_Y___11, "0"], hex_b: ["1", HEIGHT_Y___11, "-1"], fence_height: HEIGHT_Y____5 }; // NE
+const fence_4 = {
+  hex_a: ["1", _theConstants.HEIGHT_Y___11, "-1"],
+  hex_b: ["0", _theConstants.HEIGHT_Y___11, "0"],
+  fence_height: _theConstants.HEIGHT_Y____5
+}; //  SW       NORTH EAST OF 0,0
+
+//const fence_6 = { hex_a: ["0", HEIGHT_Y___11, "0"], hex_b: ["-1", HEIGHT_Y___11, "1"], fence_height: HEIGHT_Y____5 }; //  SW
+const fence_6 = {
+  hex_a: ["-1", _theConstants.HEIGHT_Y___11, "1"],
+  hex_b: ["0", _theConstants.HEIGHT_Y___11, "0"],
+  fence_height: _theConstants.HEIGHT_Y____5
+}; //   NE     south west of 0,0
+
+//const TRIE_FENCES = [fence_1, fence_2, fence_3, fence_4, fence_5, fence_6];  // 3 5
+
+////////////////////
+const fence_3 = {
+  hex_a: ["0", _theConstants.HEIGHT_Y___11, "0"],
+  hex_b: ["-1", _theConstants.HEIGHT_Y___11, "0"],
+  fence_height: _theConstants.HEIGHT_Y____5
+}; // SE   ????????????  fence_3
+//const fence_3 = { hex_a: ["-1", HEIGHT_Y___11, "0"], hex_b: ["0", HEIGHT_Y___11, "0"], fence_height: HEIGHT_Y____5 }; //  NW         NORTH WEST of 0,0
+
+const fence_5 = {
+  hex_a: ["0", _theConstants.HEIGHT_Y___11, "0"],
+  hex_b: ["1", _theConstants.HEIGHT_Y___11, "0"],
+  fence_height: _theConstants.HEIGHT_Y____5
+}; //  NW        SOUTH EAST OF 0,0
+//const fence_5 = { hex_a: ["1", HEIGHT_Y___11, "0"], hex_b: ["0", HEIGHT_Y___11, "0"], fence_height: HEIGHT_Y____5 }; // SE  ???????????
+
+const TRIE_FENCES = [fence_3];
+
+//const TRIE_TRAMPOLINES = [["0", HEIGHT_Y____9, "1", BOUNCE_SPEED___4, BOUNCE_COUNT___25, TILT_SW, INCLINE___1]];
+const TRIE_TRAMPOLINES = [
+//   ["000", HEIGHT_Y___10, "-1", BOUNCE_SPEED___4, BOUNCE_COUNT___25, TILT_NONE, INCLINE___0],
+
+["0", _theConstants.HEIGHT_Y___11, "1", _trampolineConst.BOUNCE_SPEED___4, _trampolineConst.BOUNCE_COUNT___25, _theConstants.TILT_NONE, _theConstants.INCLINE___0]];
+const TRIE_FIGURE = exports.TRIE_FIGURE = {
+  walkway_locs: TRIE_WALKWAY,
+  fence_locs: TRIE_FENCES,
+  trampoline_locs: TRIE_TRAMPOLINES,
+  pentagon_locs: []
+};
+
+},{"../values/the-constants.js":52,"../vertical-movement/trampoline-const.js":55}],14:[function(require,module,exports){
+"use strict";
+
+var _theGlobals = require("./values/the-globals.js");
+var _perspectiveCamera = require("./controls/perspective-camera.js");
+var _playerMoves = require("./vertical-movement/player-moves.js");
+var _minorRoutines = require("./misc/minor-routines.js");
+var _hexRoutines = require("./tiles/hex-routines.js");
+var _startUp = require("./values/start-up.js");
+let {
+  f_this_coords,
+  f_y100_height,
+  f_bounce_speed,
+  f_step_iterations,
+  f_cam_vect,
+  f_this_hex,
+  f_prev_hex
+} = _startUp.frame_vars;
+let {
+  g_camera,
+  f_prev_coords,
+  f_fall_step_size,
+  f_rise_step_size,
+  f_jump_x_step,
+  f_jump_z_step,
+  f_move_result
+} = _startUp.frame_vars;
+const frameTick = () => {
+  [f_cam_vect, f_this_coords] = (0, _theGlobals.camVectCoords)(g_camera, f_y100_height);
+  let frame_vars = {
+    f_step_iterations,
+    // 20
+    f_bounce_speed,
+    // 4
+    f_cam_vect,
+    //     Vector3 {x: -1.36, y: 12, z: 0.58}
+    f_fall_step_size,
+    //    20
+    f_rise_step_size,
+    //    21
+    f_jump_x_step,
+    //  0.13
+    f_jump_z_step,
+    //  0.31
+    f_move_result,
+    //  MV_TILE_SAME
+    f_prev_coords,
+    //  {x: -1.17, y: 1100, z: -0.21}
+    f_prev_hex,
+    //     -1,1000,0
+    f_this_coords,
+    //  {x: -1.17, y: 1100, z: -0.32}
+    f_this_hex,
+    //     -2,900,1
+    f_y100_height //   1100
+  };
+  let changed_vars = (0, _perspectiveCamera.followCamera)(_startUp.the_objects, frame_vars, _startUp.e_do_click, g_camera);
+  ({
+    f_step_iterations,
+    f_rise_step_size,
+    f_prev_hex,
+    f_bounce_speed,
+    f_move_result,
+    f_y100_height
+  } = changed_vars);
+  ({
+    f_this_hex,
+    f_jump_x_step,
+    f_jump_z_step,
+    f_fall_step_size,
+    f_prev_coords,
+    f_this_coords
+  } = changed_vars);
+  f_y100_height = (0, _minorRoutines.minorTicks)(_startUp.the_objects, _startUp.the_globals, f_cam_vect, f_prev_coords, f_this_coords, f_y100_height, frameTick);
+  const hex_data = {
+    f_prev_coords,
+    f_this_coords,
+    f_y100_height,
+    f_move_result,
+    f_cam_vect
+  };
+  [f_prev_coords, f_this_coords, f_y100_height] = (0, _hexRoutines.currentHexIdxs)(hex_data);
+  g_camera = (0, _theGlobals.moveCamera)(_startUp.the_globals, _startUp.the_objects, f_this_coords, f_y100_height, f_move_result);
+  const bounce_data = {
+    f_step_iterations,
+    f_move_result,
+    g_camera,
+    f_jump_x_step,
+    f_jump_z_step,
+    f_y100_height
+  };
+  [f_step_iterations, g_camera] = (0, _playerMoves.bouncePlayer)(bounce_data, _startUp.the_objects.o_unvisited_tiles);
+};
+frameTick();
+
+},{"./controls/perspective-camera.js":8,"./misc/minor-routines.js":20,"./tiles/hex-routines.js":30,"./values/start-up.js":51,"./values/the-globals.js":53,"./vertical-movement/player-moves.js":54}],15:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.doMap1 = doMap1;
+var _consoleShort = require("../misc/console-short.js");
+var _trieShape = require("../figures/trie-shape.js");
+var _figurePath = require("../figures/figure-path.js");
+var _mergeFigures = require("./merge-figures.js");
+var _hexTile = require("../tiles/hex-tile.js");
+var _theConstants = require("../values/the-constants.js");
+var _trampolineConst = require("../vertical-movement/trampoline-const.js");
+// const start_x_ndx = -3;
+// const start_y_ndx = 2300;
+// const start_z_ndx = -3;
+
+const start_x_ndx = -4;
+const start_y_ndx = 1100;
+const start_z_ndx = -0;
+const start_tile = [start_x_ndx, start_y_ndx, start_z_ndx, _theConstants.TILT_NONE, _theConstants.INCLINE___0, _theConstants.IS_TRANSPARENT];
+const look_x_ndx = -1;
+const look_y_ndx = 1210;
+const look_z_ndx = 0;
+function makeMap1() {
+  const start_figure = (0, _figurePath.createStartFigure)("start-bobo", start_tile);
+  const fig_1 = (0, _figurePath.translateFigure)(_trieShape.TRIE_FIGURE, 0, 0, 0);
+  // const fig_2 = translateFigure(TRIE_FIGURE, 10, -500, 0);
+
+  const trampoline_fig = {
+    trampoline_locs: [["0", _theConstants.HEIGHT_Y___11, "3", _trampolineConst.BOUNCE_SPEED___4, _trampolineConst.BOUNCE_COUNT___25, _theConstants.TILT_SS, _theConstants.INCLINE___1]]
+  };
+
+  // const fig_3 = translateFigure(TRIE_FIGURE, 0, -1000, 10);
+  //    const maps_figures = [start_figure, fig_1, fig_2, fig_3];
+  const maps_figures = [start_figure, fig_1, trampoline_fig];
+  const trie_map = (0, _mergeFigures.translateAllFigures)(maps_figures);
+  return trie_map;
+}
+function startMap1() {
+  let [start_coord_x, start_coord_z] = (0, _hexTile.tileCenterCoord)(start_x_ndx, start_z_ndx);
+  let start_location = [start_coord_x, start_y_ndx, start_coord_z];
+  let [look_coord_x, look_coord_z] = (0, _hexTile.tileCenterCoord)(look_x_ndx, look_z_ndx);
+  let start_look_at = [look_coord_x, look_y_ndx, look_coord_z];
+  return [start_location, start_look_at];
+}
+function doMap1() {
+  let the_map = makeMap1();
+  let [start_location, start_look_at] = startMap1();
+  return [the_map, start_location, start_look_at];
 }
 
-// https://observablehq.com/@jrus/hexround
-function axial_round(x, y) {
-  const xgrid = Math.round(x),
-    ygrid = Math.round(y);
-  x -= xgrid, y -= ygrid; // remainder
-  const dx = Math.round(x + 0.5 * y) * (x * x >= y * y);
-  const dy = Math.round(y + 0.5 * x) * (x * x < y * y);
-  const not_neg_0_x = xgrid + dx + 0;
-  const not_neg_0y = ygrid + dy + 0;
-  return [not_neg_0_x, not_neg_0y];
+},{"../figures/figure-path.js":12,"../figures/trie-shape.js":13,"../misc/console-short.js":17,"../tiles/hex-tile.js":31,"../values/the-constants.js":52,"../vertical-movement/trampoline-const.js":55,"./merge-figures.js":16}],16:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.translateAllFigures = translateAllFigures;
+var _consoleShort = require("../misc/console-short.js");
+function translateAllFigures(maps_figures) {
+  const trie_map = {
+    walkway_locs: [],
+    fence_locs: [],
+    trampoline_locs: [],
+    pentagon_locs: []
+  };
+  for (const a_trie of maps_figures) {
+    let {
+      walkway_locs,
+      fence_locs,
+      trampoline_locs,
+      pentagon_locs
+    } = a_trie;
+    if (walkway_locs) {
+      trie_map.walkway_locs.push(...walkway_locs);
+    }
+    if (fence_locs) {
+      trie_map.fence_locs.push(...fence_locs);
+    }
+    if (trampoline_locs) {
+      trie_map.trampoline_locs.push(...trampoline_locs);
+    }
+    if (pentagon_locs) {
+      trie_map.pentagon_locs.push(...pentagon_locs);
+    }
+  }
+  return trie_map;
 }
 
-//  https://www.redblobgames.com/grids/hexagons/#pixel-to-hex
-//function pixel_to_flat_he xMe(x_coord, z_coord) {
-//       camCoords2HexIndexes()
-function coords2HexIndexes(x_coord, z_coord) {
-  // invert the scaling
-  var x = x_coord / 1;
-  var y = z_coord / 1;
-  // cartesian to hex
-  var q = 2 / 3 * x;
-  var r = -1 / 3 * x + SQRT_3 / 3 * y;
-  let ar = axial_round(q, r);
-  return ar;
-}
-function tileCenterCoord(x_tile, z_tile) {
-  const x_coord = 3 / 2 * x_tile;
-  const z_coord = SQRT_3 / 2 * x_tile + SQRT_3 * z_tile;
-  coords2HexIndexes(x_coord, z_coord);
-  return [x_coord, z_coord];
-}
-
-},{"./misc/console-short.js":17}],17:[function(require,module,exports){
+},{"../misc/console-short.js":17}],17:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.tt = exports.ee = exports.TT = exports.EE = void 0;
-// 2 hex-routines.js  and console-short.js
-
 /*
 cons ole.log("hexPoints unknown  up_direction==", up_direction);
  ee("hexPoints unknown  up_direction==", up_direction);
@@ -22531,18 +22605,29 @@ const ee = (...args) => {
 };
 
 /*
-cons ole.log(`TEST allowed NW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-tt(`allowed NW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
+cons ole.log(`TEST allowed NW :: ${RUN_OR_TEST} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
+t t(`allowed NW :: ${RUN_OR_TEST} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
 */
 exports.ee = ee;
 const tt = (...args) => {
-  const prefix = `TEST `;
-  if (typeof args[0] === "string") {
-    args[0] = `${prefix} ${args[0]}`;
+  let max_prints = 100;
+  if (window.HEX_VARS == undefined) {
+    max_prints = 100;
   } else {
-    args.unshift(prefix);
+    max_prints = window.HEX_VARS.MAX_PRINTS;
+    max_prints--;
+    window.HEX_VARS.MAX_PRINTS = max_prints;
   }
-  window["con" + "sole"].log(...args);
+  if (max_prints > 0) {
+    //        const tt_prefix = `TT ${max_prints} \\`;
+    const tt_prefix = `TT \\`;
+    if (typeof args[0] === "string") {
+      args[0] = `${tt_prefix} ${args[0]}`;
+    } else {
+      args.unshift(tt_prefix);
+    }
+    window["con" + "sole"].log(...args);
+  }
 };
 exports.tt = tt;
 const TT = exports.TT = tt;
@@ -23843,104 +23928,338 @@ const type_face = exports.type_face = {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.tile3color = tile3color;
+exports.axial_round = axial_round;
+exports.coords2Indexes = coords2Indexes;
+exports.distance2hexpoints = distance2hexpoints;
+exports.tileCenterCoord = tileCenterCoord;
 var _consoleShort = require("./console-short.js");
-function tile3color(x_y_z, tile_3colors) {
-  // tt(tile_3colors);
-  let {
-    start_3colors,
-    light_3colors,
-    dark_3colors,
-    edge_3colors
-  } = tile_3colors;
-  const [x_index, _y_height, z_index] = x_y_z;
-  const c3 = ((x_index - z_index) % 3 + 3) % 3;
-  const start_color = start_3colors[c3];
-  const light_color = light_3colors[c3];
-  const dark_color = dark_3colors[c3];
-  const edge_color = edge_3colors[c3];
-  return {
-    start_color,
-    light_color,
-    dark_color,
-    edge_color
-  };
+var _theConstants = require("../values/the-constants.js");
+function distance2hexpoints(hex_point_1, hex_point_2) {
+  let x_diff = hex_point_2[0] - hex_point_1[0];
+  let z_diff = hex_point_2[2] - hex_point_1[2];
+  let length = Math.sqrt(x_diff * x_diff + z_diff * z_diff);
+  return length;
 }
 
-},{"./console-short.js":17}],20:[function(require,module,exports){
+// https://observablehq.com/@jrus/hexround
+function axial_round(x, y) {
+  const xgrid = Math.round(x),
+    ygrid = Math.round(y);
+  x -= xgrid, y -= ygrid; // remainder
+  const dx = Math.round(x + 0.5 * y) * (x * x >= y * y);
+  const dy = Math.round(y + 0.5 * x) * (x * x < y * y);
+  const not_nes_0_x = xgrid + dx + 0;
+  const not_nes_0y = ygrid + dy + 0;
+  return [not_nes_0_x, not_nes_0y];
+}
+
+//  https://www.redblobgames.com/grids/hexagons/#pixel-to-hex
+//function pixel_to_flat_he xMe(x_coord, z_coord) {
+//       camcoords2Indexes()
+function coords2Indexes(x_coord, z_coord) {
+  // invert the scaling
+  var x = x_coord / 1;
+  var y = z_coord / 1;
+  // cartesian to hex
+  var q = 2 / 3 * x;
+  var r = -1 / 3 * x + _theConstants.SQRT_3 / 3 * y;
+  let ar = axial_round(q, r);
+  return ar;
+}
+function tileCenterCoord(x_tile, z_tile) {
+  const x_coord = 3 / 2 * x_tile;
+  const z_coord = _theConstants.SQRT_3 / 2 * x_tile + _theConstants.SQRT_3 * z_tile;
+  coords2Indexes(x_coord, z_coord);
+  return [x_coord, z_coord];
+}
+
+},{"../values/the-constants.js":52,"./console-short.js":17}],20:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.makePentagon = makePentagon;
+exports.drawFps = drawFps;
+exports.minorTicks = minorTicks;
+var _theGlobals = require("../values/the-globals.js");
+var _pentagonCoords = require("../pentagon/pentagon-coords.js");
+var _consoleShort = require("./console-short.js");
+var _theConstants = require("../values/the-constants.js");
+const e_environment = _theConstants.PROD_ENVIRONMENT;
+const e_record_enemy_points = _theConstants.RECORD_ENEMY_POINTS;
+let e_enemy_points = {
+  copy_output: ""
+};
+function minorTicks(the_objects, the_globals, f_cam_vect, f_prev_coords, f_this_coords, f_y100_height, frameTick) {
+  (0, _theGlobals.drawBreadcrumbs)(the_globals, f_cam_vect);
+  (0, _pentagonCoords.doSpin)(the_objects);
+  f_y100_height = (0, _theGlobals.resetUnderneath)(f_y100_height);
+  (0, _pentagonCoords.recordPentagon)(e_record_enemy_points, e_enemy_points, f_prev_coords, f_this_coords);
+  (0, _theGlobals.renderRequest)(the_globals, frameTick);
+  return f_y100_height;
+}
+function drawFps(g_bench, now_time) {
+  g_bench.begin();
+  // monitored code
+  g_bench.end();
+  g_bench.nextFrame(now_time);
+}
+
+},{"../pentagon/pentagon-coords.js":25,"../values/the-constants.js":52,"../values/the-globals.js":53,"./console-short.js":17}],21:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.seaColor = seaColor;
+var _consoleShort = require("./console-short.js");
+function seaColor(x_y_z, three_colors) {
+  const [x_index, _y_height, z_index] = x_y_z;
+  const c3 = ((x_index - z_index) % 3 + 3) % 3;
+  const start_color = three_colors[c3];
+  return start_color;
+}
+
+},{"./console-short.js":17}],22:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.XyzDot = XyzDot;
 var _consoleShort = require("../misc/console-short.js");
-var HEX_CONST = _interopRequireWildcard(require("../constants.js"));
-var _three = _interopRequireWildcard(require("three"));
-var THREE = _three;
-var _maths = require("../maths.js");
+var THREE = _interopRequireWildcard(require("three"));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-//import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
+/*
+XyzDot 4 0 4.497165515241812 4.333399999998501
+XyzDot 3 0 3.0431959310833934 4.30019999999552
+*/
+
+function XyzDot(g_scene, x, y, z, the_color) {
+  const y_floor = Math.floor(y);
+  if (x >= 0 && x < 1 && z > 2 && z < 6) {} else {}
+  const dotGeometry = new THREE.BufferGeometry();
+  dotGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array([x, y - 0.5, z]), 3));
+  const dotMaterial = new THREE.PointsMaterial({
+    size: 0.04,
+    color: the_color
+  });
+  const dot = new THREE.Points(dotGeometry, dotMaterial);
+
+  // dot.position.x = 7.5;
+  // dot.position.y = 0;
+  // dot.position.z = 7.5;
+
+  g_scene.add(dot);
+}
+
+},{"../misc/console-short.js":17,"three":3}],23:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.AScene = AScene;
+var _consoleShort = require("../misc/console-short.js");
+var THREE = _interopRequireWildcard(require("three"));
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
+function AScene(background_color) {
+  const a_scene = new THREE.Scene();
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+  a_scene.add(ambientLight);
+  a_scene.background = new THREE.Color(background_color);
+  return a_scene;
+}
+
+},{"../misc/console-short.js":17,"three":3}],24:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.buildListener = buildListener;
+exports.buildObjects = buildObjects;
+exports.buildRenderer = buildRenderer;
+exports.buildScene = buildScene;
+var _consoleShort = require("../misc/console-short.js");
+var _colorConsts = require("../values/color-consts.js");
+var _walkwayCoords = require("../tiles/walkway-coords.js");
+var _makeFences = require("../fences/make-fences.js");
+var _trampolineCoords = require("../vertical-movement/trampoline-coords.js");
+var _pentagonCoords = require("../pentagon/pentagon-coords.js");
+var _groundTiles = require("../tiles/ground-tiles.js");
+var THREE = _interopRequireWildcard(require("three"));
+var _glBench = _interopRequireDefault(require("gl-bench/dist/gl-bench.module"));
+var _aScene = require("../objects/a-scene.js");
+var _perspectiveCamera = require("../controls/perspective-camera.js");
+function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
+function buildObjects(g_scene, o_fence_ndxs, o_walkway_ndxs, o_trampolines, o_pentagons, o_unvisited_tiles) {
+  var o_ground_tiles = new Map([]);
+  var o_object_meshes = new Map([]);
+  var o_walkway_tiles = new Map([]);
+  var o_walkway_columns = new Map([]);
+  var o_fence_walls = new Map([]);
+  var o_fence_columns = new Map([]);
+  [o_object_meshes, o_walkway_tiles, o_walkway_columns] = (0, _walkwayCoords.makeWalkway)(g_scene, o_object_meshes, o_walkway_ndxs, o_walkway_tiles, o_walkway_columns, _colorConsts.WALK_BEFORE_COLORS, _colorConsts.WALK_EDGE);
+  [o_object_meshes, o_fence_walls, o_fence_columns] = (0, _makeFences.makeFences)(g_scene, o_object_meshes, o_fence_ndxs, o_fence_walls, o_fence_columns);
+  [o_object_meshes, o_ground_tiles] = (0, _groundTiles.ground_field)(g_scene, o_object_meshes, o_ground_tiles, -10, 10, _colorConsts.SEA_COLORS, _colorConsts.SEA_EDGE);
+  let o_trampoline_meshes;
+  [o_trampoline_meshes, o_trampolines] = (0, _trampolineCoords.makeTrampolines)(g_scene, o_trampolines);
+  let o_pentagon_meshes;
+  [o_pentagon_meshes, o_pentagons] = (0, _pentagonCoords.makePentagon)(g_scene, o_object_meshes, o_pentagons);
+  return {
+    o_fence_walls,
+    o_object_meshes,
+    o_walkway_tiles,
+    o_walkway_columns,
+    o_fence_ndxs,
+    o_fence_columns,
+    o_ground_tiles,
+    o_trampolines,
+    o_trampoline_meshes,
+    o_pentagons,
+    o_pentagon_meshes,
+    o_unvisited_tiles
+  };
+}
+const HI_DPI_ENABLE = Math.min(window.devicePixelRatio, 2);
+function buildScene() {
+  const g_width = window.innerWidth - 10;
+  const g_height = window.innerHeight - 35;
+  const dark_gray = 0x202025;
+  const g_scene = (0, _aScene.AScene)(dark_gray);
+  const the_fov = 75;
+  const width_height = [g_width, g_height];
+  const nf_planes = [0.1, 1000];
+  const g_camera = (0, _perspectiveCamera.PerspCamera)(the_fov, width_height, nf_planes);
+  return {
+    g_scene,
+    g_camera,
+    g_width,
+    g_height
+  };
+}
+function buildRenderer(g_scene, g_width, g_height) {
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+  g_scene.add(ambientLight);
+  const pointLight = new THREE.PointLight(0xffffff, 10);
+  pointLight.position.set(2, 3, 4);
+  g_scene.add(pointLight);
+  const axesHelper = new THREE.AxesHelper(5); // xyz -> rgb
+  g_scene.add(axesHelper);
+  const g_renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+  g_renderer.setSize(g_width, g_height);
+  g_renderer.setPixelRatio(HI_DPI_ENABLE);
+  document.body.appendChild(g_renderer.domElement);
+  let g_bench = new _glBench.default(g_renderer.getContext());
+  return {
+    g_renderer,
+    g_bench
+  };
+}
+function buildListener(g_camera, g_renderer) {
+  window.addEventListener("resize", () => {
+    let new_width = window.innerWidth;
+    let new_height = window.innerHeight;
+    (0, _perspectiveCamera.projMatrix)(g_camera, [new_width, new_height]);
+    g_renderer.setSize(new_width, new_height);
+    g_renderer.setPixelRatio(HI_DPI_ENABLE);
+  });
+}
+
+},{"../controls/perspective-camera.js":8,"../fences/make-fences.js":11,"../misc/console-short.js":17,"../objects/a-scene.js":23,"../pentagon/pentagon-coords.js":25,"../tiles/ground-tiles.js":29,"../tiles/walkway-coords.js":47,"../values/color-consts.js":49,"../vertical-movement/trampoline-coords.js":56,"gl-bench/dist/gl-bench.module":1,"three":3}],25:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.doSpin = doSpin;
+exports.makePentagon = makePentagon;
+exports.recordPentagon = recordPentagon;
+var _consoleShort = require("../misc/console-short.js");
+var _theConstants = require("../values/the-constants.js");
+var THREE = _interopRequireWildcard(require("three"));
+var _hexMaths = require("../misc/hex-maths.js");
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
+//import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../values/constants.js";
 
 //import { roundTrampoline } from "./circle-trampoline.js";
 
-function makePentagon(the_scene, object_meshes, g_pentagons) {
-  var trampoline_columns = new Map();
-  let pentagon_meshes = new Map();
-  for (var i = 0; i < g_pentagons.length; i++) {
-    const trampoline_data = g_pentagons[i];
-    const [x_str, y_str, z_str] = trampoline_data;
+const PENTAGON_RISE = 0.59;
+function recordPentagon(e_record_enemy_points, e_enemy_points, f_prev_coords, f_this_coords) {
+  if (e_record_enemy_points === _theConstants.RECORD_ENEMY_POINTS) {
+    if (f_this_coords.x !== f_prev_coords.x || f_this_coords.y !== f_prev_coords.y || f_this_coords.z !== f_prev_coords.z) {
+      if (e_enemy_points.copy_output !== "") {
+        let x = Math.floor(f_this_coords.x * 100) / 100;
+        //let y = f_this_coords.y;
+        let y = f_this_coords.y / 100 + PENTAGON_RISE;
+        let z = Math.floor(f_this_coords.z * 100) / 100;
+        let x_y_z = `\n[${x},${y},${z}],`;
+        e_enemy_points.copy_output += x_y_z;
+      }
+    }
+  }
+}
+const PENTAGON_POINTS_0 = [[-1.51, 11.59, -16.43], [-1.51, 11.59, -16.39], [-1.51, 11.59, -16.36], [-1.51, 11.59, -16.33], [-1.51, 11.59, -16.29], [-1.51, 11.59, -16.26], [-1.51, 11.59, -16.23], [-1.51, 11.59, -16.19], [-1.51, 11.59, -16.16], [-1.51, 11.59, -16.13], [-1.51, 11.59, -16.09], [-1.51, 11.59, -16.06], [-1.52, 11.59, -16.03], [-1.52, 11.59, -15.99], [-1.52, 11.59, -15.96], [-1.52, 11.59, -15.93], [-1.52, 11.59, -15.89], [-1.52, 11.59, -15.86], [-1.52, 11.59, -15.83], [-1.52, 11.59, -15.79], [-1.52, 11.59, -15.76], [-1.52, 11.59, -15.73], [-1.52, 11.59, -15.69], [-1.52, 11.59, -15.66], [-1.52, 11.59, -15.63], [-1.53, 11.59, -15.59], [-1.53, 11.59, -15.56], [-1.53, 11.59, -15.53], [-1.53, 11.59, -15.49], [-1.53, 11.59, -15.46], [-1.53, 11.59, -15.43], [-1.53, 11.59, -15.39], [-1.53, 11.59, -15.36], [-1.53, 11.59, -15.33], [-1.53, 11.59, -15.29], [-1.53, 11.59, -15.26], [-1.53, 11.59, -15.23], [-1.53, 11.59, -15.19], [-1.54, 11.59, -15.16], [-1.54, 11.59, -15.13], [-1.54, 11.59, -15.1], [-1.54, 11.59, -15.06], [-1.54, 11.59, -15.03], [-1.54, 11.59, -14.99], [-1.54, 11.59, -14.96], [-1.54, 11.59, -14.93], [-1.54, 11.59, -14.89], [-1.54, 11.59, -14.86], [-1.54, 11.59, -14.83], [-1.54, 11.59, -14.8], [-1.54, 11.59, -14.76], [-1.54, 11.59, -14.73], [-1.55, 11.59, -14.69], [-1.55, 11.59, -14.66], [-1.55, 11.59, -14.63], [-1.55, 11.59, -14.59], [-1.55, 11.59, -14.56], [-1.55, 11.59, -14.53], [-1.55, 11.59, -14.5], [-1.55, 11.59, -14.46], [-1.55, 11.59, -14.43], [-1.55, 11.59, -14.39], [-1.55, 11.59, -14.36], [-1.55, 11.59, -14.33], [-1.55, 11.59, -14.29], [-1.55, 11.59, -14.26], [-1.56, 11.59, -14.23], [-1.56, 11.59, -14.19], [-1.56, 11.59, -14.16], [-1.56, 11.59, -14.13], [-1.56, 11.59, -14.09], [-1.56, 11.59, -14.06], [-1.56, 11.59, -14.03], [-1.56, 11.59, -13.99], [-1.56, 11.59, -13.96], [-1.56, 11.59, -13.93], [-1.56, 11.59, -13.89], [-1.56, 11.59, -13.86], [-1.56, 11.59, -13.83], [-1.56, 11.59, -13.79], [-1.57, 11.59, -13.76], [-1.57, 11.59, -13.73], [-1.57, 11.59, -13.7], [-1.57, 11.59, -13.66], [-1.57, 11.59, -13.63], [-1.57, 11.59, -13.59], [-1.57, 11.59, -13.56], [-1.57, 11.59, -13.53], [-1.57, 11.59, -13.5], [-1.57, 11.59, -13.46], [-1.57, 11.59, -13.43], [-1.57, 11.59, -13.39], [-1.57, 11.59, -13.36], [-1.57, 11.59, -13.33], [-1.58, 11.59, -13.29], [-1.58, 11.59, -13.26], [-1.58, 11.59, -13.23], [-1.58, 11.59, -13.19], [-1.58, 11.59, -13.16], [-1.58, 11.59, -13.13], [-1.58, 11.59, -13.09], [-1.58, 11.59, -13.06], [-1.58, 11.59, -13.03], [-1.58, 11.59, -12.99], [-1.58, 11.59, -12.96], [-1.58, 11.59, -12.93], [-1.58, 11.59, -12.9], [-1.58, 11.59, -12.86], [-1.58, 11.59, -12.89], [-1.59, 11.59, -12.93], [-1.59, 11.59, -12.96], [-1.59, 11.59, -12.99], [-1.59, 11.59, -13.03], [-1.6, 11.59, -13.06], [-1.6, 11.59, -13.09], [-1.6, 11.59, -13.13], [-1.61, 11.59, -13.16], [-1.61, 11.59, -13.19], [-1.61, 11.59, -13.23], [-1.62, 11.59, -13.26], [-1.62, 11.59, -13.29], [-1.62, 11.59, -13.32], [-1.62, 11.59, -13.36], [-1.63, 11.59, -13.39], [-1.63, 11.59, -13.43], [-1.63, 11.59, -13.46], [-1.64, 11.59, -13.49], [-1.64, 11.59, -13.52], [-1.64, 11.59, -13.56], [-1.65, 11.59, -13.59], [-1.65, 11.59, -13.62], [-1.65, 11.59, -13.66], [-1.66, 11.59, -13.69], [-1.66, 11.59, -13.72], [-1.66, 11.59, -13.76], [-1.66, 11.59, -13.79], [-1.67, 11.59, -13.82], [-1.67, 11.59, -13.86], [-1.67, 11.59, -13.89], [-1.68, 11.59, -13.92], [-1.68, 11.59, -13.96], [-1.68, 11.59, -13.99], [-1.69, 11.59, -14.02], [-1.69, 11.59, -14.06], [-1.69, 11.59, -14.09], [-1.69, 11.59, -14.12], [-1.7, 11.59, -14.16], [-1.7, 11.59, -14.19], [-1.7, 11.59, -14.22], [-1.7, 11.59, -14.25], [-1.71, 11.59, -14.29], [-1.71, 11.59, -14.32], [-1.71, 11.59, -14.35], [-1.71, 11.59, -14.39], [-1.71, 11.59, -14.42], [-1.72, 11.59, -14.45], [-1.72, 11.59, -14.49], [-1.72, 11.59, -14.52], [-1.72, 11.59, -14.55], [-1.72, 11.59, -14.59], [-1.72, 11.59, -14.62], [-1.72, 11.59, -14.65], [-1.72, 11.59, -14.69], [-1.72, 11.59, -14.72], [-1.72, 11.59, -14.75], [-1.72, 11.59, -14.79], [-1.72, 11.59, -14.82], [-1.72, 11.59, -14.85], [-1.72, 11.59, -14.89], [-1.72, 11.59, -14.92], [-1.72, 11.59, -14.95], [-1.72, 11.59, -14.99], [-1.72, 11.59, -15.02], [-1.72, 11.59, -15.05], [-1.72, 11.59, -15.09], [-1.72, 11.59, -15.12], [-1.72, 11.59, -15.15], [-1.72, 11.59, -15.19], [-1.72, 11.59, -15.22], [-1.73, 11.59, -15.25], [-1.73, 11.59, -15.29], [-1.73, 11.59, -15.32], [-1.73, 11.59, -15.35], [-1.73, 11.59, -15.39], [-1.73, 11.59, -15.42], [-1.73, 11.59, -15.45], [-1.73, 11.59, -15.49], [-1.73, 11.59, -15.52], [-1.73, 11.59, -15.55], [-1.73, 11.59, -15.59], [-1.73, 11.59, -15.62], [-1.73, 11.59, -15.65], [-1.73, 11.59, -15.69], [-1.73, 11.59, -15.72], [-1.74, 11.59, -15.75], [-1.74, 11.59, -15.79], [-1.75, 11.59, -15.82], [-1.76, 11.59, -15.85], [-1.77, 11.59, -15.88], [-1.78, 11.59, -15.91], [-1.79, 11.59, -15.95], [-1.8, 11.59, -15.98], [-1.81, 11.59, -16.01], [-1.82, 11.59, -16.04], [-1.84, 11.59, -16.07], [-1.85, 11.59, -16.1], [-1.87, 11.59, -16.13], [-1.88, 11.59, -16.16], [-1.9, 11.59, -16.19], [-1.92, 11.59, -16.22], [-1.94, 11.59, -16.24], [-1.96, 11.59, -16.27], [-1.98, 11.59, -16.3], [-2, 11.59, -16.32], [-2.02, 11.59, -16.35], [-2.04, 11.59, -16.37], [-2.06, 11.59, -16.4], [-2.08, 11.59, -16.42], [-2.11, 11.59, -16.45], [-2.13, 11.59, -16.47], [-2.15, 11.59, -16.5], [-2.18, 11.59, -16.52], [-2.2, 11.59, -16.54], [-2.23, 11.59, -16.57], [-2.25, 11.59, -16.59], [-2.28, 11.59, -16.61], [-2.3, 11.59, -16.63], [-2.33, 11.59, -16.65], [-2.35, 11.59, -16.67], [-2.38, 11.59, -16.7], [-2.4, 11.59, -16.72], [-2.43, 11.59, -16.74], [-2.46, 11.59, -16.76], [-2.48, 11.59, -16.78], [-2.51, 11.59, -16.8], [-2.53, 11.59, -16.82], [-2.56, 11.59, -16.84], [-2.59, 11.59, -16.86], [-2.61, 11.59, -16.88], [-2.64, 11.59, -16.9], [-2.67, 11.59, -16.92], [-2.69, 11.59, -16.94], [-2.72, 11.59, -16.96], [-2.74, 11.59, -16.98], [-2.77, 11.59, -17], [-2.8, 11.59, -17.02], [-2.82, 11.59, -17.05], [-2.85, 11.59, -17.07], [-2.88, 11.59, -17.09], [-2.9, 11.59, -17.11], [-2.93, 11.59, -17.13], [-2.96, 11.59, -17.15], [-2.98, 11.59, -17.17], [-3.01, 11.59, -17.19], [-3.04, 11.59, -17.21], [-3.06, 11.59, -17.23], [-3.09, 11.59, -17.24], [-3.12, 11.59, -17.26], [-3.15, 11.59, -17.28], [-3.17, 11.59, -17.3], [-3.2, 11.59, -17.32], [-3.23, 11.59, -17.33], [-3.26, 11.59, -17.35], [-3.29, 11.59, -17.37], [-3.32, 11.59, -17.39], [-3.34, 11.59, -17.4], [-3.37, 11.59, -17.42], [-3.4, 11.59, -17.44], [-3.43, 11.59, -17.46], [-3.46, 11.59, -17.47], [-3.49, 11.59, -17.49], [-3.52, 11.59, -17.5], [-3.55, 11.59, -17.52], [-3.58, 11.59, -17.54], [-3.61, 11.59, -17.55], [-3.64, 11.59, -17.57], [-3.67, 11.59, -17.58], [-3.7, 11.59, -17.59], [-3.73, 11.59, -17.61], [-3.76, 11.59, -17.62], [-3.79, 11.59, -17.64], [-3.82, 11.59, -17.65], [-3.85, 11.59, -17.66], [-3.88, 11.59, -17.68], [-3.91, 11.59, -17.69], [-3.94, 11.59, -17.71], [-3.97, 11.59, -17.72], [-4, 11.59, -17.73], [-4.03, 11.59, -17.75], [-4.06, 11.59, -17.76], [-4.09, 11.59, -17.78], [-4.12, 11.59, -17.79], [-4.15, 11.59, -17.8], [-4.18, 11.59, -17.82], [-4.15, 11.59, -17.81], [-4.11, 11.59, -17.8], [-4.08, 11.59, -17.79], [-4.05, 11.59, -17.79], [-4.02, 11.59, -17.78], [-3.98, 11.59, -17.77], [-3.95, 11.59, -17.76], [-3.92, 11.59, -17.75], [-3.89, 11.59, -17.75], [-3.86, 11.59, -17.74], [-3.82, 11.59, -17.73], [-3.79, 11.59, -17.72], [-3.76, 11.59, -17.71], [-3.73, 11.59, -17.7], [-3.69, 11.59, -17.7], [-3.66, 11.59, -17.69], [-3.63, 11.59, -17.68], [-3.6, 11.59, -17.67], [-3.56, 11.59, -17.66], [-3.53, 11.59, -17.65], [-3.5, 11.59, -17.65], [-3.47, 11.59, -17.64], [-3.44, 11.59, -17.62], [-3.41, 11.59, -17.61], [-3.38, 11.59, -17.6], [-3.35, 11.59, -17.58], [-3.32, 11.59, -17.57], [-3.29, 11.59, -17.55], [-3.26, 11.59, -17.53], [-3.23, 11.59, -17.52], [-3.2, 11.59, -17.5], [-3.17, 11.59, -17.49], [-3.14, 11.59, -17.47], [-3.11, 11.59, -17.45], [-3.08, 11.59, -17.43], [-3.06, 11.59, -17.42], [-3.03, 11.59, -17.4], [-3, 11.59, -17.38], [-2.97, 11.59, -17.36], [-2.94, 11.59, -17.34], [-2.91, 11.59, -17.33], [-2.89, 11.59, -17.31], [-2.86, 11.59, -17.29], [-2.83, 11.59, -17.27], [-2.8, 11.59, -17.25], [-2.78, 11.59, -17.24], [-2.75, 11.59, -17.22], [-2.72, 11.59, -17.2], [-2.69, 11.59, -17.18], [-2.66, 11.59, -17.16], [-2.64, 11.59, -17.14], [-2.61, 11.59, -17.13], [-2.58, 11.59, -17.11], [-2.55, 11.59, -17.09], [-2.52, 11.59, -17.07], [-2.49, 11.59, -17.06], [-2.47, 11.59, -17.04], [-2.44, 11.59, -17.03], [-2.41, 11.59, -17.01], [-2.38, 11.59, -17], [-2.35, 11.59, -16.99], [-2.31, 11.59, -16.98], [-2.28, 11.59, -16.97], [-2.25, 11.59, -16.96], [-2.22, 11.59, -16.95], [-2.18, 11.59, -16.95], [-2.15, 11.59, -16.94], [-2.12, 11.59, -16.94], [-2.09, 11.59, -16.94], [-2.05, 11.59, -16.94], [-2.02, 11.59, -16.94], [-1.99, 11.59, -16.94], [-1.95, 11.59, -16.94], [-1.92, 11.59, -16.94], [-1.89, 11.59, -16.94], [-1.85, 11.59, -16.95], [-1.82, 11.59, -16.95], [-1.79, 11.59, -16.95], [-1.76, 11.59, -16.96], [-1.72, 11.59, -16.96], [-1.69, 11.59, -16.97], [-1.66, 11.59, -16.97], [-1.62, 11.59, -16.97], [-1.59, 11.59, -16.98], [-1.56, 11.59, -16.98], [-1.52, 11.59, -16.98], [-1.49, 11.59, -16.99], [-1.46, 11.59, -16.99], [-1.42, 11.59, -17], [-1.39, 11.59, -17], [-1.36, 11.59, -17], [-1.32, 11.59, -17.01], [-1.29, 11.59, -17.01], [-1.26, 11.59, -17.02], [-1.22, 11.59, -17.02], [-1.19, 11.59, -17.02], [-1.16, 11.59, -17.03], [-1.13, 11.59, -17.03], [-1.09, 11.59, -17.04], [-1.06, 11.59, -17.04], [-1.03, 11.59, -17.04], [-0.99, 11.59, -17.05], [-0.96, 11.59, -17.06], [-0.93, 11.59, -17.07], [-0.9, 11.59, -17.07], [-0.87, 11.59, -17.08], [-0.84, 11.59, -17.1], [-0.8, 11.59, -17.11], [-0.77, 11.59, -17.12], [-0.74, 11.59, -17.13], [-0.71, 11.59, -17.14], [-0.68, 11.59, -17.16], [-0.65, 11.59, -17.17], [-0.62, 11.59, -17.18], [-0.59, 11.59, -17.2], [-0.56, 11.59, -17.21], [-0.53, 11.59, -17.22], [-0.5, 11.59, -17.24], [-0.47, 11.59, -17.25], [-0.44, 11.59, -17.27], [-0.41, 11.59, -17.28], [-0.38, 11.59, -17.3], [-0.35, 11.59, -17.31], [-0.32, 11.59, -17.33], [-0.29, 11.59, -17.34], [-0.26, 11.59, -17.36], [-0.23, 11.59, -17.37], [-0.2, 11.59, -17.38], [-0.17, 11.59, -17.4], [-0.14, 11.59, -17.41], [-0.11, 11.59, -17.43], [-0.08, 11.59, -17.44], [-0.05, 11.59, -17.46], [-0.02, 11.59, -17.47], [0.01, 11.59, -17.49], [0.04, 11.59, -17.5], [0.07, 11.59, -17.52], [0.1, 11.59, -17.53], [0.13, 11.59, -17.55], [0.16, 11.59, -17.56], [0.19, 11.59, -17.57], [0.22, 11.59, -17.59], [0.25, 11.59, -17.6], [0.28, 11.59, -17.62], [0.31, 11.59, -17.63], [0.34, 11.59, -17.65], [0.37, 11.59, -17.66], [0.4, 11.59, -17.68], [0.43, 11.59, -17.69], [0.46, 11.59, -17.71], [0.49, 11.59, -17.72], [0.52, 11.59, -17.74], [0.55, 11.59, -17.75], [0.58, 11.59, -17.76], [0.61, 11.59, -17.78], [0.64, 11.59, -17.79], [0.67, 11.59, -17.81], [0.7, 11.59, -17.82], [0.73, 11.59, -17.84], [0.76, 11.59, -17.85], [0.79, 11.59, -17.87], [0.82, 11.59, -17.88], [0.85, 11.59, -17.9], [0.88, 11.59, -17.91], [0.91, 11.59, -17.93], [0.94, 11.59, -17.94], [0.97, 11.59, -17.95], [1, 11.59, -17.97], [1.03, 11.59, -17.98], [1.06, 11.59, -18], [1.09, 11.59, -18.01], [1.12, 11.59, -18.03], [1.15, 11.59, -18.04], [1.18, 11.59, -18.06], [1.21, 11.59, -18.07], [1.24, 11.59, -18.09], [1.22, 11.59, -18.06], [1.19, 11.59, -18.04], [1.17, 11.59, -18.01], [1.15, 11.59, -17.99], [1.12, 11.59, -17.97], [1.1, 11.59, -17.94], [1.07, 11.59, -17.92], [1.05, 11.59, -17.9], [1.03, 11.59, -17.87], [1, 11.59, -17.85], [0.98, 11.59, -17.83], [0.96, 11.59, -17.8], [0.93, 11.59, -17.78], [0.91, 11.59, -17.76], [0.89, 11.59, -17.73], [0.86, 11.59, -17.71], [0.84, 11.59, -17.68], [0.82, 11.59, -17.66], [0.79, 11.59, -17.64], [0.77, 11.59, -17.61], [0.75, 11.59, -17.59], [0.72, 11.59, -17.57], [0.7, 11.59, -17.54], [0.67, 11.59, -17.52], [0.65, 11.59, -17.5], [0.63, 11.59, -17.47], [0.6, 11.59, -17.45], [0.58, 11.59, -17.43], [0.55, 11.59, -17.41], [0.52, 11.59, -17.39], [0.5, 11.59, -17.37], [0.47, 11.59, -17.35], [0.44, 11.59, -17.34], [0.41, 11.59, -17.32], [0.38, 11.59, -17.3], [0.35, 11.59, -17.29], [0.33, 11.59, -17.27], [0.3, 11.59, -17.25], [0.27, 11.59, -17.24], [0.24, 11.59, -17.22], [0.21, 11.59, -17.2], [0.18, 11.59, -17.18], [0.15, 11.59, -17.17], [0.12, 11.59, -17.15], [0.1, 11.59, -17.13], [0.07, 11.59, -17.12], [0.04, 11.59, -17.1], [0.01, 11.59, -17.08], [-0.02, 11.59, -17.07], [-0.05, 11.59, -17.05], [-0.08, 11.59, -17.03], [-0.1, 11.59, -17.02], [-0.13, 11.59, -17], [-0.16, 11.59, -16.98], [-0.19, 11.59, -16.96], [-0.22, 11.59, -16.95], [-0.25, 11.59, -16.93], [-0.28, 11.59, -16.91], [-0.31, 11.59, -16.9], [-0.33, 11.59, -16.88], [-0.36, 11.59, -16.86], [-0.39, 11.59, -16.85], [-0.42, 11.59, -16.83], [-0.45, 11.59, -16.81], [-0.48, 11.59, -16.8], [-0.51, 11.59, -16.78], [-0.54, 11.59, -16.77], [-0.57, 11.59, -16.75], [-0.6, 11.59, -16.73], [-0.63, 11.59, -16.72], [-0.65, 11.59, -16.7], [-0.68, 11.59, -16.69], [-0.71, 11.59, -16.67], [-0.74, 11.59, -16.66], [-0.77, 11.59, -16.64], [-0.8, 11.59, -16.63], [-0.83, 11.59, -16.61], [-0.86, 11.59, -16.6], [-0.89, 11.59, -16.58], [-0.92, 11.59, -16.57], [-0.95, 11.59, -16.56], [-0.99, 11.59, -16.54], [-1.02, 11.59, -16.53], [-1.05, 11.59, -16.52], [-1.08, 11.59, -16.51]];
+const PENTAGON_POINTS = [PENTAGON_POINTS_0];
+const PENTAGON_COUNTS = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+function makePentagon(g_scene, object_meshes, o_pentagons) {
+  //  var trampoline_columns = new Map();
+  let o_pentagon_meshes = []; //new Map();
+
+  for (var i = 0; i < o_pentagons.length; i++) {
+    const pentagon_data = o_pentagons[i];
+    const [x_str, y_str, z_str] = pentagon_data;
     const x_index = parseInt(x_str);
     const y_index = parseInt(y_str);
     const z_index = parseInt(z_str);
-    const two_circles = new _three.Group();
+    const two_circles = new THREE.Group();
     const pent_geometry = new THREE.CircleGeometry(0.8, 5);
     const pent_material = new THREE.MeshBasicMaterial({
       color: 0xffff00
     });
     const pent_mesh = new THREE.Mesh(pent_geometry, pent_material);
     pent_mesh.material.side = THREE.DoubleSide;
-    let [x_center, z_center] = (0, _maths.tileCenterCoord)(x_index, z_index);
+    let [x_center, z_center] = (0, _hexMaths.tileCenterCoord)(x_index, z_index);
     pent_mesh.position.set(x_center, y_index / 100, z_center);
     pent_mesh.rotation.z = 2 * Math.PI / 4;
     two_circles.add(pent_mesh);
-    the_scene.add(two_circles);
-    const trampoline_index = `${x_str},${y_str},${z_str}`;
-    trampoline_columns.set(trampoline_index, trampoline_index);
-    pentagon_meshes.set(trampoline_index, pent_mesh);
+    g_scene.add(two_circles);
+
+    //  const trampoline_index = `${x_str},${y_str},${z_str}`;
+    //   o_pentagons.set(trampoline_index, trampoline_index);
+
+    //o_pentagon_meshes.set(i, pent_mesh);
+    o_pentagon_meshes[i] = pent_mesh;
   }
-  return [pentagon_meshes, trampoline_columns];
+  return [o_pentagon_meshes, 19];
+}
+function doSpin(the_objects) {
+  let o_pentagon_meshes = the_objects.o_pentagon_meshes;
+  for (var i = 0; i < o_pentagon_meshes.length; i++) {
+    let pentagon_mesh = o_pentagon_meshes[i];
+    pentagon_mesh.rotation.y += 0.12;
+    pentagon_mesh.material.color.setHex(0xff9900);
+    const pentagon_data = PENTAGON_POINTS[i];
+    let pentagon_index = PENTAGON_COUNTS[i];
+    const pentagon_length = pentagon_data.length;
+    if (pentagon_index >= pentagon_length - 1) {
+      pentagon_index = 0;
+    } else {
+      pentagon_index += 1;
+    }
+    PENTAGON_COUNTS[i] = pentagon_index;
+    const [x, y, z] = pentagon_data[pentagon_index];
+    pentagon_mesh.position.x = x;
+    pentagon_mesh.position.y = y;
+    pentagon_mesh.position.z = z;
+  }
 }
 
-},{"../constants.js":10,"../maths.js":16,"../misc/console-short.js":17,"three":3}],21:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.PerspCamera = PerspCamera;
-exports.projMatrix = projMatrix;
-var _consoleShort = require("./misc/console-short.js");
-var _three = require("three");
-function PerspCamera(the_fov, width_height, nf_planes, xyz_pos) {
-  const [camera_width, camera_height] = width_height;
-  const [near_plane, far_plane] = nf_planes;
-  const camera_aspect = camera_width / camera_height;
-  const persp_camera = new _three.PerspectiveCamera(the_fov, camera_aspect, near_plane, far_plane);
-  //    persp_camera.position.set(...xyz_pos);
-  persp_camera.position.set(xyz_pos.x, xyz_pos.y / 100, xyz_pos.z);
-  persp_camera.lookAt(3, 2, 2);
-  persp_camera.lookAt(0, 0, 0);
-  return persp_camera;
-}
-function projMatrix(the_camera, width_height) {
-  const [camera_width, camera_height] = width_height;
-  const camera_aspect = camera_width / camera_height;
-  the_camera.aspect = camera_aspect;
-  the_camera.updateProjectionMatrix();
-}
-
-},{"./misc/console-short.js":17,"three":3}],22:[function(require,module,exports){
+},{"../misc/console-short.js":17,"../misc/hex-maths.js":19,"../values/the-constants.js":52,"three":3}],26:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23949,18 +24268,19 @@ Object.defineProperty(exports, "__esModule", {
 exports.setUpLiveTests = setUpLiveTests;
 exports.staticTests = staticTests;
 var _consoleShort = require("../misc/console-short.js");
+var _theConstants = require("../values/the-constants.js");
 function setUpLiveTests(TEST_DIRECTION, TEST_NUMBER_1_TO_11) {
-  if (TEST_DIRECTION == HEX_CONST.TEST_SS) {
+  if (TEST_DIRECTION == _theConstants.TEST_SS) {
     [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = ss_load_test(TEST_NUMBER_1_TO_11);
-  } else if (TEST_DIRECTION == HEX_CONST.TEST_NN) {
+  } else if (TEST_DIRECTION == _theConstants.TEST_NN) {
     [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = nn_load_test(TEST_NUMBER_1_TO_11);
-  } else if (TEST_DIRECTION == HEX_CONST.TEST_NE) {
+  } else if (TEST_DIRECTION == _theConstants.TEST_NE) {
     [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = ne_load_test(TEST_NUMBER_1_TO_11);
-  } else if (TEST_DIRECTION == HEX_CONST.TEST_SW) {
+  } else if (TEST_DIRECTION == _theConstants.TEST_SW) {
     [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = sw_load_test(TEST_NUMBER_1_TO_11);
-  } else if (TEST_DIRECTION == HEX_CONST.TEST_NW) {
+  } else if (TEST_DIRECTION == _theConstants.TEST_NW) {
     [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = nw_load_test(TEST_NUMBER_1_TO_11);
-  } else if (TEST_DIRECTION == HEX_CONST.TEST_SE) {
+  } else if (TEST_DIRECTION == _theConstants.TEST_SE) {
     [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = se_load_test(TEST_NUMBER_1_TO_11);
   }
   if (test_name !== "") {
@@ -23969,26 +24289,26 @@ function setUpLiveTests(TEST_DIRECTION, TEST_NUMBER_1_TO_11) {
   return [the_coords, test_xyz_camera, test_xyz_lookat, test_name];
 }
 function staticTests() {
-  var g_tests = new Map([]);
+  var s_tests = new Map([]);
 
-  // g_tests = test_ss_move(g_tests);
-  //g_tests = test_sw_move(g_tests);
-  // g_tests = test_nn_move(g_tests);
-  // g_tests = test_ne_move(g_tests);
-  // g_tests = test_nw_move(g_tests);
-  // g_tests = test_se_move(g_tests);
-  //ee("the tests:", g_tests);
+  // s_tests = test_ss_move(s_tests);
+  //s_tests = test_sw_move(s_tests);
+  // s_tests = test_nn_move(s_tests);
+  // s_tests = test_ne_move(s_tests);
+  // s_tests = test_nw_move(s_tests);
+  // s_tests = test_se_move(s_tests);
+  //ee("the tests:", s_tests);
 }
 
-},{"../misc/console-short.js":17}],23:[function(require,module,exports){
+},{"../misc/console-short.js":17,"../values/the-constants.js":52}],27:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.transition2Tile = transition2Tile;
+exports.transition2NewTile = transition2NewTile;
 var _consoleShort = require("../../misc/console-short.js");
-var HEX_CONST = _interopRequireWildcard(require("../../constants.js"));
+var _theConstants = require("../../values/the-constants.js");
 var _hexTile = require("../hex-tile.js");
 var _hexRoutines = require("../hex-routines.js");
 var _nnMove = require("../nn/nn-move.js");
@@ -23997,210 +24317,172 @@ var _nwMove = require("../nw/nw-move.js");
 var _ssMove = require("../ss/ss-move.js");
 var _swMove = require("../sw/sw-move.js");
 var _seMove = require("../se/se-move.js");
-function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-function verticallyNearNN(x_ind, level_y, z_ind, current_data) {
-  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, level_y, z_ind);
-  current_data.new_index = tile_index;
-  const move_result = (0, _nnMove.moveToNn)(current_data);
-  return {
-    move_result,
-    level_y
-  };
-}
+//import { DIRECTION_NN, DIRECTION_SS, DIRECTION_NW, DIRECTION_NE, DIRECTION_SE, DIRECTION_SW, DIRECTION_NONE } from "../../values/the-constants.js";
 
-//       cur_y_100_pos = cur_y_100_pos - 0.5;    wayyyy to fast !!!
-function nearTestNN(walkway_tiles, new_x_ind, cur_level_y_100, new_z_ind, current_data) {
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 100, new_z_ind)) {
-    return verticallyNearNN(new_x_ind, cur_level_y_100 + 100, new_z_ind, current_data);
-  }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 50, new_z_ind)) {
-    return verticallyNearNN(new_x_ind, cur_level_y_100 + 50, new_z_ind, current_data);
-  }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 50, new_z_ind)) {
-    return verticallyNearNN(new_x_ind, cur_level_y_100 - 50, new_z_ind, current_data);
-  }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 100, new_z_ind)) {
-    return verticallyNearNN(new_x_ind, cur_level_y_100 - 100, new_z_ind, current_data);
-  }
-  return verticallyNearNN(new_x_ind, cur_level_y_100 + 0, new_z_ind, current_data);
+function verticallyNearNN(the_objects, x_ind, ndx_y100, z_ind, prev_hex, is_a_trampoline) {
+  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, ndx_y100, z_ind);
+  const c_move_result = (0, _nnMove.moveToNn)(the_objects, prev_hex, tile_index, is_a_trampoline);
+  return c_move_result;
 }
-function transition2Tile(run_or_test, print_allowed, walkway_tiles, walkway_columns, wall_squares, wall_columns, prev_pos, new_pos) {
-  let cur_level_y = new_pos.y;
-  ///////////////////////
-  let y_100_index = new_pos.y;
-  let y_index = y_100_index / 100;
+function nearTestNN(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 100, ndx_z)) {
+    return verticallyNearNN(the_objects, ndx_x, ndx_y100 + 100, ndx_z, prev_hex, is_a_trampoline);
+  }
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 50, ndx_z)) {
+    return verticallyNearNN(the_objects, ndx_x, ndx_y100 + 50, ndx_z, prev_hex, is_a_trampoline);
+  }
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 50, ndx_z)) {
+    return verticallyNearNN(the_objects, ndx_x, ndx_y100 - 50, ndx_z, prev_hex, is_a_trampoline);
+  }
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 100, ndx_z)) {
+    return verticallyNearNN(the_objects, ndx_x, ndx_y100 - 100, ndx_z, prev_hex, is_a_trampoline);
+  }
+  return verticallyNearNN(the_objects, ndx_x, ndx_y100 + 0, ndx_z, prev_hex, is_a_trampoline);
+}
+function transition2NewTile(the_objects, f_prev_coords, f_this_coords, is_a_trampoline) {
+  let ndx_y100 = f_this_coords.y;
+  let y_index = ndx_y100 / 100;
   let y_frac = y_index % 1;
-  let y_100_frac = y_frac * 100;
-  let on_meeting_hinge_height = y_frac == 5 || y_frac == 0;
-  if (!on_meeting_hinge_height) {
-    const falling_between_levels = {
-      move_result: HEX_CONST.MOVE_FALLING,
-      level_y: cur_level_y
-    };
-    return falling_between_levels;
+  let on_meetins_hinge_height = y_frac == 5 || y_frac == 0;
+  if (!on_meetins_hinge_height) {
+    const c_move_result = _theConstants.MV_FALL_STEP_OFF;
+    return c_move_result;
   }
-  let [prev_x_ind, prev_z_ind] = (0, _hexTile.coords2HexIndexes)(prev_pos.x, prev_pos.z);
-  let [new_x_ind, new_z_ind] = (0, _hexTile.coords2HexIndexes)(new_pos.x, new_pos.z);
-  let move_dir = moveDirectionCoords2(prev_pos.x, prev_pos.z, new_pos.x, new_pos.z);
-  let prev_index = (0, _hexRoutines.hexIndex)(prev_x_ind, prev_pos.y, prev_z_ind);
-  let new_index = (0, _hexRoutines.hexIndex)(new_x_ind, new_pos.y, new_z_ind);
+  let [prev_x_ind, prev_z_ind] = (0, _hexTile.coords2Indexes)(f_prev_coords.x, f_prev_coords.z);
+  let [ndx_x, ndx_z] = (0, _hexTile.coords2Indexes)(f_this_coords.x, f_this_coords.z);
+  let move_dir = moveDirectionCoords2(f_prev_coords.x, f_prev_coords.z, f_this_coords.x, f_this_coords.z);
+  let prev_hex = (0, _hexRoutines.hexIndex)(prev_x_ind, f_prev_coords.y, prev_z_ind);
   let no_old_new_tile;
-  const current_data = {
-    run_or_test,
-    print_allowed,
-    walkway_tiles,
-    walkway_columns,
-    wall_squares,
-    wall_columns,
-    prev_index,
-    new_index
-  };
-  if (move_dir == HEX_CONST.MOVE_NN) {
-    return nearTestNN(walkway_tiles, new_x_ind, cur_level_y, new_z_ind, current_data);
-  } else if (move_dir == HEX_CONST.MOVE_NE) {
-    return nearTestNE(walkway_tiles, new_x_ind, cur_level_y, new_z_ind, current_data);
-  } else if (move_dir == HEX_CONST.MOVE_SS) {
-    return nearTestSS(walkway_tiles, new_x_ind, cur_level_y, new_z_ind, current_data);
-  } else if (move_dir == HEX_CONST.MOVE_SW) {
-    return nearTestSW(walkway_tiles, new_x_ind, cur_level_y, new_z_ind, current_data);
-  } else if (move_dir == HEX_CONST.MOVE_NW) {
-    return nearTestNW(walkway_tiles, new_x_ind, cur_level_y, new_z_ind, current_data);
-  } else if (move_dir == HEX_CONST.MOVE_SE) {
-    return nearTestSE(walkway_tiles, new_x_ind, cur_level_y, new_z_ind, current_data);
+  if (move_dir == _theConstants.DIRECTION_NN) {
+    return nearTestNN(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
+  } else if (move_dir == _theConstants.DIRECTION_NE) {
+    const is_hit_ne = nearTestNE(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
+    return is_hit_ne;
+  } else if (move_dir == _theConstants.DIRECTION_SS) {
+    return nearTestSS(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
+  } else if (move_dir == _theConstants.DIRECTION_SW) {
+    const is_hit_sw = nearTestSW(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
+    return is_hit_sw;
+  } else if (move_dir == _theConstants.DIRECTION_NW) {
+    return nearTestNW(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
+  } else if (move_dir == _theConstants.DIRECTION_SE) {
+    return nearTestSE(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
   } else {
-    no_old_new_tile = HEX_CONST.MOVE_SAME_TILE; //"unknown tile condition";
-    return {
-      move_result: no_old_new_tile,
-      level_y: cur_level_y
-    };
+    if (is_a_trampoline) {
+      no_old_new_tile = MV_START_TRAMPOLINE;
+    } else {
+      no_old_new_tile = _theConstants.MV_TILE_SAME;
+    }
+    return no_old_new_tile;
   }
 }
-function isVerticallyNear(walkway_tiles, x_ind, level_y, z_ind) {
-  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, level_y, z_ind);
-  if (walkway_tiles.has(tile_index)) {
+function isVerticallyNear(the_objects, x_ind, ndx_y100, z_ind) {
+  const o_walkway_tiles = the_objects.o_walkway_tiles;
+  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, ndx_y100, z_ind);
+  if (o_walkway_tiles.has(tile_index)) {
     return true;
   }
   return false;
 }
-function verticallyNearSS(x_ind, level_y, z_ind, current_data) {
-  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, level_y, z_ind);
-  current_data.new_index = tile_index;
-  const move_result = (0, _ssMove.moveToSs)(current_data);
-  return {
-    move_result,
-    level_y
-  };
+function verticallyNearSS(the_objects, x_ind, ndx_y100, z_ind, prev_hex, is_a_trampoline) {
+  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, ndx_y100, z_ind);
+  const c_move_result = (0, _ssMove.moveToSs)(the_objects, prev_hex, tile_index, is_a_trampoline);
+  return c_move_result;
 }
-function verticallyNearNE(x_ind, level_y, z_ind, current_data) {
-  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, level_y, z_ind);
-  current_data.new_index = tile_index;
-  const move_result = (0, _neMove.moveToNe)(current_data);
-  return {
-    move_result,
-    level_y
-  };
+function verticallyNearNE(the_objects, x_ind, ndx_y100, z_ind, prev_hex, is_a_trampoline) {
+  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, ndx_y100, z_ind);
+  const c_move_result = (0, _neMove.moveToNe)(the_objects, prev_hex, tile_index, is_a_trampoline);
+  return c_move_result;
 }
-function verticallyNearSE(x_ind, level_y, z_ind, current_data) {
-  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, level_y, z_ind);
-  current_data.new_index = tile_index;
-  const move_result = (0, _seMove.moveToSe)(current_data);
-  return {
-    move_result,
-    level_y
-  };
+function verticallyNearSE(the_objects, x_ind, ndx_y100, z_ind, prev_hex, is_a_trampoline) {
+  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, ndx_y100, z_ind);
+  const c_move_result = (0, _seMove.moveToSe)(the_objects, prev_hex, tile_index, is_a_trampoline);
+  return c_move_result;
 }
-function verticallyNearSW(x_ind, level_y, z_ind, current_data) {
-  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, level_y, z_ind);
-  current_data.new_index = tile_index;
-  const move_result = (0, _swMove.moveToSw)(current_data);
-  return {
-    move_result,
-    level_y
-  };
+function verticallyNearSW(the_objects, x_ind, ndx_y100, z_ind, prev_hex, is_a_trampoline) {
+  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, ndx_y100, z_ind);
+  const c_move_result = (0, _swMove.moveToSw)(the_objects, prev_hex, tile_index, is_a_trampoline);
+  return c_move_result;
 }
-function verticallyNearNW(x_ind, level_y, z_ind, current_data) {
-  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, level_y, z_ind);
-  current_data.new_index = tile_index;
-  const move_result = (0, _nwMove.moveToNw)(current_data);
-  return {
-    move_result,
-    level_y
-  };
+function verticallyNearNW(the_objects, x_ind, ndx_y100, z_ind, prev_hex, is_a_trampoline) {
+  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, ndx_y100, z_ind);
+  const c_move_result = (0, _nwMove.moveToNw)(the_objects, prev_hex, tile_index, is_a_trampoline);
+  return c_move_result;
 }
-function nearTestSS(walkway_tiles, new_x_ind, cur_level_y_100, new_z_ind, current_data) {
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 100, new_z_ind)) {
-    return verticallyNearSS(new_x_ind, cur_level_y_100 + 100, new_z_ind, current_data);
+function nearTestSS(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 100, ndx_z)) {
+    return verticallyNearSS(the_objects, ndx_x, ndx_y100 + 100, ndx_z, prev_hex, is_a_trampoline);
   }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 50, new_z_ind)) {
-    return verticallyNearSS(new_x_ind, cur_level_y_100 + 50, new_z_ind, current_data);
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 50, ndx_z)) {
+    return verticallyNearSS(the_objects, ndx_x, ndx_y100 + 50, ndx_z, prev_hex, is_a_trampoline);
   }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 50, new_z_ind)) {
-    return verticallyNearSS(new_x_ind, cur_level_y_100 - 50, new_z_ind, current_data);
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 50, ndx_z)) {
+    return verticallyNearSS(the_objects, ndx_x, ndx_y100 - 50, ndx_z, prev_hex, is_a_trampoline);
   }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 100, new_z_ind)) {
-    return verticallyNearSS(new_x_ind, cur_level_y_100 - 100, new_z_ind, current_data);
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 100, ndx_z)) {
+    return verticallyNearSS(the_objects, ndx_x, ndx_y100 - 100, ndx_z, prev_hex, is_a_trampoline);
   }
-  return verticallyNearSS(new_x_ind, cur_level_y_100 + 0, new_z_ind, current_data);
+  return verticallyNearSS(the_objects, ndx_x, ndx_y100 + 0, ndx_z, prev_hex, is_a_trampoline);
 }
-function nearTestNE(walkway_tiles, new_x_ind, cur_level_y_100, new_z_ind, current_data) {
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 100, new_z_ind)) {
-    return verticallyNearNE(new_x_ind, cur_level_y_100 + 100, new_z_ind, current_data);
+function nearTestNE(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 100, ndx_z)) {
+    return verticallyNearNE(the_objects, ndx_x, ndx_y100 + 100, ndx_z, prev_hex, is_a_trampoline);
   }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 50, new_z_ind)) {
-    return verticallyNearNE(new_x_ind, cur_level_y_100 + 50, new_z_ind, current_data);
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 50, ndx_z)) {
+    return verticallyNearNE(the_objects, ndx_x, ndx_y100 + 50, ndx_z, prev_hex, is_a_trampoline);
   }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 50, new_z_ind)) {
-    return verticallyNearNE(new_x_ind, cur_level_y_100 - 50, new_z_ind, current_data);
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 50, ndx_z)) {
+    return verticallyNearNE(the_objects, ndx_x, ndx_y100 - 50, ndx_z, prev_hex, is_a_trampoline);
   }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 100, new_z_ind)) {
-    return verticallyNearNE(new_x_ind, cur_level_y_100 - 100, new_z_ind, current_data);
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 100, ndx_z)) {
+    return verticallyNearNE(the_objects, ndx_x, ndx_y100 - 100, ndx_z, prev_hex, is_a_trampoline);
   }
-  return verticallyNearNE(new_x_ind, cur_level_y_100 + 0, new_z_ind, current_data);
+  return verticallyNearNE(the_objects, ndx_x, ndx_y100 + 0, ndx_z, prev_hex, is_a_trampoline);
 }
-function nearTestSW(walkway_tiles, new_x_ind, cur_level_y_100, new_z_ind, current_data) {
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 100, new_z_ind)) {
-    return verticallyNearSW(new_x_ind, cur_level_y_100 + 100, new_z_ind, current_data);
+function nearTestSW(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 100, ndx_z)) {
+    return verticallyNearSW(the_objects, ndx_x, ndx_y100 + 100, ndx_z, prev_hex, is_a_trampoline);
   }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 50, new_z_ind)) {
-    return verticallyNearSW(new_x_ind, cur_level_y_100 + 50, new_z_ind, current_data);
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 50, ndx_z)) {
+    return verticallyNearSW(the_objects, ndx_x, ndx_y100 + 50, ndx_z, prev_hex, is_a_trampoline);
   }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 50, new_z_ind)) {
-    return verticallyNearSW(new_x_ind, cur_level_y_100 - 50, new_z_ind, current_data);
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 50, ndx_z)) {
+    return verticallyNearSW(the_objects, ndx_x, ndx_y100 - 50, ndx_z, prev_hex, is_a_trampoline);
   }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 100, new_z_ind)) {
-    return verticallyNearSW(new_x_ind, cur_level_y_100 - 100, new_z_ind, current_data);
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 100, ndx_z)) {
+    return verticallyNearSW(the_objects, ndx_x, ndx_y100 - 100, ndx_z, prev_hex, is_a_trampoline);
   }
-  return verticallyNearSW(new_x_ind, cur_level_y_100 + 0, new_z_ind, current_data);
+  return verticallyNearSW(the_objects, ndx_x, ndx_y100 + 0, ndx_z, prev_hex, is_a_trampoline);
 }
-function nearTestNW(walkway_tiles, new_x_ind, cur_level_y_100, new_z_ind, current_data) {
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 100, new_z_ind)) {
-    return verticallyNearNW(new_x_ind, cur_level_y_100 + 100, new_z_ind, current_data);
+function nearTestNW(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 100, ndx_z)) {
+    return verticallyNearNW(the_objects, ndx_x, ndx_y100 + 100, ndx_z, prev_hex, is_a_trampoline);
   }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 50, new_z_ind)) {
-    return verticallyNearNW(new_x_ind, cur_level_y_100 + 50, new_z_ind, current_data);
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 50, ndx_z)) {
+    return verticallyNearNW(the_objects, ndx_x, ndx_y100 + 50, ndx_z, prev_hex, is_a_trampoline);
   }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 50, new_z_ind)) {
-    return verticallyNearNW(new_x_ind, cur_level_y_100 - 50, new_z_ind, current_data);
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 50, ndx_z)) {
+    return verticallyNearNW(the_objects, ndx_x, ndx_y100 - 50, ndx_z, prev_hex, is_a_trampoline);
   }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 100, new_z_ind)) {
-    return verticallyNearNW(new_x_ind, cur_level_y_100 - 100, new_z_ind, current_data);
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 100, ndx_z)) {
+    return verticallyNearNW(the_objects, ndx_x, ndx_y100 - 100, ndx_z, prev_hex, is_a_trampoline);
   }
-  return verticallyNearNW(new_x_ind, cur_level_y_100 + 0, new_z_ind, current_data);
+  return verticallyNearNW(the_objects, ndx_x, ndx_y100 + 0, ndx_z, prev_hex, is_a_trampoline);
 }
-function nearTestSE(walkway_tiles, new_x_ind, cur_level_y_100, new_z_ind, current_data) {
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 100, new_z_ind)) {
-    return verticallyNearSE(new_x_ind, cur_level_y_100 + 100, new_z_ind, current_data);
+function nearTestSE(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 100, ndx_z)) {
+    return verticallyNearSE(the_objects, ndx_x, ndx_y100 + 100, ndx_z, prev_hex, is_a_trampoline);
   }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 + 50, new_z_ind)) {
-    return verticallyNearSE(new_x_ind, cur_level_y_100 + 50, new_z_ind, current_data);
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 50, ndx_z)) {
+    return verticallyNearSE(the_objects, ndx_x, ndx_y100 + 50, ndx_z, prev_hex, is_a_trampoline);
   }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 50, new_z_ind)) {
-    return verticallyNearSE(new_x_ind, cur_level_y_100 - 50, new_z_ind, current_data);
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 50, ndx_z)) {
+    return verticallyNearSE(the_objects, ndx_x, ndx_y100 - 50, ndx_z, prev_hex, is_a_trampoline);
   }
-  if (isVerticallyNear(walkway_tiles, new_x_ind, cur_level_y_100 - 100, new_z_ind)) {
-    return verticallyNearSE(new_x_ind, cur_level_y_100 - 100, new_z_ind, current_data);
+  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 100, ndx_z)) {
+    return verticallyNearSE(the_objects, ndx_x, ndx_y100 - 100, ndx_z, prev_hex, is_a_trampoline);
   }
-  return verticallyNearSE(new_x_ind, cur_level_y_100 + 0, new_z_ind, current_data);
+  return verticallyNearSE(the_objects, ndx_x, ndx_y100 + 0, ndx_z, prev_hex, is_a_trampoline);
 }
 
 /*
@@ -24236,35 +24518,86 @@ function moveDirectionCoords2(prev_x_coord, prev_z_coord, new_x_coord, new_z_coo
   const theta = Math.atan2(dz, dx);
   let move_direction;
   if (new_x_coord == prev_x_coord && new_z_coord == prev_z_coord) {
-    move_direction = HEX_CONST.MOVE_NO;
+    move_direction = _theConstants.DIRECTION_NONE;
   } else {
     if (theta >= NE_START_0D && theta < NE_END_60D) {
       //    ee("*** NE");
-      move_direction = HEX_CONST.MOVE_NE;
+      move_direction = _theConstants.DIRECTION_NE;
     } else if (theta >= NN_START_60D && theta < NN_END_120D) {
       //  ee("*** NN");
-      move_direction = HEX_CONST.MOVE_NN;
+      move_direction = _theConstants.DIRECTION_NN;
     } else if (theta >= NW_START_120D && theta <= NW_END_180D) {
       //   ee("*** NW");
-      move_direction = HEX_CONST.MOVE_NW;
+      move_direction = _theConstants.DIRECTION_NW;
     } else if (theta <= SW_START_180D && theta >= SW_END_240D) {
       //   ee("*** SW");
-      move_direction = HEX_CONST.MOVE_SW;
+      move_direction = _theConstants.DIRECTION_SW;
     } else if (theta <= SS_START_240D && theta > SS_END_300D) {
       //   ee("*** SS");
-      move_direction = HEX_CONST.MOVE_SS;
+      move_direction = _theConstants.DIRECTION_SS;
     } else if (theta <= SE_START_300D && theta > SE_END_0D) {
       //    ee("*** SE");
-      move_direction = HEX_CONST.MOVE_SE;
+      move_direction = _theConstants.DIRECTION_SE;
     } else {
       (0, _consoleShort.ee)("*** NOT SURE  THETA--=", theta);
-      move_direction = HEX_CONST.MOVE_NO;
+      move_direction = _theConstants.DIRECTION_NONE;
     }
   }
   return move_direction;
 }
 
-},{"../../constants.js":10,"../../misc/console-short.js":17,"../hex-routines.js":25,"../hex-tile.js":26,"../ne/ne-move.js":29,"../nn/nn-move.js":31,"../nw/nw-move.js":33,"../se/se-move.js":35,"../ss/ss-move.js":37,"../sw/sw-move.js":40}],24:[function(require,module,exports){
+},{"../../misc/console-short.js":17,"../../values/the-constants.js":52,"../hex-routines.js":30,"../hex-tile.js":31,"../ne/ne-move.js":34,"../nn/nn-move.js":36,"../nw/nw-move.js":38,"../se/se-move.js":40,"../ss/ss-move.js":42,"../sw/sw-move.js":45}],28:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.colorRight = exports.colorLeft = void 0;
+exports.flipTileColorG = flipTileColorG;
+var _consoleShort = require("../misc/console-short.js");
+var _theConstants = require("../values/the-constants.js");
+var _colorConsts = require("../values/color-consts.js");
+var _tileColors = require("../misc/tile-colors.js");
+const colorLeft = hex => {
+  const r = hex & 0xff0000;
+  const g = hex & 0x00ff00;
+  const b = hex & 0x0000ff;
+  const r2 = r >> 16;
+  const g2 = g << 8;
+  const b2 = b << 8;
+  const color_left = r2 | g2 | b2;
+  return color_left;
+};
+exports.colorLeft = colorLeft;
+const colorRight = hex => {
+  const r = hex & 0xff0000;
+  const g = hex & 0x00ff00;
+  const b = hex & 0x0000ff;
+  const r2 = r >> 8;
+  const g2 = g >> 8;
+  const b2 = b << 16;
+  const color_right = r2 | g2 | b2;
+  return color_right;
+};
+exports.colorRight = colorRight;
+function flipTileColorG(the_objects, f_this_hex) {
+  const [x_index, y_ind, z_index] = f_this_hex.split(",");
+  let sea_color = (0, _tileColors.seaColor)([x_index, y_ind, z_index], _colorConsts.WALK_AFTER_COLORS);
+  let {
+    o_object_meshes
+  } = the_objects;
+  let possible_tile = o_object_meshes.get(f_this_hex);
+  if (possible_tile) {
+    const tile_mesh = possible_tile.getObjectByName(_theConstants.HEXAGON_PART);
+    tile_mesh.material.color.setHex(sea_color);
+  }
+  const unvisited_tiles = the_objects.o_unvisited_tiles;
+  if (unvisited_tiles.has(f_this_hex)) {
+    unvisited_tiles.delete(f_this_hex);
+  }
+}
+
+},{"../misc/console-short.js":17,"../misc/tile-colors.js":21,"../values/color-consts.js":49,"../values/the-constants.js":52}],29:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24273,66 +24606,192 @@ Object.defineProperty(exports, "__esModule", {
 exports.groundRow = groundRow;
 exports.groundTile = groundTile;
 exports.ground_field = ground_field;
+exports.moveAllow = moveAllow;
+exports.moveBlock = moveBlock;
+exports.moveDescendOneStep = moveDescendOneStep;
+exports.moveIntoAir = moveIntoAir;
+exports.moveOntoTrampoline = moveOntoTrampoline;
+exports.undefTileDebugInfo = undefTileDebugInfo;
 var _consoleShort = require("../misc/console-short.js");
-var _three = require("three");
-var _constants = require("../constants.js");
+var THREE = _interopRequireWildcard(require("three"));
+var _theConstants = require("../values/the-constants.js");
 var _hexTile = require("./hex-tile.js");
 var _meshTiles = require("./mesh-tiles.js");
-var _geoMesh = require("../geo-mesh.js");
+var _tileMesh = require("./tile-mesh.js");
 var _tileColors = require("../misc/tile-colors.js");
-function ground_field(the_scene, hex_tiles, ground_tiles, start_x, end_x, base_color) {
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
+function undefTileDebugInfo(prev_tilt_up) {
+  const prev_new_data = {
+    prev_tilt_up: prev_tilt_up,
+    prev_low_y: undefined,
+    prev_high_y: undefined,
+    new_tilt_up: undefined,
+    new_low_y: undefined,
+    new_high_y: undefined,
+    new_low_y: undefined,
+    new_high_y: undefined
+  };
+  const data = {
+    low_to_low: undefined,
+    high_to_high: undefined,
+    lows_and_highs: undefined,
+    high_to_low: undefined,
+    low_to_high: undefined
+  };
+  return {
+    prev_new_data,
+    data
+  };
+}
+function moveAllow(local_data, mess_1) {
+  if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
+    let {
+      prev_tilt_up,
+      new_tilt_up,
+      prev_hex,
+      this_hex
+    } = local_data;
+    (0, _consoleShort.ee)(`${mess_1} Allowed :: ${prev_hex},${prev_tilt_up} :: ${this_hex},${new_tilt_up}`);
+  }
+  if (local_data.prev_hex == local_data.this_hex) {
+    return _theConstants.MV_TILE_SAME;
+  }
+  return _theConstants.MV_TILE_NEW;
+}
+function moveBlock(local_data, mess_1) {
+  if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
+    let {
+      prev_tilt_up,
+      new_tilt_up,
+      prev_hex,
+      this_hex
+    } = local_data;
+    (0, _consoleShort.ee)(`${mess_1} Blocked :: ${prev_hex},${prev_tilt_up} :: ${this_hex},${new_tilt_up}`);
+  }
+  return _theConstants.MV_FENCE_BLOCKED;
+}
+function moveDescendOneStep(local_data, mess_1) {
+  if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
+    let {
+      prev_tilt_up,
+      new_tilt_up,
+      prev_hex,
+      this_hex
+    } = local_data;
+    (0, _consoleShort.ee)(`${mess_1} DescendOneStep :: ${prev_hex},${prev_tilt_up} :: ${this_hex},${new_tilt_up}`);
+  }
+  let c_move_result = _theConstants.MV_FALL_STEP_OFF;
+  return c_move_result;
+}
+function moveOntoTrampoline(local_data, mess_1) {
+  if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
+    let {
+      prev_tilt_up,
+      new_tilt_up,
+      prev_hex,
+      this_hex
+    } = local_data;
+    (0, _consoleShort.ee)(`${mess_1} Trampoline :: ${prev_hex},${prev_tilt_up} :: ${this_hex},${new_tilt_up}`);
+  }
+  let c_move_result = _theConstants.MV_START_TRAMPOLINE;
+  return c_move_result;
+}
+function moveIntoAir(local_data, mess_1) {
+  if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
+    let {
+      prev_tilt_up,
+      new_tilt_up,
+      prev_hex,
+      this_hex
+    } = local_data;
+    (0, _consoleShort.ee)(`${mess_1} Airborne :: ${prev_hex},${prev_tilt_up} :: ${this_hex},${new_tilt_up}`);
+  }
+  let c_move_result = _theConstants.MV_FALL_STEP_OFF;
+  return c_move_result;
+}
+
+////////////////////
+function ground_field(g_scene, hex_tiles, ground_tiles, start_x, end_x, sea_colors, sea_edge) {
   for (let x = start_x; x < end_x; x++) {
-    [hex_tiles, ground_tiles] = groundRow(hex_tiles, ground_tiles, the_scene, x, -10, 10, base_color);
+    [hex_tiles, ground_tiles] = groundRow(hex_tiles, ground_tiles, g_scene, x, -10, 10, sea_colors, sea_edge);
   }
   return [hex_tiles, ground_tiles];
 }
-function groundRow(hex_tiles, ground_tiles, the_scene, x_row, start_z, end_z, base_color) {
-  let start_3colors = [0x999900, 0xcccc00, 0xffff00];
-  let light_3colors = [0x999999, 0xcccccc, 0xffffff];
-  let dark_3colors = [0x000000, 0x333333, 0x666666];
-  const edge_3colors = [0x222222, 0x222222, 0x222222];
-  const tile_colors = {
-    start_3colors,
-    light_3colors,
-    dark_3colors,
-    edge_3colors
-  };
+function groundRow(hex_tiles, ground_tiles, g_scene, x_row, start_z, end_z, sea_colors, sea_edge) {
   for (let z = start_z; z < end_z; z++) {
     const ground_indexes = [x_row, -100, z];
-    hex_tiles = groundTile(hex_tiles, the_scene, ground_indexes, tile_colors);
+    hex_tiles = groundTile(hex_tiles, g_scene, ground_indexes, sea_colors, sea_edge);
   }
   return [hex_tiles, ground_tiles];
 }
-function groundTile(hex_tiles, the_scene, x_y_z, tile_3colors) {
+function groundTile(hex_tiles, g_scene, x_y_z, sea_colors, sea_edge) {
   const [x_index, y_height, z_index] = x_y_z;
-  let {
-    _light_color,
-    dark_color,
-    edge_color
-  } = (0, _tileColors.tile3color)(x_y_z, tile_3colors);
+  let sea_color = (0, _tileColors.seaColor)(x_y_z, sea_colors);
   let [x_center, z_center] = (0, _hexTile.tileCenterCoord)(x_index, z_index);
   const tile_radius = 1;
-  const a_tile = new _three.Group();
+  const a_tile = new THREE.Group();
   a_tile.position.set(x_center, 0, z_center);
-  const stair_tiles = (0, _hexTile.hexPoints)(tile_radius, y_height, _constants.TILT_NONE, 0);
+  const stair_tiles = (0, _hexTile.hexPoints)(tile_radius, y_height, _theConstants.TILT_NONE, 0);
   const top_triangles = (0, _hexTile.tileTriangles)(stair_tiles);
-  (0, _geoMesh.geoMesh)(a_tile, top_triangles, dark_color, edge_color);
-  the_scene.add(a_tile);
-  (0, _meshTiles.addCoords)(a_tile, x_y_z, _constants.TILT_NONE, 0);
+  (0, _tileMesh.tileMesh)(a_tile, top_triangles, sea_color, sea_edge);
+  g_scene.add(a_tile);
+  (0, _meshTiles.addCoords)(a_tile, x_y_z, _theConstants.TILT_NONE, 0);
   const xyz_index = `${x_index},${y_height},${z_index}`;
   hex_tiles.set(xyz_index, a_tile);
   return hex_tiles;
 }
 
-},{"../constants.js":10,"../geo-mesh.js":13,"../misc/console-short.js":17,"../misc/tile-colors.js":19,"./hex-tile.js":26,"./mesh-tiles.js":27,"three":3}],25:[function(require,module,exports){
+},{"../misc/console-short.js":17,"../misc/tile-colors.js":21,"../values/the-constants.js":52,"./hex-tile.js":31,"./mesh-tiles.js":32,"./tile-mesh.js":46,"three":3}],30:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.currentHexIdxs = currentHexIdxs;
 exports.hexIndex = hexIndex;
+exports.hitFence = hitFence;
+exports.offWalkway = offWalkway;
 exports.stripYindex = stripYindex;
+exports.tileData = tileData;
 var _consoleShort = require("../misc/console-short.js");
+var _theConstants = require("../values/the-constants.js");
+var _groundTiles = require("./ground-tiles.js");
+var _hexTile = require("./hex-tile.js");
+function hitFence(o_fence_walls, o_fence_columns, prev_hex, this_hex) {
+  const xyz_1_2_index = `${prev_hex}${_theConstants.HEX_PAIR_DIVIDER}${this_hex}`;
+  let current_xz_index = stripYindex(this_hex);
+  let cur_xz_fence_column = o_fence_walls.get(xyz_1_2_index);
+  if (cur_xz_fence_column) {
+    return true;
+  }
+  return false;
+}
+
+// ####### this should figure out prev, next only
+//                      f_prev_coords
+function currentHexIdxs(hex_data) {
+  let {
+    f_prev_coords,
+    f_this_coords,
+    f_y100_height,
+    f_move_result,
+    f_cam_vect
+  } = hex_data;
+  if (f_move_result == _theConstants.MV_FENCE_BLOCKED) {
+    let [ndx_x, ndx_z] = (0, _hexTile.coords2Indexes)(f_prev_coords.x, f_prev_coords.z);
+    let [x_coord, z_coord] = (0, _hexTile.tileCenterCoord)(ndx_x, ndx_z);
+    f_prev_coords.x = x_coord;
+    f_prev_coords.z = z_coord;
+    f_cam_vect.x = f_prev_coords.x;
+    f_cam_vect.y = f_prev_coords.y / 100;
+    f_cam_vect.z = f_prev_coords.z;
+    f_this_coords = f_prev_coords;
+  } else {
+    f_prev_coords = f_this_coords;
+    f_this_coords.y = f_y100_height;
+  }
+  return [f_prev_coords, f_this_coords, f_y100_height];
+}
 function hexIndex(x_hex_ind, y_height, z_hex_ind) {
   let y_fixed_to_10ths = Math.trunc(y_height * 10) / 10;
   let hex_index = `${x_hex_ind},${y_fixed_to_10ths},${z_hex_ind}`;
@@ -24342,18 +24801,77 @@ function stripYindex(hex_index) {
   let [x_hex_ind, _y_height, z_hex_ind] = hex_index.split(",");
   return `${x_hex_ind},${z_hex_ind}`;
 }
+function offWalkway(walkway_columns, this_hex) {
+  let current_xz_index = stripYindex(this_hex);
+  let current_xz_column = walkway_columns.get(current_xz_index);
+  if (current_xz_column == undefined) {
+    return true; // falling in a column with no tiles
+  }
+  let current_xyz_walkway_index = current_xz_column.get(this_hex);
+  if (current_xyz_walkway_index == undefined) {
+    return true; // falling in a column with tiles, but no tile at this height
+  }
+  return false;
+}
+function tileData(o_walkway_tiles, prev_hex, this_hex) {
+  let current_walkway_tile = o_walkway_tiles.get(this_hex);
+  if (current_walkway_tile == undefined) {
+    const undef_printable_info = (0, _groundTiles.undefTileDebugInfo)(_theConstants.TILT_NONE);
+    return undef_printable_info;
+  }
+  const {
+    tilt_up: new_tilt_up,
+    low_y: new_low_y,
+    high_y: new_high_y
+  } = current_walkway_tile;
+  let prev_tilt_up, prev_low_y, prev_high_y;
+  let prev_walkway_tile = o_walkway_tiles.get(prev_hex);
+  if (prev_walkway_tile) {
+    prev_tilt_up = prev_walkway_tile.tilt_up;
+    prev_low_y = prev_walkway_tile.low_y;
+    prev_high_y = prev_walkway_tile.high_y;
+  } else {
+    prev_tilt_up = new_tilt_up;
+    prev_low_y = new_low_y;
+    prev_high_y = new_high_y;
+  }
+  const low_to_low = prev_low_y == new_low_y;
+  const high_to_high = prev_high_y == new_high_y;
+  const lows_and_highs = low_to_low && high_to_high;
+  const high_to_low = prev_high_y == new_low_y;
+  const low_to_high = prev_low_y == new_high_y;
+  const prev_new_data = {
+    prev_tilt_up,
+    prev_low_y,
+    prev_high_y,
+    new_tilt_up,
+    new_low_y,
+    new_high_y
+  };
+  const data = {
+    low_to_low,
+    high_to_high,
+    lows_and_highs,
+    high_to_low,
+    low_to_high
+  };
+  return {
+    prev_new_data,
+    data
+  };
+}
 
-},{"../misc/console-short.js":17}],26:[function(require,module,exports){
+},{"../misc/console-short.js":17,"../values/the-constants.js":52,"./ground-tiles.js":29,"./hex-tile.js":31}],31:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.HexTile = HexTile;
-Object.defineProperty(exports, "coords2HexIndexes", {
+Object.defineProperty(exports, "coords2Indexes", {
   enumerable: true,
   get: function () {
-    return _maths.coords2HexIndexes;
+    return _hexMaths.coords2Indexes;
   }
 });
 exports.hexPoints = hexPoints;
@@ -24361,20 +24879,18 @@ exports.offsetTilePoints = offsetTilePoints;
 Object.defineProperty(exports, "tileCenterCoord", {
   enumerable: true,
   get: function () {
-    return _maths.tileCenterCoord;
+    return _hexMaths.tileCenterCoord;
   }
 });
 exports.tileTriangles = tileTriangles;
 var _consoleShort = require("../misc/console-short.js");
-var _three = require("three");
+var THREE = _interopRequireWildcard(require("three"));
+var _tileColors = require("../misc/tile-colors.js");
 var _meshTiles = require("./mesh-tiles.js");
-var _geoMesh = require("../geo-mesh.js");
-var _maths = require("../maths.js");
-var _constants = require("../constants.js");
-//import { tile3color } from "../misc/tile-colors.js";
-
-const SQRT_3 = Math.sqrt(3);
-
+var _tileMesh = require("./tile-mesh.js");
+var _hexMaths = require("../misc/hex-maths.js");
+var _theConstants = require("../values/the-constants.js");
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 /*
                           square_up_left                                 top_left       top_right
 fifth triangle               /---------\                                    /--------------\ 
@@ -24424,45 +24940,33 @@ function tileTriangles(hex_points) {
   ];
   return hexagon_triangles;
 }
-function HexTile(the_scene, walkway_meshes, walkway_tiles, x_y_z, tile_3colors, slope_direction, incline_amount) {
-  let {
-    start_color,
-    light_color,
-    dark_color,
-    edge_color
-  } = tile_3colors;
-  //  tt(tile_3colors);
+function HexTile(g_scene, walkway_meshes, walkway_tiles, x_y_z, WALK_COLORS, WALK_EDGE, slope_tilt, incline_amount, is_transparent) {
+  //let { start_color, light_color, dark_color, edge_color } = d_tile_3colors;
   const [x_index, y_100_index, z_index] = x_y_z;
   const xyz_index = `${x_index},${y_100_index},${z_index}`;
-  if (slope_direction == undefined) {
-    slope_direction = _constants.TILT_NONE;
+  if (slope_tilt == undefined) {
+    slope_tilt = _theConstants.TILT_NONE;
     incline_amount = 0;
   }
-  if (incline_amount == undefined) {
-    incline_amount[_constants.TILT_NONE, 0];
-  }
-  let [x_center, z_center] = (0, _maths.tileCenterCoord)(x_index, z_index);
+  let [x_center, z_center] = (0, _hexMaths.tileCenterCoord)(x_index, z_index);
   const tile_radius = 1;
-  const a_tile = new _three.Group();
+  const a_tile = new THREE.Group();
   a_tile.position.set(x_center, 0, z_center);
-  const tile_points = hexPoints(tile_radius, y_100_index, slope_direction, incline_amount);
-  walkway_tiles = offsetTilePoints(walkway_tiles, x_y_z, slope_direction, incline_amount, tile_points, tile_3colors);
+  const tile_points = hexPoints(tile_radius, y_100_index, slope_tilt, incline_amount);
+  walkway_tiles = offsetTilePoints(walkway_tiles, x_y_z, slope_tilt, incline_amount, tile_points, WALK_COLORS);
   const top_triangles = tileTriangles(tile_points);
-  (0, _geoMesh.geoMesh)(a_tile, top_triangles, start_color, edge_color);
-  the_scene.add(a_tile);
-  (0, _meshTiles.addCoords)(a_tile, x_y_z, slope_direction, incline_amount);
+  let walk_colors = 0xffff00;
+  walk_colors = (0, _tileColors.seaColor)(x_y_z, WALK_COLORS);
+  (0, _tileMesh.tileMesh)(a_tile, top_triangles, walk_colors, WALK_EDGE, is_transparent);
+  g_scene.add(a_tile);
+  (0, _meshTiles.addCoords)(a_tile, x_y_z, slope_tilt, incline_amount);
   walkway_meshes.set(xyz_index, a_tile);
   return [walkway_meshes, walkway_tiles];
 }
-function offsetTilePoints(stair_tiles, x_y_z, slope_direction, incline_amount, tile_points, tile_3colors) {
-  let {
-    light_color,
-    dark_color,
-    _edge_color
-  } = tile_3colors;
+function offsetTilePoints(stair_tiles, x_y_z, slope_tilt, incline_amount, tile_points) {
   const [x_index, y_index, z_index] = x_y_z;
   const xyz_index = `${x_index},${y_index},${z_index}`;
-  let [x_center, z_center] = (0, _maths.tileCenterCoord)(x_index, z_index);
+  let [x_center, z_center] = (0, _hexMaths.tileCenterCoord)(x_index, z_index);
   let tile_positions = [];
   for (let i = 0; i < tile_points.length; i++) {
     let tile_point = tile_points[i];
@@ -24475,26 +24979,26 @@ function offsetTilePoints(stair_tiles, x_y_z, slope_direction, incline_amount, t
   }
   let accross_length = 0;
   let top_point, bottom_point;
-  if (slope_direction == _constants.TILT_NW) {
+  if (slope_tilt == _theConstants.TILT_NW) {
     bottom_point = tile_positions[1];
     top_point = tile_positions[5];
-    accross_length = (0, _maths.distance2hexpoints)(bottom_point, top_point);
-  } else if (slope_direction == _constants.TILT_NE) {
+    accross_length = (0, _hexMaths.distance2hexpoints)(bottom_point, top_point);
+  } else if (slope_tilt == _theConstants.TILT_NE) {
     bottom_point = tile_positions[0];
     top_point = tile_positions[2];
-    accross_length = (0, _maths.distance2hexpoints)(bottom_point, top_point);
-  } else if (slope_direction == _constants.TILT_SW) {
+    accross_length = (0, _hexMaths.distance2hexpoints)(bottom_point, top_point);
+  } else if (slope_tilt == _theConstants.TILT_SW) {
     bottom_point = tile_positions[2];
     top_point = tile_positions[0];
-    accross_length = (0, _maths.distance2hexpoints)(bottom_point, top_point);
-  } else if (slope_direction == _constants.TILT_SE) {
+    accross_length = (0, _hexMaths.distance2hexpoints)(bottom_point, top_point);
+  } else if (slope_tilt == _theConstants.TILT_SE) {
     bottom_point = tile_positions[5];
     top_point = tile_positions[2];
-    accross_length = (0, _maths.distance2hexpoints)(bottom_point, top_point);
-  } else if (slope_direction == _constants.TILT_NN) {
+    accross_length = (0, _hexMaths.distance2hexpoints)(bottom_point, top_point);
+  } else if (slope_tilt == _theConstants.TILT_NN) {
     bottom_point = tile_positions[0];
     top_point = tile_positions[3];
-  } else if (slope_direction == _constants.TILT_SS) {
+  } else if (slope_tilt == _theConstants.TILT_SS) {
     bottom_point = tile_positions[3];
     top_point = tile_positions[0];
   } else {
@@ -24515,15 +25019,15 @@ function offsetTilePoints(stair_tiles, x_y_z, slope_direction, incline_amount, t
     y_position: y_index,
     //
     z_center: z_center,
-    tilt_up: slope_direction,
+    tilt_up: slope_tilt,
     angle_incline: incline_amount,
     accross_length: accross_length,
     tile_positions: tile_positions,
     x_z: `${x_index},${z_index}`,
     // a_c !!!
     xyz_index: xyz_index,
-    light_color: light_color,
-    dark_color: dark_color,
+    // light_color: light_color,
+    // dark_color: dark_color,
     high_y: top_point_y,
     // high_y,
     low_y: bottom_point_y // low_y
@@ -24534,7 +25038,7 @@ function offsetTilePoints(stair_tiles, x_y_z, slope_direction, incline_amount, t
 //                              y_100_height
 function hexPoints(tile_radius, y_100_height, up_direction, angled_height) {
   const y_height = y_100_height / 100;
-  const hex_dist = tile_radius * Math.sqrt(3) / 2;
+  const hex_dist = tile_radius * _theConstants.SQRT_3 / 2;
   const half_radius = tile_radius / 2;
   var top_left, bot_left, top_rght, bot_rght, left_tip, rght_tip;
   const top_height = y_height + angled_height;
@@ -24553,63 +25057,63 @@ function hexPoints(tile_radius, y_100_height, up_direction, angled_height) {
   const left_tip_z = 0;
   const rght_tip_z = 0;
   const middle_point = [0, mid_height, 0];
-  if (up_direction === _constants.TILT_NONE) {
+  if (up_direction === _theConstants.TILT_NONE) {
     top_left = [top_left_x, y_height, top_left_z];
     bot_left = [bot_left_x, y_height, bot_left_z];
     top_rght = [top_rght_x, y_height, top_rght_z];
     bot_rght = [bot_rght_x, y_height, bot_rght_z];
     left_tip = [left_tip_x, y_height, left_tip_z];
     rght_tip = [rght_tip_x, y_height, rght_tip_z];
-  } else if (up_direction === _constants.TILT_SS) {
+  } else if (up_direction === _theConstants.TILT_SS) {
     top_left = [top_left_x, top_height, top_left_z];
     bot_left = [bot_left_x, bot_height, bot_left_z];
     top_rght = [top_rght_x, top_height, top_rght_z];
     bot_rght = [bot_rght_x, bot_height, bot_rght_z];
     left_tip = [left_tip_x, mid_height, left_tip_z];
     rght_tip = [rght_tip_x, mid_height, rght_tip_z];
-  } else if (up_direction === _constants.TILT_SW) {
+  } else if (up_direction === _theConstants.TILT_SW) {
     top_left = [top_left_x, top_height, top_left_z];
     bot_left = [bot_left_x, mid_height, bot_left_z];
     top_rght = [top_rght_x, mid_height, top_rght_z];
     bot_rght = [bot_rght_x, bot_height, bot_rght_z];
     left_tip = [left_tip_x, top_height, left_tip_z];
     rght_tip = [rght_tip_x, bot_height, rght_tip_z];
-  } else if (up_direction === _constants.TILT_NE) {
+  } else if (up_direction === _theConstants.TILT_NE) {
     top_left = [top_left_x, bot_height, top_left_z];
     bot_left = [bot_left_x, mid_height, bot_left_z];
     top_rght = [top_rght_x, mid_height, top_rght_z];
     bot_rght = [bot_rght_x, top_height, bot_rght_z];
     left_tip = [left_tip_x, bot_height, left_tip_z];
     rght_tip = [rght_tip_x, top_height, rght_tip_z];
-  } else if (up_direction === _constants.TILT_NW) {
+  } else if (up_direction === _theConstants.TILT_NW) {
     top_left = [top_left_x, mid_height, top_left_z];
     bot_left = [bot_left_x, top_height, bot_left_z];
     top_rght = [top_rght_x, bot_height, top_rght_z];
     bot_rght = [bot_rght_x, mid_height, bot_rght_z];
     left_tip = [left_tip_x, top_height, left_tip_z];
     rght_tip = [rght_tip_x, bot_height, rght_tip_z];
-  } else if (up_direction === _constants.TILT_SE) {
+  } else if (up_direction === _theConstants.TILT_SE) {
     top_left = [top_left_x, mid_height, top_left_z];
     top_rght = [top_rght_x, top_height, top_rght_z];
     rght_tip = [rght_tip_x, top_height, rght_tip_z];
     bot_rght = [bot_rght_x, mid_height, bot_rght_z];
     bot_left = [bot_left_x, bot_height, bot_left_z];
     left_tip = [left_tip_x, bot_height, left_tip_z];
-  } else if (up_direction === _constants.TILT_SE90) {
+  } else if (up_direction === _theConstants.TILT_SE90) {
     top_left = [bot_left_x, mid_height, top_left_z];
     bot_rght = [bot_rght_x, mid_height, bot_rght_z];
     top_rght = [top_rght_x, top_height, top_rght_z];
     rght_tip = [rght_tip_x, top_height, rght_tip_z];
     bot_left = [bot_left_x, bot_height, bot_left_z];
     left_tip = [left_tip_x, bot_height, left_tip_z];
-  } else if (up_direction === _constants.TILT_NN) {
+  } else if (up_direction === _theConstants.TILT_NN) {
     top_left = [top_left_x, bot_height, top_left_z];
     top_rght = [top_rght_x, bot_height, top_rght_z];
     rght_tip = [rght_tip_x, mid_height, rght_tip_z];
     left_tip = [left_tip_x, mid_height, left_tip_z];
     bot_rght = [bot_rght_x, top_height, bot_rght_z];
     bot_left = [bot_left_x, top_height, bot_left_z];
-  } else if (up_direction === _constants.TILT_NN90) {
+  } else if (up_direction === _theConstants.TILT_NN90) {
     top_left = [top_left_x, bot_height, top_left_z]; // bot_hkill the tips
     top_rght = [top_rght_x, bot_height, top_rght_z];
     rght_tip = [top_rght_x, mid_height, top_rght_z];
@@ -24623,7 +25127,7 @@ function hexPoints(tile_radius, y_100_height, up_direction, angled_height) {
   return stair_tiles;
 }
 
-},{"../constants.js":10,"../geo-mesh.js":13,"../maths.js":16,"../misc/console-short.js":17,"./mesh-tiles.js":27,"three":3}],27:[function(require,module,exports){
+},{"../misc/console-short.js":17,"../misc/hex-maths.js":19,"../misc/tile-colors.js":21,"../values/the-constants.js":52,"./mesh-tiles.js":32,"./tile-mesh.js":46,"three":3}],32:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24631,21 +25135,22 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.addCoords = addCoords;
 var _consoleShort = require("../misc/console-short.js");
-var _three = require("three");
-var _constants = require("../constants.js");
+var THREE = _interopRequireWildcard(require("three"));
+var _theConstants = require("../values/the-constants.js");
 var _FontLoader = require("three/examples/jsm/loaders/FontLoader.js");
-var _TextGeometry = require("three/examples/jsm/geometries/TextGeometry.js");
 var _helvetiker_regularTypeface = require("../misc/helvetiker_regular.typeface.js");
+var _TextGeometry = require("three/examples/jsm/geometries/TextGeometry.js");
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 var loader2 = new _FontLoader.FontLoader();
 const WHITE_LABELS = 0xffffff;
 var the_font = loader2.parse(_helvetiker_regularTypeface.type_face);
 
 //const Y_TO_ACTUAL_HEIGHT = 10;
-function addCoords(a_tile, x_y_z, slope_direction, incline_amount) {
+function addCoords(a_tile, x_y_z, slope_tilt, incline_amount) {
   // const [up_direction, angled_height] = incline_and_dir;
   let [x_index, y_100_index, z_index] = x_y_z;
   let y_index = y_100_index / 100;
-  var textMaterial = new _three.MeshLambertMaterial({
+  var textMaterial = new THREE.MeshLambertMaterial({
     emissive: 0xffffff,
     color: WHITE_LABELS
   });
@@ -24655,61 +25160,63 @@ function addCoords(a_tile, x_y_z, slope_direction, incline_amount) {
     depth: 0,
     curveSegments: 12
   });
-  var text_mesh = new _three.Mesh(textGeometry, textMaterial);
+  var text_mesh = new THREE.Mesh(textGeometry, textMaterial);
   if (y_index < 0) {
     text_mesh.position.y = -0.999;
-  } else if (slope_direction == _constants.TILT_NONE) {
+  } else if (slope_tilt == _theConstants.TILT_NONE) {
     //        text_mesh.position.y = y_index / Y_TO_ACTUAL_HEIGHT + 0.001;
     text_mesh.position.y = y_index + 0.001;
     //text_mesh.position.y = y_index + 0.05;
   } else {
     //        text_mesh.position.y = y_index / Y_TO_ACTUAL_HEIGHT + incline_amount;
-    text_mesh.position.y = y_index + incline_amount + 0.05; // qbert hard to see
+    text_mesh.position.y = y_index + incline_amount + 0.05;
   }
   text_mesh.rotation.x = -Math.PI / 2;
-  if (slope_direction != _constants.TILT_NONE) {
+  if (slope_tilt != _theConstants.TILT_NONE) {
     text_mesh.rotation.y = -Math.PI / 2;
     text_mesh.rotation.z = -Math.PI / 2;
   }
   let x, z;
-  if (slope_direction == _constants.TILT_NONE) {
-    x = -0.15;
+  if (slope_tilt == _theConstants.TILT_NONE) {
+    x = -0.5; // -0.15;
     z = 0.1;
-  } else if (slope_direction == _constants.TILT_NN) {
-    x = -0.15;
-    z = -0.55;
-  } else if (slope_direction == _constants.TILT_NE) {
+  } else if (slope_tilt == _theConstants.TILT_NN) {
+    x = +0.15;
+    z = -0.5; //-0.55;
+    //  text_mesh.position.y += 1.1;
+    // text_mesh.rotation.x = Math.PI / 2;
+  } else if (slope_tilt == _theConstants.TILT_NE) {
     x = 0.3;
     z = -0.25;
-  } else if (slope_direction == _constants.TILT_SE) {
-    x = 1;
+  } else if (slope_tilt == _theConstants.TILT_SE) {
+    x = 0.3;
     z = 0.4;
     //text_mesh.position.y -= 0.1;
-  } else if (slope_direction == _constants.TILT_SS) {
-    x = -0.15;
-    z = 0.48;
-  } else if (slope_direction == _constants.TILT_SW) {
+  } else if (slope_tilt == _theConstants.TILT_SS) {
+    x = +0.515;
+    z = -0.4;
+  } else if (slope_tilt == _theConstants.TILT_SW) {
     x = -0.7;
     z = 0.4;
-  } else if (slope_direction == _constants.TILT_NW) {
+  } else if (slope_tilt == _theConstants.TILT_NW) {
     x = -0.7;
     z = -0.25;
   } else {
-    (0, _consoleShort.ee)(" addCoords() unknown slope_direction", slope_direction);
+    (0, _consoleShort.ee)(" addCoords() unknown slope_tilt", slope_tilt);
   }
   text_mesh.position.x = x;
   text_mesh.position.z = z;
   a_tile.add(text_mesh);
 }
 
-},{"../constants.js":10,"../misc/console-short.js":17,"../misc/helvetiker_regular.typeface.js":18,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}],28:[function(require,module,exports){
+},{"../misc/console-short.js":17,"../misc/helvetiker_regular.typeface.js":18,"../values/the-constants.js":52,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}],33:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.NE_START_FINISHES = exports.NE_INTO_AIR = exports.NE_AIRBORNE = exports.NE_9_FLAT__DOWN = exports.NE_8_DOWN__FLAT = exports.NE_7_UP__FLAT = exports.NE_6_FLAT__UP = exports.NE_5_FLAT__FLAT = exports.NE_4_DOWN_DOWN_COUNTER = exports.NE_3_DOWN_DOWN_CLOCK = exports.NE_2_UP_UP_COUNTER = exports.NE_1_UP_UP_CLOCK = exports.NE_14_BLOCKED = exports.NE_13_DOWN__UP = exports.NE_12_UP__DOWN = exports.NE_11_DOWN__DOWN = exports.NE_10_UP__UP = void 0;
-var _constants = require("../../constants.js");
+var _theConstants = require("../../values/the-constants.js");
 const x_start = 0;
 const z_start = 0;
 const x_finish = 1;
@@ -24730,19 +25237,19 @@ const NE_11_DOWN__DOWN = exports.NE_11_DOWN__DOWN = "NE_11_DOWN__DOWN";
 const NE_12_UP__DOWN = exports.NE_12_UP__DOWN = "NE_12_UP__DOWN";
 const NE_13_DOWN__UP = exports.NE_13_DOWN__UP = "NE_13_DOWN__UP";
 const NE_14_BLOCKED = exports.NE_14_BLOCKED = "NE_14_BLOCKED";
-const NE_1_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], NE_1_UP_UP_CLOCK];
-const NE_222_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], NE_2_UP_UP_COUNTER];
-const NE_3_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], NE_3_DOWN_DOWN_CLOCK];
-const NE_4444_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], NE_4_DOWN_DOWN_COUNTER];
-const NE_5_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2], NE_5_FLAT__FLAT];
-const NE_6_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], NE_6_FLAT__UP];
-const NE_7_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 2, z_finish, _constants.COL_2], NE_7_UP__FLAT];
-const NE_8_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 2, z_finish, _constants.COL_2], NE_8_DOWN__FLAT];
-const NE_9_TEST = [[x_start, 2, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], NE_9_FLAT__DOWN];
-const NE_10_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 2, z_finish, _constants.COL_2, _constants.TILT_NE, 1], NE_10_UP__UP];
-const NE_11_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], NE_11_DOWN__DOWN];
-const NE_12_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], NE_12_UP__DOWN];
-const NE_13_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], NE_13_DOWN__UP];
+const NE_1_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NN, 1], NE_1_UP_UP_CLOCK];
+const NE_222_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NN, 1], NE_2_UP_UP_COUNTER];
+const NE_3_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SS, 1], NE_3_DOWN_DOWN_CLOCK];
+const NE_4444_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SS, 1], NE_4_DOWN_DOWN_COUNTER];
+const NE_5_TEST = [[x_start, 1, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2], NE_5_FLAT__FLAT];
+const NE_6_TEST = [[x_start, 1, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], NE_6_FLAT__UP];
+const NE_7_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NE, 1], [x_finish, 2, z_finish, _theConstants.COL_2], NE_7_UP__FLAT];
+const NE_8_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TILT_SW, 1], [x_finish, 2, z_finish, _theConstants.COL_2], NE_8_DOWN__FLAT];
+const NE_9_TEST = [[x_start, 2, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SW, 1], NE_9_FLAT__DOWN];
+const NE_10_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NE, 1], [x_finish, 2, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], NE_10_UP__UP];
+const NE_11_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TILT_SW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SW, 1], NE_11_DOWN__DOWN];
+const NE_12_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SW, 1], NE_12_UP__DOWN];
+const NE_13_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], NE_13_DOWN__UP];
 const NE_START_FINISHES = exports.NE_START_FINISHES = {
   1: NE_1_TEST,
   2: NE_222_TEST,
@@ -24759,7 +25266,7 @@ const NE_START_FINISHES = exports.NE_START_FINISHES = {
   13: NE_13_TEST
 };
 
-},{"../../constants.js":10}],29:[function(require,module,exports){
+},{"../../values/the-constants.js":52}],34:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24767,145 +25274,42 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.moveToNe = moveToNe;
 var _consoleShort = require("../../misc/console-short.js");
-var _constants = require("../../constants.js");
+var _groundTiles = require("../ground-tiles.js");
+var _theConstants = require("../../values/the-constants.js");
 var _hexRoutines = require("../hex-routines.js");
 var _neConstants = require("./ne-constants.js");
-function neAllow(local_data, mess_1) {
+function moveToNe(the_objects, prev_hex, this_hex, is_a_trampoline) {
   let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST allowed NE :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_NEW_TILE;
-}
-function neBlock(local_data, mess_1) {
-  let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST blocked NE :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_BLOCKED;
-}
-function neFall(local_data, mess_1) {
-  let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST airborne NE :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_FALLING;
-}
-function neAirborne(run_or_test, print_allowed) {
-  const local_data = {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up: _neConstants.NE_AIRBORNE,
-    new_tilt_up: _neConstants.NE_AIRBORNE
-  };
-  return neFall(local_data, _neConstants.NE_AIRBORNE);
-}
-function neInAir(walkway_columns, new_index) {
-  let current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
-  let current_xz_column = walkway_columns.get(current_xz_index);
-  if (current_xz_column == undefined) {
-    return true; // falling in a column with no tiles
-  }
-  let current_xyz_walkway_index = current_xz_column.get(new_index);
-  if (current_xyz_walkway_index == undefined) {
-    return true; // falling in a column with tiles, but no tile at this height
-  }
-  return false;
-}
-function neHitSsWall(wall_squares, wall_columns, new_index) {
-  let current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
-  let cur_xz_wall_column = wall_columns.get(current_xz_index);
-  if (cur_xz_wall_column) {
-    let possible_wall = wall_squares.get(new_index);
-    if (possible_wall) {
-      return true;
-    }
-  }
-  return false;
-}
-function neTileData(walkway_tiles, prev_index, new_index) {
-  let current_walkway_tile = walkway_tiles.get(new_index);
-  const {
-    tilt_up: new_tilt_up,
-    low_y: new_low_y,
-    high_y: new_high_y
-  } = current_walkway_tile;
-  let prev_tilt_up, prev_low_y, prev_high_y;
-  let prev_walkway_tile = walkway_tiles.get(prev_index);
-  if (prev_walkway_tile) {
-    prev_tilt_up = prev_walkway_tile.tilt_up;
-    prev_low_y = prev_walkway_tile.low_y;
-    prev_high_y = prev_walkway_tile.high_y;
-  } else {
-    prev_tilt_up = new_tilt_up;
-    prev_low_y = new_low_y;
-    prev_high_y = new_high_y;
-  }
-  const low_to_low = prev_low_y == new_low_y;
-  const high_to_high = prev_high_y == new_high_y;
-  const lows_and_highs = low_to_low && high_to_high;
-  const high_to_low = prev_high_y == new_low_y;
-  const low_to_high = prev_low_y == new_high_y;
-  const prev_new_data = {
-    prev_tilt_up,
-    prev_low_y,
-    prev_high_y,
-    new_tilt_up,
-    new_low_y,
-    new_high_y
-  };
-  const data = {
-    low_to_low,
-    high_to_high,
-    lows_and_highs,
-    high_to_low,
-    low_to_high
-  };
-  return {
-    prev_new_data,
-    data
-  };
-}
-function moveToNe(current_data) {
-  const {
-    run_or_test,
-    print_allowed,
-    walkway_tiles,
-    walkway_columns,
-    wall_squares,
-    wall_columns,
-    prev_index,
-    new_index
-  } = current_data;
-  if (neHitSsWall(wall_squares, wall_columns, new_index)) {
-    return neBlock(run_or_test, print_allowed, prev_index, new_index, _neConstants.NE_14_BLOCKED);
-  }
-  if (neInAir(walkway_columns, new_index)) {
-    return neAirborne(run_or_test, print_allowed);
-  }
+    o_walkway_tiles,
+    o_walkway_columns,
+    o_fence_walls,
+    o_fence_columns
+  } = the_objects;
   const {
     prev_new_data,
     data
-  } = neTileData(walkway_tiles, prev_index, new_index);
+  } = (0, _hexRoutines.tileData)(o_walkway_tiles, prev_hex, this_hex);
   const {
     prev_tilt_up,
     new_tilt_up
   } = prev_new_data;
+  const local_data = {
+    prev_tilt_up,
+    new_tilt_up,
+    prev_hex,
+    this_hex
+  };
+  if ((0, _hexRoutines.hitFence)(o_fence_walls, o_fence_columns, prev_hex, this_hex)) {
+    const is_blocked = (0, _groundTiles.moveBlock)(local_data, _neConstants.NE_14_BLOCKED);
+    return is_blocked;
+  }
+  if ((0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex)) {
+    if (is_a_trampoline) {
+      return (0, _groundTiles.moveOntoTrampoline)(local_data, _neConstants.NE_AIRBORNE);
+    } else {
+      return (0, _groundTiles.moveIntoAir)(local_data, _neConstants.NE_AIRBORNE);
+    }
+  }
   const {
     low_to_low,
     high_to_high,
@@ -24913,47 +25317,45 @@ function moveToNe(current_data) {
     high_to_low,
     low_to_high
   } = data;
-  const local_data = {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  };
   if (neCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return neAllow(local_data, _neConstants.NE_1_UP_UP_CLOCK); //      ⭮
+    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_1_UP_UP_CLOCK); //      ⭮
   } else if (neCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return neAllow(local_data, _neConstants.NE_2_UP_UP_COUNTER); //      ⭯
+    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_2_UP_UP_COUNTER); //      ⭯
   } else if (neCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return neAllow(local_data, _neConstants.NE_3_DOWN_DOWN_CLOCK); //  ⭮
+    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_3_DOWN_DOWN_CLOCK); //  ⭮
   } else if (neCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return neAllow(local_data, _neConstants.NE_4_DOWN_DOWN_COUNTER); //  ⭯
+    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_4_DOWN_DOWN_COUNTER); //  ⭯
   } else if (neFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return neAllow(local_data, _neConstants.NE_5_FLAT__FLAT); // - -
+    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_5_FLAT__FLAT); // - -
   } else if (neFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return neAllow(local_data, _neConstants.NE_6_FLAT__UP); //   _⭜
+    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_6_FLAT__UP); //   _⭜
   } else if (neUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return neAllow(local_data, _neConstants.NE_7_UP__FLAT); //   ↗¯¯
+    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_7_UP__FLAT); //   ↗¯¯
   } else if (neDownToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return neAllow(local_data, _neConstants.NE_8_DOWN__FLAT); // ↘__
+    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_8_DOWN__FLAT); // ↘__
   } else if (neFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return neAllow(local_data, _neConstants.NE_9_FLAT__DOWN); // ¯⭝
+    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_9_FLAT__DOWN); // ¯⭝
   } else if (neUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-    return neAllow(local_data, _neConstants.NE_10_UP__UP); //     ↗↗
+    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_10_UP__UP); //     ↗↗
   } else if (neDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-    return neAllow(local_data, _neConstants.NE_11_DOWN__DOWN); // ↘↘
+    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_11_DOWN__DOWN); // ↘↘
   } else if (neUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return neAllow(local_data, _neConstants.NE_12_UP__DOWN); //  ↗↘
+    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_12_UP__DOWN); //  ↗↘
   } else if (neDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return neAllow(local_data, _neConstants.NE_13_DOWN__UP); //  ↘↗
-  } else if (prev_index == new_index) {
-    return _constants.MOVE_SAME_TILE;
+    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_13_DOWN__UP); //  ↘↗
+  } else if (prev_hex == this_hex) {
+    return _theConstants.MV_TILE_SAME;
   }
-  return neAllow(local_data, _neConstants.NE_13_DOWN__UP); //  ↘↗
+  // this only steps down from HEIGHT_Y___11 to HEIGHT_Y___10
+  if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
+    return (0, _groundTiles.moveDescendOneStep)(local_data, _neConstants.NE_AIRBORNE);
+  }
+  return (0, _groundTiles.moveBlock)(local_data, _neConstants.NE_14_BLOCKED); // ¯¯↗
 }
 
 /*  curve_up__curve_up.png   like a flower */
 function neCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const NW_to_NN = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_NN;
+  const NW_to_NN = prev_tilt_up == _theConstants.TILT_NW && new_tilt_up == _theConstants.TILT_NN;
   if (NW_to_NN && lows_and_highs) {
     (0, _consoleShort.ee)("FLOWER CLOCK ne");
     return true;
@@ -24961,7 +25363,7 @@ function neCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   return false;
 }
 function neCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const SS_to_SE = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_SE;
+  const SS_to_SE = prev_tilt_up == _theConstants.TILT_SS && new_tilt_up == _theConstants.TILT_SE;
   if (SS_to_SE && lows_and_highs) {
     (0, _consoleShort.ee)("FLOWER COUNT ne");
     return true;
@@ -24971,7 +25373,7 @@ function neCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
 
 /*  curve_down__curve_down.png  like a cap */
 function neCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const SE_to_SS = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_SS;
+  const SE_to_SS = prev_tilt_up == _theConstants.TILT_SE && new_tilt_up == _theConstants.TILT_SS;
   if (SE_to_SS && lows_and_highs) {
     (0, _consoleShort.ee)("hat CLOCK ne");
     return true;
@@ -24979,7 +25381,7 @@ function neCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   return false;
 }
 function neCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const NN_to_NW = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NW;
+  const NN_to_NW = prev_tilt_up == _theConstants.TILT_NN && new_tilt_up == _theConstants.TILT_NW;
   if (NN_to_NW && lows_and_highs) {
     (0, _consoleShort.ee)("hat COUNT ne");
     return true;
@@ -24987,77 +25389,77 @@ function neCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   return false;
 }
 function neFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NONE_to_NONE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NONE;
+  const NONE_to_NONE = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_NONE;
   if (NONE_to_NONE && low_to_low) {
     return true;
   }
   return false;
 }
 function neFlatToUp(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NONE_to_NE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NE;
+  const NONE_to_NE = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_NE;
   if (NONE_to_NE && low_to_low) {
     return true;
   }
   return false;
 }
 function neUpToFlat(prev_tilt_up, new_tilt_up, high_to_high) {
-  const NE_to_NONE = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_NONE;
+  const NE_to_NONE = prev_tilt_up == _theConstants.TILT_NE && new_tilt_up == _theConstants.TILT_NONE;
   if (NE_to_NONE && high_to_high) {
     return true;
   }
   return false;
 }
 function neDownToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
-  const SW_to_NONE = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_NONE;
+  const SW_to_NONE = prev_tilt_up == _theConstants.TILT_SW && new_tilt_up == _theConstants.TILT_NONE;
   if (SW_to_NONE && low_to_low) {
     return true;
   }
   return false;
 }
 function neFlatToDown(prev_tilt_up, new_tilt_up, high_to_high) {
-  const NONE_to_SW = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_SW;
+  const NONE_to_SW = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_SW;
   if (NONE_to_SW && high_to_high) {
     return true;
   }
   return false;
 }
 function neUpToUp(prev_tilt_up, new_tilt_up, high_to_low) {
-  const NE_to_NE = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_NE;
+  const NE_to_NE = prev_tilt_up == _theConstants.TILT_NE && new_tilt_up == _theConstants.TILT_NE;
   if (NE_to_NE && high_to_low) {
     return true;
   }
   return false;
 }
 function neDownToDown(prev_tilt_up, new_tilt_up, low_to_high) {
-  const SW_to_SW = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_SW;
+  const SW_to_SW = prev_tilt_up == _theConstants.TILT_SW && new_tilt_up == _theConstants.TILT_SW;
   if (SW_to_SW && low_to_high) {
     return true;
   }
   return false;
 }
 function neUpToDown(prev_tilt_up, new_tilt_up, high_to_high) {
-  const NE_to_SW = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_SW;
+  const NE_to_SW = prev_tilt_up == _theConstants.TILT_NE && new_tilt_up == _theConstants.TILT_SW;
   if (NE_to_SW && high_to_high) {
     return true;
   }
   return false;
 }
 function neDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
-  const SW_to_NE = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_NE;
+  const SW_to_NE = prev_tilt_up == _theConstants.TILT_SW && new_tilt_up == _theConstants.TILT_NE;
   if (SW_to_NE && low_to_low) {
     return true;
   }
   return false;
 }
 
-},{"../../constants.js":10,"../../misc/console-short.js":17,"../hex-routines.js":25,"./ne-constants.js":28}],30:[function(require,module,exports){
+},{"../../misc/console-short.js":17,"../../values/the-constants.js":52,"../ground-tiles.js":29,"../hex-routines.js":30,"./ne-constants.js":33}],35:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.NN_START_FINISHES = exports.NN_INTO_AIR = exports.NN_AIRBORNE = exports.NN_9_FLAT__DOWN = exports.NN_8_DOWN__FLAT = exports.NN_7_UP__FLAT = exports.NN_6_FLAT__UP = exports.NN_5_FLAT__FLAT = exports.NN_4_DOWN_DOWN_COUNTER = exports.NN_3_DOWN_DOWN_CLOCK = exports.NN_2_UP_UP_COUNTER = exports.NN_1_UP_UP_CLOCK = exports.NN_14_BLOCKED = exports.NN_13_DOWN__UP = exports.NN_12_UP__DOWN = exports.NN_11_DOWN__DOWN = exports.NN_10_UP__UP = void 0;
-var _constants = require("../../constants.js");
+var _theConstants = require("../../values/the-constants.js");
 const x_start = 0;
 const z_start = 0;
 const x_finish = 0;
@@ -25078,19 +25480,19 @@ const NN_11_DOWN__DOWN = exports.NN_11_DOWN__DOWN = "NN_11_DOWN__DOWN";
 const NN_12_UP__DOWN = exports.NN_12_UP__DOWN = "NN_12_UP__DOWN";
 const NN_13_DOWN__UP = exports.NN_13_DOWN__UP = "NN_13_DOWN__UP";
 const NN_14_BLOCKED = exports.NN_14_BLOCKED = "NN_14_BLOCKED";
-const NN_1_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], NN_1_UP_UP_CLOCK];
-const NN_2_2_2_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], NN_2_UP_UP_COUNTER];
-const NN_3_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], NN_3_DOWN_DOWN_CLOCK];
-const NN_4_4_4_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], NN_4_DOWN_DOWN_COUNTER];
-const NN_5_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2], NN_5_FLAT__FLAT];
-const NN_6_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], NN_6_FLAT__UP];
-const NN_7_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 2, z_finish, _constants.COL_2], NN_7_UP__FLAT];
-const NN_8_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 2, z_finish, _constants.COL_2], NN_8_DOWN__FLAT];
-const NN_9_TEST = [[x_start, 2, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], NN_9_FLAT__DOWN];
-const NN_10_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], NN_10_UP__UP];
-const NN_11_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], NN_11_DOWN__DOWN];
-const NN_12_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], NN_12_UP__DOWN];
-const NN_13_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], NN_13_DOWN__UP];
+const NN_1_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], NN_1_UP_UP_CLOCK];
+const NN_2_2_2_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], NN_2_UP_UP_COUNTER];
+const NN_3_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SE, 1], NN_3_DOWN_DOWN_CLOCK];
+const NN_4_4_4_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SE, 1], NN_4_DOWN_DOWN_COUNTER];
+const NN_5_TEST = [[x_start, 1, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2], NN_5_FLAT__FLAT];
+const NN_6_TEST = [[x_start, 1, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NN, 1], NN_6_FLAT__UP];
+const NN_7_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NN, 1], [x_finish, 2, z_finish, _theConstants.COL_2], NN_7_UP__FLAT];
+const NN_8_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TILT_SS, 1], [x_finish, 2, z_finish, _theConstants.COL_2], NN_8_DOWN__FLAT];
+const NN_9_TEST = [[x_start, 2, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SS, 1], NN_9_FLAT__DOWN];
+const NN_10_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TILT_SS, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SS, 1], NN_10_UP__UP];
+const NN_11_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TILT_SS, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SS, 1], NN_11_DOWN__DOWN];
+const NN_12_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NN, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SS, 1], NN_12_UP__DOWN];
+const NN_13_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SS, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NN, 1], NN_13_DOWN__UP];
 const NN_START_FINISHES = exports.NN_START_FINISHES = {
   1: NN_1_TEST,
   2: NN_2_2_2_TEST,
@@ -25107,7 +25509,7 @@ const NN_START_FINISHES = exports.NN_START_FINISHES = {
   13: NN_13_TEST
 };
 
-},{"../../constants.js":10}],31:[function(require,module,exports){
+},{"../../values/the-constants.js":52}],36:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25115,145 +25517,41 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.moveToNn = moveToNn;
 var _consoleShort = require("../../misc/console-short.js");
-var _constants = require("../../constants.js");
+var _groundTiles = require("../ground-tiles.js");
+var _theConstants = require("../../values/the-constants.js");
 var _hexRoutines = require("../hex-routines.js");
 var _nnConstants = require("./nn-constants.js");
-function nnInAir(walkway_columns, new_index) {
-  let current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
-  let current_xz_column = walkway_columns.get(current_xz_index);
-  if (current_xz_column == undefined) {
-    return true; // falling in a column with no tiles
-  }
-  let current_xyz_walkway_index = current_xz_column.get(new_index);
-  if (current_xyz_walkway_index == undefined) {
-    return true; // falling in a column with tiles, but no tile at this height
-  }
-  return false;
-}
-function nnAllow(local_data, mess_1) {
+function moveToNn(the_objects, prev_hex, this_hex, is_a_trampoline) {
   let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST allowed NN :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_NEW_TILE;
-}
-function nnBlock(local_data, mess_1) {
-  let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST blocked NN :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_BLOCKED;
-}
-function nnFall(local_data, mess_1) {
-  let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST airborne NN :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_FALLING;
-}
-function nnAirborne(run_or_test, print_allowed) {
-  const local_data = {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up: _nnConstants.NN_AIRBORNE,
-    new_tilt_up: _nnConstants.NN_AIRBORNE
-  };
-  return nnFall(local_data, _nnConstants.NN_AIRBORNE);
-}
-function nnHitSsWall(wall_squares, wall_columns, new_index) {
-  let current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
-  let cur_xz_wall_column = wall_columns.get(current_xz_index);
-  if (cur_xz_wall_column) {
-    let possible_wall = wall_squares.get(new_index);
-    if (possible_wall) {
-      return true;
-    }
-  }
-  return false;
-}
-function nnTileData(walkway_tiles, prev_index, new_index) {
-  let current_walkway_tile = walkway_tiles.get(new_index);
-  const {
-    tilt_up: new_tilt_up,
-    low_y: new_low_y,
-    high_y: new_high_y
-  } = current_walkway_tile;
-  let prev_tilt_up, prev_low_y, prev_high_y;
-  let prev_walkway_tile = walkway_tiles.get(prev_index);
-  if (prev_walkway_tile) {
-    prev_tilt_up = prev_walkway_tile.tilt_up;
-    prev_low_y = prev_walkway_tile.low_y;
-    prev_high_y = prev_walkway_tile.high_y;
-  } else {
-    prev_tilt_up = new_tilt_up;
-    prev_low_y = new_low_y;
-    prev_high_y = new_high_y;
-  }
-  const low_to_low = prev_low_y == new_low_y;
-  const high_to_high = prev_high_y == new_high_y;
-  const lows_and_highs = low_to_low && high_to_high;
-  const high_to_low = prev_high_y == new_low_y;
-  const low_to_high = prev_low_y == new_high_y;
-  const prev_new_data = {
-    prev_tilt_up,
-    prev_low_y,
-    prev_high_y,
-    new_tilt_up,
-    new_low_y,
-    new_high_y
-  };
-  const data = {
-    low_to_low,
-    high_to_high,
-    lows_and_highs,
-    high_to_low,
-    low_to_high
-  };
-  return {
-    prev_new_data,
-    data
-  };
-}
-function moveToNn(current_data) {
-  const {
-    run_or_test,
-    print_allowed,
-    walkway_tiles,
-    walkway_columns,
-    wall_squares,
-    wall_columns,
-    prev_index,
-    new_index
-  } = current_data;
-  if (nnHitSsWall(wall_squares, wall_columns, new_index)) {
-    return nnBlock(run_or_test, print_allowed, prev_index, new_index, _nnConstants.NN_14_BLOCKED);
-  }
-  if (nnInAir(walkway_columns, new_index)) {
-    return nnAirborne(run_or_test, print_allowed);
-  }
+    o_walkway_tiles,
+    o_walkway_columns,
+    o_fence_walls,
+    o_fence_columns
+  } = the_objects;
   const {
     prev_new_data,
     data
-  } = nnTileData(walkway_tiles, prev_index, new_index);
+  } = (0, _hexRoutines.tileData)(o_walkway_tiles, prev_hex, this_hex);
   const {
     prev_tilt_up,
     new_tilt_up
   } = prev_new_data;
+  const local_data = {
+    prev_tilt_up,
+    new_tilt_up,
+    prev_hex,
+    this_hex
+  };
+  if ((0, _hexRoutines.hitFence)(o_fence_walls, o_fence_columns, prev_hex, this_hex)) {
+    return (0, _groundTiles.moveBlock)(local_data, _nnConstants.NN_14_BLOCKED);
+  }
+  if ((0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex)) {
+    if (is_a_trampoline) {
+      return (0, _groundTiles.moveOntoTrampoline)(local_data, _nnConstants.NN_AIRBORNE);
+    } else {
+      return (0, _groundTiles.moveIntoAir)(local_data, _nnConstants.NN_AIRBORNE);
+    }
+  }
   const {
     low_to_low,
     high_to_high,
@@ -25261,45 +25559,42 @@ function moveToNn(current_data) {
     high_to_low,
     low_to_high
   } = data;
-  const local_data = {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  };
   if (nnCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return nnAllow(local_data, _nnConstants.NN_1_UP_UP_CLOCK); //      ⭮
+    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_1_UP_UP_CLOCK); //      ⭮
   } else if (nnCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return nnAllow(local_data, _nnConstants.NN_2_UP_UP_COUNTER); //      ⭯
+    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_2_UP_UP_COUNTER); //      ⭯
   } else if (nnCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return nnAllow(local_data, _nnConstants.NN_3_DOWN_DOWN_CLOCK); //  ⭮
+    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_3_DOWN_DOWN_CLOCK); //  ⭮
   } else if (nnCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return nnAllow(local_data, _nnConstants.NN_4_DOWN_DOWN_COUNTER); //  ⭯
+    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_4_DOWN_DOWN_COUNTER); //  ⭯
   } else if (nnFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return nnAllow(local_data, _nnConstants.NN_5_FLAT__FLAT); // - -
+    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_5_FLAT__FLAT); // - -
   } else if (nnFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return nnAllow(local_data, _nnConstants.NN_6_FLAT__UP); //   _⭜
+    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_6_FLAT__UP); //   _⭜
   } else if (nnUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return nnAllow(local_data, _nnConstants.NN_7_UP__FLAT); //   ↗¯¯
+    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_7_UP__FLAT); //   ↗¯¯
   } else if (nnDownToFlat(prev_tilt_up, new_tilt_up, low_to_high)) {
-    return nnAllow(local_data, _nnConstants.NN_8_DOWN__FLAT); // ↘__
+    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_8_DOWN__FLAT); // ↘__
   } else if (nnFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return nnAllow(local_data, _nnConstants.NN_9_FLAT__DOWN); // ¯⭝
+    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_9_FLAT__DOWN); // ¯⭝
   } else if (nnUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-    return nnAllow(local_data, _nnConstants.NN_10_UP__UP); //     ↗↗
+    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_10_UP__UP); //     ↗↗
   } else if (nnDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-    return nnAllow(local_data, _nnConstants.NN_11_DOWN__DOWN); // ↘↘
+    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_11_DOWN__DOWN); // ↘↘
   } else if (nnUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return nnAllow(local_data, _nnConstants.NN_12_UP__DOWN); //  ↗↘
+    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_12_UP__DOWN); //  ↗↘
   } else if (nnDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return nnAllow(local_data, _nnConstants.NN_13_DOWN__UP); //  ↘↗
-  } else if (prev_index == new_index) {
-    return _constants.MOVE_SAME_TILE;
+    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_13_DOWN__UP); //  ↘↗
+  } else if (prev_hex == this_hex) {
+    return _theConstants.MV_TILE_SAME;
   }
-  return nnAllow(local_data, _nnConstants.NN_14_BLOCKED);
+  if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
+    return (0, _groundTiles.moveDescendOneStep)(local_data, _nnConstants.NN_AIRBORNE);
+  }
+  return (0, _groundTiles.moveBlock)(local_data, _nnConstants.NN_14_BLOCKED);
 }
 function nnFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NONE_to_NONE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NONE;
+  const NONE_to_NONE = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_NONE;
   if (NONE_to_NONE && low_to_low) {
     return true;
   }
@@ -25308,14 +25603,14 @@ function nnFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
 
 /*  curve_up__curve_up.png   like a flower */
 function nnCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const SW_to_NW = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_NW;
+  const SW_to_NW = prev_tilt_up == _theConstants.TILT_SW && new_tilt_up == _theConstants.TILT_NW;
   if (SW_to_NW && lows_and_highs) {
     return true;
   }
   return false;
 }
 function nnCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const SE_to_NE = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_NE;
+  const SE_to_NE = prev_tilt_up == _theConstants.TILT_SE && new_tilt_up == _theConstants.TILT_NE;
   if (SE_to_NE && lows_and_highs) {
     return true;
   }
@@ -25324,84 +25619,84 @@ function nnCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
 
 /*  curve_down__curve_down.png  like a cap */
 function nnCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const NE_to_SE = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_SE;
+  const NE_to_SE = prev_tilt_up == _theConstants.TILT_NE && new_tilt_up == _theConstants.TILT_SE;
   if (NE_to_SE && lows_and_highs) {
     return true;
   }
   return false;
 }
 function nnCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const NW_to_SW = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_SW;
+  const NW_to_SW = prev_tilt_up == _theConstants.TILT_NW && new_tilt_up == _theConstants.TILT_SW;
   if (NW_to_SW && lows_and_highs) {
     return true;
   }
   return false;
 }
 function nnFlatToUp(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NONE_to_NN = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NN;
+  const NONE_to_NN = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_NN;
   if (NONE_to_NN && low_to_low) {
     return true;
   }
   return false;
 }
 function nnUpToFlat(prev_tilt_up, new_tilt_up, high_to_high) {
-  const NN_to_NONE = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NONE;
+  const NN_to_NONE = prev_tilt_up == _theConstants.TILT_NN && new_tilt_up == _theConstants.TILT_NONE;
   if (NN_to_NONE && high_to_high) {
     return true;
   }
   return false;
 }
 function nnDownToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
-  const SS_to_NONE = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_NONE;
+  const SS_to_NONE = prev_tilt_up == _theConstants.TILT_SS && new_tilt_up == _theConstants.TILT_NONE;
   if (SS_to_NONE && low_to_low) {
     return true;
   }
   return false;
 }
 function nnFlatToDown(prev_tilt_up, new_tilt_up, high_to_high) {
-  const NONE_to_SS = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_SS;
+  const NONE_to_SS = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_SS;
   if (NONE_to_SS && high_to_high) {
     return true;
   }
   return false;
 }
 function nnUpToUp(prev_tilt_up, new_tilt_up, high_to_low) {
-  const NN_to_NN = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NN;
+  const NN_to_NN = prev_tilt_up == _theConstants.TILT_NN && new_tilt_up == _theConstants.TILT_NN;
   if (NN_to_NN && high_to_low) {
     return true;
   }
   return false;
 }
 function nnDownToDown(prev_tilt_up, new_tilt_up, low_to_high) {
-  const SS_to_SS = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_SS;
+  const SS_to_SS = prev_tilt_up == _theConstants.TILT_SS && new_tilt_up == _theConstants.TILT_SS;
   if (SS_to_SS && low_to_high) {
     return true;
   }
   return false;
 }
 function nnUpToDown(prev_tilt_up, new_tilt_up, high_to_high) {
-  const NN_to_SS = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_SS;
+  const NN_to_SS = prev_tilt_up == _theConstants.TILT_NN && new_tilt_up == _theConstants.TILT_SS;
   if (NN_to_SS && high_to_high) {
     return true;
   }
   return false;
 }
 function nnDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
-  const SS_to_NN = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_NN;
+  const SS_to_NN = prev_tilt_up == _theConstants.TILT_SS && new_tilt_up == _theConstants.TILT_NN;
   if (SS_to_NN && low_to_low) {
     return true;
   }
   return false;
 }
 
-},{"../../constants.js":10,"../../misc/console-short.js":17,"../hex-routines.js":25,"./nn-constants.js":30}],32:[function(require,module,exports){
+},{"../../misc/console-short.js":17,"../../values/the-constants.js":52,"../ground-tiles.js":29,"../hex-routines.js":30,"./nn-constants.js":35}],37:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.NW_START_FINISHES = exports.NW_INTO_AIR = exports.NW_AIRBORNE = exports.NW_9_FLAT__DOWN = exports.NW_8_DOWN__FLAT = exports.NW_7_UP__FLAT = exports.NW_6_FLAT__UP = exports.NW_5_FLAT__FLAT = exports.NW_4_DOWN_DOWN_COUNTER = exports.NW_3_DOWN_DOWN_CLOCK = exports.NW_2_UP_UP_COUNTER = exports.NW_1_UP_UP_CLOCK = exports.NW_14_BLOCKED = exports.NW_13_DOWN__UP = exports.NW_12_UP__DOWN = exports.NW_11_DOWN__DOWN = exports.NW_10_UP__UP = void 0;
-var _constants = require("../../constants.js");
+var _theConstants = require("../../values/the-constants.js");
 const x_start = 0;
 const z_start = 0;
 const x_finish = -1;
@@ -25422,19 +25717,19 @@ const NW_11_DOWN__DOWN = exports.NW_11_DOWN__DOWN = "NW_11_DOWN__DOWN";
 const NW_12_UP__DOWN = exports.NW_12_UP__DOWN = "NW_12_UP__DOWN";
 const NW_13_DOWN__UP = exports.NW_13_DOWN__UP = "NW_13_DOWN__UP";
 const NW_14_BLOCKED = exports.NW_14_BLOCKED = "NW_14_BLOCKED";
-const NW_1_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], NW_1_UP_UP_CLOCK];
-const NW_222_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], NW_2_UP_UP_COUNTER];
-const NW_3_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], NW_3_DOWN_DOWN_CLOCK];
-const NW_444_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], NW_4_DOWN_DOWN_COUNTER];
-const NW_5_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2], NW_5_FLAT__FLAT];
-const NW_6_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], NW_6_FLAT__UP];
-const NW_7_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 2, z_finish, _constants.COL_2], NW_7_UP__FLAT];
-const NW_8_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 2, z_finish, _constants.COL_2], NW_8_DOWN__FLAT];
-const NW_9_TEST = [[x_start, 2, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], NW_9_FLAT__DOWN];
-const NW_10_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 2, z_finish, _constants.COL_2, _constants.TILT_NW, 1], NW_10_UP__UP];
-const NW_11_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], NW_11_DOWN__DOWN];
-const NW_12_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], NW_12_UP__DOWN];
-const NW_13_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], NW_13_DOWN__UP];
+const NW_1_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SS, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SW, 1], NW_1_UP_UP_CLOCK];
+const NW_222_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SS, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SW, 1], NW_2_UP_UP_COUNTER];
+const NW_3_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SS, 1], NW_3_DOWN_DOWN_CLOCK];
+const NW_444_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SS, 1], NW_4_DOWN_DOWN_COUNTER];
+const NW_5_TEST = [[x_start, 1, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2], NW_5_FLAT__FLAT];
+const NW_6_TEST = [[x_start, 1, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NW, 1], NW_6_FLAT__UP];
+const NW_7_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NW, 1], [x_finish, 2, z_finish, _theConstants.COL_2], NW_7_UP__FLAT];
+const NW_8_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TILT_SE, 1], [x_finish, 2, z_finish, _theConstants.COL_2], NW_8_DOWN__FLAT];
+const NW_9_TEST = [[x_start, 2, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SE, 1], NW_9_FLAT__DOWN];
+const NW_10_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NW, 1], [x_finish, 2, z_finish, _theConstants.COL_2, _theConstants.TILT_NW, 1], NW_10_UP__UP];
+const NW_11_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TILT_SE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SE, 1], NW_11_DOWN__DOWN];
+const NW_12_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SE, 1], NW_12_UP__DOWN];
+const NW_13_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NW, 1], NW_13_DOWN__UP];
 const NW_START_FINISHES = exports.NW_START_FINISHES = {
   1: NW_1_TEST,
   2: NW_222_TEST,
@@ -25451,7 +25746,7 @@ const NW_START_FINISHES = exports.NW_START_FINISHES = {
   13: NW_13_TEST
 };
 
-},{"../../constants.js":10}],33:[function(require,module,exports){
+},{"../../values/the-constants.js":52}],38:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25459,145 +25754,41 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.moveToNw = moveToNw;
 var _consoleShort = require("../../misc/console-short.js");
-var _constants = require("../../constants.js");
+var _groundTiles = require("../ground-tiles.js");
+var _theConstants = require("../../values/the-constants.js");
 var _hexRoutines = require("../hex-routines.js");
 var _nwConstants = require("./nw-constants.js");
-function nwAllow(local_data, mess_1) {
+function moveToNw(the_objects, prev_hex, this_hex, is_a_trampoline) {
   let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST allowed NW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_NEW_TILE;
-}
-function nwBlock(local_data, mess_1) {
-  let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST blocked NW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_BLOCKED;
-}
-function nwFall(local_data, mess_1) {
-  let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST airborne NW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_FALLING;
-}
-function nwAirborne(run_or_test, print_allowed) {
-  const local_data = {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up: _nwConstants.NW_AIRBORNE,
-    new_tilt_up: _nwConstants.NW_AIRBORNE
-  };
-  return nwFall(local_data, _nwConstants.NW_AIRBORNE);
-}
-function nwInAir(walkway_columns, new_index) {
-  let current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
-  let current_xz_column = walkway_columns.get(current_xz_index);
-  if (current_xz_column == undefined) {
-    return true; // falling in a column with no tiles
-  }
-  let current_xyz_walkway_index = current_xz_column.get(new_index);
-  if (current_xyz_walkway_index == undefined) {
-    return true; // falling in a column with tiles, but no tile at this height
-  }
-  return false;
-}
-function nwHitSsWall(wall_squares, wall_columns, new_index) {
-  let current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
-  let cur_xz_wall_column = wall_columns.get(current_xz_index);
-  if (cur_xz_wall_column) {
-    let possible_wall = wall_squares.get(new_index);
-    if (possible_wall) {
-      return true;
-    }
-  }
-  return false;
-}
-function nwTileData(walkway_tiles, prev_index, new_index) {
-  let current_walkway_tile = walkway_tiles.get(new_index);
-  const {
-    tilt_up: new_tilt_up,
-    low_y: new_low_y,
-    high_y: new_high_y
-  } = current_walkway_tile;
-  let prev_tilt_up, prev_low_y, prev_high_y;
-  let prev_walkway_tile = walkway_tiles.get(prev_index);
-  if (prev_walkway_tile) {
-    prev_tilt_up = prev_walkway_tile.tilt_up;
-    prev_low_y = prev_walkway_tile.low_y;
-    prev_high_y = prev_walkway_tile.high_y;
-  } else {
-    prev_tilt_up = new_tilt_up;
-    prev_low_y = new_low_y;
-    prev_high_y = new_high_y;
-  }
-  const low_to_low = prev_low_y == new_low_y;
-  const high_to_high = prev_high_y == new_high_y;
-  const lows_and_highs = low_to_low && high_to_high;
-  const high_to_low = prev_high_y == new_low_y;
-  const low_to_high = prev_low_y == new_high_y;
-  const prev_new_data = {
-    prev_tilt_up,
-    prev_low_y,
-    prev_high_y,
-    new_tilt_up,
-    new_low_y,
-    new_high_y
-  };
-  const data = {
-    low_to_low,
-    high_to_high,
-    lows_and_highs,
-    high_to_low,
-    low_to_high
-  };
-  return {
-    prev_new_data,
-    data
-  };
-}
-function moveToNw(current_data) {
-  const {
-    run_or_test,
-    print_allowed,
-    walkway_tiles,
-    walkway_columns,
-    wall_squares,
-    wall_columns,
-    prev_index,
-    new_index
-  } = current_data;
-  if (nwHitSsWall(wall_squares, wall_columns, new_index)) {
-    return nwBlock(run_or_test, print_allowed, prev_index, new_index, _nwConstants.NW_14_BLOCKED);
-  }
-  if (nwInAir(walkway_columns, new_index)) {
-    return nwAirborne(run_or_test, print_allowed);
-  }
+    o_walkway_tiles,
+    o_walkway_columns,
+    o_fence_walls,
+    o_fence_columns
+  } = the_objects;
   const {
     prev_new_data,
     data
-  } = nwTileData(walkway_tiles, prev_index, new_index);
+  } = (0, _hexRoutines.tileData)(o_walkway_tiles, prev_hex, this_hex);
   const {
     prev_tilt_up,
     new_tilt_up
   } = prev_new_data;
+  const local_data = {
+    prev_tilt_up,
+    new_tilt_up,
+    prev_hex,
+    this_hex
+  };
+  if ((0, _hexRoutines.hitFence)(o_fence_walls, o_fence_columns, prev_hex, this_hex)) {
+    return (0, _groundTiles.moveBlock)(local_data, _nwConstants.NW_14_BLOCKED);
+  }
+  if ((0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex)) {
+    if (is_a_trampoline) {
+      return (0, _groundTiles.moveOntoTrampoline)(local_data, _nwConstants.NW_AIRBORNE);
+    } else {
+      return (0, _groundTiles.moveIntoAir)(local_data, _nwConstants.NW_AIRBORNE);
+    }
+  }
   const {
     low_to_low,
     high_to_high,
@@ -25605,47 +25796,44 @@ function moveToNw(current_data) {
     high_to_low,
     low_to_high
   } = data;
-  const local_data = {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  };
   if (nwCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return nwAllow(local_data, _nwConstants.NW_1_UP_UP_CLOCK); //      ⭮
+    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_1_UP_UP_CLOCK); //      ⭮
   } else if (nwCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return nwAllow(local_data, _nwConstants.NW_2_UP_UP_COUNTER); //      ⭯
+    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_2_UP_UP_COUNTER); //      ⭯
   } else if (nwCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return nwAllow(local_data, _nwConstants.NW_3_DOWN_DOWN_CLOCK); //  ⭮
+    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_3_DOWN_DOWN_CLOCK); //  ⭮
   } else if (nwCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return nwAllow(local_data, _nwConstants.NW_4_DOWN_DOWN_COUNTER); //  ⭯
+    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_4_DOWN_DOWN_COUNTER); //  ⭯
   } else if (nwFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return nwAllow(local_data, _nwConstants.NW_5_FLAT__FLAT); // - -
+    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_5_FLAT__FLAT); // - -
   } else if (nwFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return nwAllow(local_data, _nwConstants.NW_6_FLAT__UP); //   _⭜
+    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_6_FLAT__UP); //   _⭜
   } else if (nwUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return nwAllow(local_data, _nwConstants.NW_7_UP__FLAT); //   ↗¯¯
+    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_7_UP__FLAT); //   ↗¯¯
   } else if (nwDownToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return nwAllow(local_data, _nwConstants.NW_8_DOWN__FLAT); // ↘__
+    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_8_DOWN__FLAT); // ↘__
   } else if (nwFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return nwAllow(local_data, _nwConstants.NW_9_FLAT__DOWN); // ¯⭝
+    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_9_FLAT__DOWN); // ¯⭝
   } else if (nwUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-    return nwAllow(local_data, _nwConstants.NW_10_UP__UP); //     ↗↗
+    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_10_UP__UP); //     ↗↗
   } else if (nwDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-    return nwAllow(local_data, _nwConstants.NW_11_DOWN__DOWN); // ↘↘
+    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_11_DOWN__DOWN); // ↘↘
   } else if (nwUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return nwAllow(local_data, _nwConstants.NW_12_UP__DOWN); //  ↗↘
+    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_12_UP__DOWN); //  ↗↘
   } else if (nwDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return nwAllow(local_data, _nwConstants.NW_13_DOWN__UP); //  ↘↗
-  } else if (prev_index == new_index) {
-    return _constants.MOVE_SAME_TILE;
+    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_13_DOWN__UP); //  ↘↗
+  } else if (prev_hex == this_hex) {
+    return _theConstants.MV_TILE_SAME;
   }
-  return nwAllow(local_data, _nwConstants.NW_13_DOWN__UP); //  ↘↗
+  if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
+    return (0, _groundTiles.moveDescendOneStep)(local_data, _nwConstants.NW_AIRBORNE);
+  }
+  return (0, _groundTiles.moveBlock)(local_data, _nwConstants.NW_14_BLOCKED); //  ↘↗
 }
 
 /*  curve_up__curve_up.png   like a flower */
 function nwCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const SS_to_SW = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_SW;
+  const SS_to_SW = prev_tilt_up == _theConstants.TILT_SS && new_tilt_up == _theConstants.TILT_SW;
   if (SS_to_SW && lows_and_highs) {
     (0, _consoleShort.ee)("FLOWER CLOCK nw");
     return true;
@@ -25653,7 +25841,7 @@ function nwCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   return false;
 }
 function nwCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const NE_to_NN = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_NN;
+  const NE_to_NN = prev_tilt_up == _theConstants.TILT_NE && new_tilt_up == _theConstants.TILT_NN;
   if (NE_to_NN && lows_and_highs) {
     (0, _consoleShort.ee)("FLOWER COUNT nw");
     return true;
@@ -25663,14 +25851,14 @@ function nwCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
 
 /*  curve_down__curve_down.png  like a cap */
 function nwCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const NN_to_NE = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NE;
+  const NN_to_NE = prev_tilt_up == _theConstants.TILT_NN && new_tilt_up == _theConstants.TILT_NE;
   if (NN_to_NE && lows_and_highs) {
     return true;
   }
   return false;
 }
 function nwCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const SW_to_SS = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_SS;
+  const SW_to_SS = prev_tilt_up == _theConstants.TILT_SW && new_tilt_up == _theConstants.TILT_SS;
   if (SW_to_SS && lows_and_highs) {
     (0, _consoleShort.ee)("hat COUNT nw");
     return true;
@@ -25678,77 +25866,77 @@ function nwCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   return false;
 }
 function nwFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NONE_to_NONE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NONE;
+  const NONE_to_NONE = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_NONE;
   if (NONE_to_NONE && low_to_low) {
     return true;
   }
   return false;
 }
 function nwFlatToUp(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NONE_to_NW = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NW;
+  const NONE_to_NW = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_NW;
   if (NONE_to_NW && low_to_low) {
     return true;
   }
   return false;
 }
 function nwUpToFlat(prev_tilt_up, new_tilt_up, high_to_high) {
-  const NW_to_NONE = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_NONE;
+  const NW_to_NONE = prev_tilt_up == _theConstants.TILT_NW && new_tilt_up == _theConstants.TILT_NONE;
   if (NW_to_NONE && high_to_high) {
     return true;
   }
   return false;
 }
 function nwDownToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
-  const SE_to_NONE = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_NONE;
+  const SE_to_NONE = prev_tilt_up == _theConstants.TILT_SE && new_tilt_up == _theConstants.TILT_NONE;
   if (SE_to_NONE && low_to_low) {
     return true;
   }
   return false;
 }
 function nwFlatToDown(prev_tilt_up, new_tilt_up, high_to_high) {
-  const NONE_to_SE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_SE;
+  const NONE_to_SE = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_SE;
   if (NONE_to_SE && high_to_high) {
     return true;
   }
   return false;
 }
 function nwUpToUp(prev_tilt_up, new_tilt_up, high_to_low) {
-  const NW_to_NW = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_NW;
+  const NW_to_NW = prev_tilt_up == _theConstants.TILT_NW && new_tilt_up == _theConstants.TILT_NW;
   if (NW_to_NW && high_to_low) {
     return true;
   }
   return false;
 }
 function nwDownToDown(prev_tilt_up, new_tilt_up, low_to_high) {
-  const SE_to_SE = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_SE;
+  const SE_to_SE = prev_tilt_up == _theConstants.TILT_SE && new_tilt_up == _theConstants.TILT_SE;
   if (SE_to_SE && low_to_high) {
     return true;
   }
   return false;
 }
 function nwUpToDown(prev_tilt_up, new_tilt_up, high_to_high) {
-  const NW_to_SE = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_SE;
+  const NW_to_SE = prev_tilt_up == _theConstants.TILT_NW && new_tilt_up == _theConstants.TILT_SE;
   if (NW_to_SE && high_to_high) {
     return true;
   }
   return false;
 }
 function nwDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
-  const SE_to_NW = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_NW;
+  const SE_to_NW = prev_tilt_up == _theConstants.TILT_SE && new_tilt_up == _theConstants.TILT_NW;
   if (SE_to_NW && low_to_low) {
     return true;
   }
   return false;
 }
 
-},{"../../constants.js":10,"../../misc/console-short.js":17,"../hex-routines.js":25,"./nw-constants.js":32}],34:[function(require,module,exports){
+},{"../../misc/console-short.js":17,"../../values/the-constants.js":52,"../ground-tiles.js":29,"../hex-routines.js":30,"./nw-constants.js":37}],39:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.SE_START_FINISHES = exports.SE_INTO_AIR = exports.SE_AIRBORNE = exports.SE_9_FLAT__DOWN = exports.SE_8_DOWN__FLAT = exports.SE_7_UP__FLAT = exports.SE_6_FLAT__UP = exports.SE_5_FLAT__FLAT = exports.SE_4_DOWN_DOWN_COUNTER = exports.SE_3_DOWN_DOWN_CLOCK = exports.SE_2_UP_UP_COUNTER = exports.SE_1_UP_UP_CLOCK = exports.SE_14_BLOCKED = exports.SE_13_DOWN__UP = exports.SE_12_UP__DOWN = exports.SE_11_DOWN__DOWN = exports.SE_10_UP__UP = void 0;
-var _constants = require("../../constants.js");
+var _theConstants = require("../../values/the-constants.js");
 const x_start = 0;
 const z_start = 0;
 const x_finish = 1;
@@ -25769,19 +25957,19 @@ const SE_11_DOWN__DOWN = exports.SE_11_DOWN__DOWN = "SE_11_DOWN__DOWN";
 const SE_12_UP__DOWN = exports.SE_12_UP__DOWN = "SE_12_UP__DOWN";
 const SE_13_DOWN__UP = exports.SE_13_DOWN__UP = "SE_13_DOWN__UP";
 const SE_14_BLOCKED = exports.SE_14_BLOCKED = "SE_14_BLOCKED";
-const SE_1_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], SE_1_UP_UP_CLOCK];
-const SE_2222_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], SE_2_UP_UP_COUNTER];
-const SE_3_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], SE_3_DOWN_DOWN_CLOCK];
-const SE_44444_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], SE_4_DOWN_DOWN_COUNTER];
-const SE_5_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2], SE_5_FLAT__FLAT];
-const SE_6_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], SE_6_FLAT__UP];
-const SE_7_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 2, z_finish, _constants.COL_2], SE_7_UP__FLAT];
-const SE_8_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 2, z_finish, _constants.COL_2], SE_8_DOWN__FLAT];
-const SE_9_TEST = [[x_start, 2, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], SE_9_FLAT__DOWN];
-const SE_10_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 2, z_finish, _constants.COL_2, _constants.TILT_SE, 1], SE_10_UP__UP];
-const SE_11_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], SE_11_DOWN__DOWN];
-const SE_12_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], SE_12_UP__DOWN];
-const SE_13_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], SE_13_DOWN__UP];
+const SE_1_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NN, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], SE_1_UP_UP_CLOCK];
+const SE_2222_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NN, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], SE_2_UP_UP_COUNTER];
+const SE_3_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NN, 1], SE_3_DOWN_DOWN_CLOCK];
+const SE_44444_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NN, 1], SE_4_DOWN_DOWN_COUNTER];
+const SE_5_TEST = [[x_start, 1, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2], SE_5_FLAT__FLAT];
+const SE_6_TEST = [[x_start, 1, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SE, 1], SE_6_FLAT__UP];
+const SE_7_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SE, 1], [x_finish, 2, z_finish, _theConstants.COL_2], SE_7_UP__FLAT];
+const SE_8_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TILT_NW, 1], [x_finish, 2, z_finish, _theConstants.COL_2], SE_8_DOWN__FLAT];
+const SE_9_TEST = [[x_start, 2, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NW, 1], SE_9_FLAT__DOWN];
+const SE_10_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SE, 1], [x_finish, 2, z_finish, _theConstants.COL_2, _theConstants.TILT_SE, 1], SE_10_UP__UP];
+const SE_11_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TILT_NW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NW, 1], SE_11_DOWN__DOWN];
+const SE_12_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NW, 1], SE_12_UP__DOWN];
+const SE_13_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SE, 1], SE_13_DOWN__UP];
 const SE_START_FINISHES = exports.SE_START_FINISHES = {
   1: SE_1_TEST,
   2: SE_2222_TEST,
@@ -25798,7 +25986,7 @@ const SE_START_FINISHES = exports.SE_START_FINISHES = {
   13: SE_13_TEST
 };
 
-},{"../../constants.js":10}],35:[function(require,module,exports){
+},{"../../values/the-constants.js":52}],40:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -25806,145 +25994,41 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.moveToSe = moveToSe;
 var _consoleShort = require("../../misc/console-short.js");
-var _constants = require("../../constants.js");
+var _groundTiles = require("../ground-tiles.js");
+var _theConstants = require("../../values/the-constants.js");
 var _hexRoutines = require("../hex-routines.js");
 var _seConstants = require("./se-constants.js");
-function seAllow(local_data, mess_1) {
+function moveToSe(the_objects, prev_hex, this_hex, is_a_trampoline) {
   let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST allowed SE :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_NEW_TILE;
-}
-function seBlock(local_data, mess_1) {
-  let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST blocked SE :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_BLOCKED;
-}
-function seFall(local_data, mess_1) {
-  let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST airborne SE :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_FALLING;
-}
-function seAirborne(run_or_test, print_allowed) {
-  const local_data = {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up: _seConstants.SE_AIRBORNE,
-    new_tilt_up: _seConstants.SE_AIRBORNE
-  };
-  return seFall(local_data, _seConstants.SE_AIRBORNE);
-}
-function seInAir(walkway_columns, new_index) {
-  let current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
-  let current_xz_column = walkway_columns.get(current_xz_index);
-  if (current_xz_column == undefined) {
-    return true; // falling in a column with no tiles
-  }
-  let current_xyz_walkway_index = current_xz_column.get(new_index);
-  if (current_xyz_walkway_index == undefined) {
-    return true; // falling in a column with tiles, but no tile at this height
-  }
-  return false;
-}
-function seHitSeWall(wall_squares, wall_columns, new_index) {
-  let current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
-  let cur_xz_wall_column = wall_columns.get(current_xz_index);
-  if (cur_xz_wall_column) {
-    let possible_wall = wall_squares.get(new_index);
-    if (possible_wall) {
-      return true;
-    }
-  }
-  return false;
-}
-function seTileData(walkway_tiles, prev_index, new_index) {
-  let current_walkway_tile = walkway_tiles.get(new_index);
-  const {
-    tilt_up: new_tilt_up,
-    low_y: new_low_y,
-    high_y: new_high_y
-  } = current_walkway_tile;
-  let prev_tilt_up, prev_low_y, prev_high_y;
-  let prev_walkway_tile = walkway_tiles.get(prev_index);
-  if (prev_walkway_tile) {
-    prev_tilt_up = prev_walkway_tile.tilt_up;
-    prev_low_y = prev_walkway_tile.low_y;
-    prev_high_y = prev_walkway_tile.high_y;
-  } else {
-    prev_tilt_up = new_tilt_up;
-    prev_low_y = new_low_y;
-    prev_high_y = new_high_y;
-  }
-  const low_to_low = prev_low_y == new_low_y;
-  const high_to_high = prev_high_y == new_high_y;
-  const lows_and_highs = low_to_low && high_to_high;
-  const high_to_low = prev_high_y == new_low_y;
-  const low_to_high = prev_low_y == new_high_y;
-  const prev_new_data = {
-    prev_tilt_up,
-    prev_low_y,
-    prev_high_y,
-    new_tilt_up,
-    new_low_y,
-    new_high_y
-  };
-  const data = {
-    low_to_low,
-    high_to_high,
-    lows_and_highs,
-    high_to_low,
-    low_to_high
-  };
-  return {
-    prev_new_data,
-    data
-  };
-}
-function moveToSe(current_data) {
-  const {
-    run_or_test,
-    print_allowed,
-    walkway_tiles,
-    walkway_columns,
-    wall_squares,
-    wall_columns,
-    prev_index,
-    new_index
-  } = current_data;
-  if (seHitSeWall(wall_squares, wall_columns, new_index)) {
-    return seBlock(run_or_test, print_allowed, prev_index, new_index, _seConstants.SE_14_BLOCKED);
-  }
-  if (seInAir(walkway_columns, new_index)) {
-    return seAirborne(run_or_test, print_allowed);
-  }
+    o_walkway_tiles,
+    o_walkway_columns,
+    o_fence_walls,
+    o_fence_columns
+  } = the_objects;
   const {
     prev_new_data,
     data
-  } = seTileData(walkway_tiles, prev_index, new_index);
+  } = (0, _hexRoutines.tileData)(o_walkway_tiles, prev_hex, this_hex);
   const {
     prev_tilt_up,
     new_tilt_up
   } = prev_new_data;
+  const local_data = {
+    prev_tilt_up,
+    new_tilt_up,
+    prev_hex,
+    this_hex
+  };
+  if ((0, _hexRoutines.hitFence)(o_fence_walls, o_fence_columns, prev_hex, this_hex)) {
+    return (0, _groundTiles.moveBlock)(local_data, _seConstants.SE_14_BLOCKED);
+  }
+  if ((0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex)) {
+    if (is_a_trampoline) {
+      return (0, _groundTiles.moveOntoTrampoline)(local_data, _seConstants.SE_AIRBORNE);
+    } else {
+      return (0, _groundTiles.moveIntoAir)(local_data, _seConstants.SE_AIRBORNE);
+    }
+  }
   const {
     low_to_low,
     high_to_high,
@@ -25952,54 +26036,51 @@ function moveToSe(current_data) {
     high_to_low,
     low_to_high
   } = data;
-  const local_data = {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  };
   if (seCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return seAllow(local_data, _seConstants.SE_1_UP_UP_CLOCK); //      ⭮
+    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_1_UP_UP_CLOCK); //      ⭮
   } else if (seCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return seAllow(local_data, _seConstants.SE_2_UP_UP_COUNTER); //      ⭯
+    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_2_UP_UP_COUNTER); //      ⭯
   } else if (seCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return seAllow(local_data, _seConstants.SE_3_DOWN_DOWN_CLOCK); //  ⭮
+    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_3_DOWN_DOWN_CLOCK); //  ⭮
   } else if (seCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return seAllow(local_data, _seConstants.SE_4_DOWN_DOWN_COUNTER); //  ⭯
+    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_4_DOWN_DOWN_COUNTER); //  ⭯
   } else if (seFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return seAllow(local_data, _seConstants.SE_5_FLAT__FLAT); // - -
+    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_5_FLAT__FLAT); // - -
   } else if (seFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return seAllow(local_data, _seConstants.SE_6_FLAT__UP); //   _⭜
+    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_6_FLAT__UP); //   _⭜
   } else if (seUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return seAllow(local_data, _seConstants.SE_7_UP__FLAT); //   ↗¯¯
+    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_7_UP__FLAT); //   ↗¯¯
   } else if (seDownToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return seAllow(local_data, _seConstants.SE_8_DOWN__FLAT); // ↘__
+    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_8_DOWN__FLAT); // ↘__
   } else if (seFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return seAllow(local_data, _seConstants.SE_9_FLAT__DOWN); // ¯⭝
+    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_9_FLAT__DOWN); // ¯⭝
   } else if (seUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-    return seAllow(local_data, _seConstants.SE_10_UP__UP); //     ↗↗
+    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_10_UP__UP); //     ↗↗
   } else if (seDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-    return seAllow(local_data, _seConstants.SE_11_DOWN__DOWN); // ↘↘
+    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_11_DOWN__DOWN); // ↘↘
   } else if (seUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return seAllow(local_data, _seConstants.SE_12_UP__DOWN); //  ↗↘
+    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_12_UP__DOWN); //  ↗↘
   } else if (seDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return seAllow(local_data, _seConstants.SE_13_DOWN__UP); //  ↘↗
-  } else if (prev_index == new_index) {
-    return _constants.MOVE_SAME_TILE;
+    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_13_DOWN__UP); //  ↘↗
+  } else if (prev_hex == this_hex) {
+    return _theConstants.MV_TILE_SAME;
   }
-  return seAllow(local_data, _seConstants.SE_13_DOWN__UP); //  ↘↗
+  if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
+    return (0, _groundTiles.moveDescendOneStep)(local_data, _seConstants.SE_AIRBORNE);
+  }
+  return (0, _groundTiles.moveBlock)(local_data, _seConstants.SE_14_BLOCKED); //  ↘↗
 }
 
 /*  curve_up__curve_up.png   like a flower */
 function seCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const NN_to_NE = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NE;
+  const NN_to_NE = prev_tilt_up == _theConstants.TILT_NN && new_tilt_up == _theConstants.TILT_NE;
   if (NN_to_NE && lows_and_highs) {
     return true;
   }
   return false;
 }
 function seCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const SW_to_SS = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_SS;
+  const SW_to_SS = prev_tilt_up == _theConstants.TILT_SW && new_tilt_up == _theConstants.TILT_SS;
   if (SW_to_SS && lows_and_highs) {
     return true;
   }
@@ -26008,91 +26089,91 @@ function seCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
 
 /*  curve_down__curve_down.png  like a cap */
 function seCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const SS_to_SW = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_SW;
+  const SS_to_SW = prev_tilt_up == _theConstants.TILT_SS && new_tilt_up == _theConstants.TILT_SW;
   if (SS_to_SW && lows_and_highs) {
     return true;
   }
   return false;
 }
 function seCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const NE_to_NN = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_NN;
+  const NE_to_NN = prev_tilt_up == _theConstants.TILT_NE && new_tilt_up == _theConstants.TILT_NN;
   if (NE_to_NN && lows_and_highs) {
     return true;
   }
   return false;
 }
 function seFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NONE_2_NONE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NONE;
+  const NONE_2_NONE = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_NONE;
   if (NONE_2_NONE && low_to_low) {
     return true;
   }
   return false;
 }
 function seFlatToUp(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NONE_2_SE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_SE;
+  const NONE_2_SE = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_SE;
   if (NONE_2_SE && low_to_low) {
     return true;
   }
   return false;
 }
 function seUpToFlat(prev_tilt_up, new_tilt_up, high_to_high) {
-  const SE_2_NONE = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_NONE;
+  const SE_2_NONE = prev_tilt_up == _theConstants.TILT_SE && new_tilt_up == _theConstants.TILT_NONE;
   if (SE_2_NONE && high_to_high) {
     return true;
   }
   return false;
 }
 function seDownToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NW_2_NONE = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_NONE;
+  const NW_2_NONE = prev_tilt_up == _theConstants.TILT_NW && new_tilt_up == _theConstants.TILT_NONE;
   if (NW_2_NONE && low_to_low) {
     return true;
   }
   return false;
 }
 function seFlatToDown(prev_tilt_up, new_tilt_up, high_to_high) {
-  const NONE_2_NW = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NW;
+  const NONE_2_NW = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_NW;
   if (NONE_2_NW && high_to_high) {
     return true;
   }
   return false;
 }
 function seUpToUp(prev_tilt_up, new_tilt_up, high_to_low) {
-  const SE_2_SE = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_SE;
+  const SE_2_SE = prev_tilt_up == _theConstants.TILT_SE && new_tilt_up == _theConstants.TILT_SE;
   if (SE_2_SE && high_to_low) {
     return true;
   }
   return false;
 }
 function seDownToDown(prev_tilt_up, new_tilt_up, low_to_high) {
-  const NW_2_NW = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_NW;
+  const NW_2_NW = prev_tilt_up == _theConstants.TILT_NW && new_tilt_up == _theConstants.TILT_NW;
   if (NW_2_NW && low_to_high) {
     return true;
   }
   return false;
 }
 function seUpToDown(prev_tilt_up, new_tilt_up, high_to_high) {
-  const SE_2_NW = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_NW;
+  const SE_2_NW = prev_tilt_up == _theConstants.TILT_SE && new_tilt_up == _theConstants.TILT_NW;
   if (SE_2_NW && high_to_high) {
     return true;
   }
   return false;
 }
 function seDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NW_2_SE = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_SE;
+  const NW_2_SE = prev_tilt_up == _theConstants.TILT_NW && new_tilt_up == _theConstants.TILT_SE;
   if (NW_2_SE && low_to_low) {
     return true;
   }
   return false;
 }
 
-},{"../../constants.js":10,"../../misc/console-short.js":17,"../hex-routines.js":25,"./se-constants.js":34}],36:[function(require,module,exports){
+},{"../../misc/console-short.js":17,"../../values/the-constants.js":52,"../ground-tiles.js":29,"../hex-routines.js":30,"./se-constants.js":39}],41:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.SS_START_FINISHES = exports.SS_INTO_AIR = exports.SS_AIRBORNE = exports.SS_9_FLAT__DOWN = exports.SS_8_DOWN__FLAT = exports.SS_7_UP__FLAT = exports.SS_6_FLAT__UP = exports.SS_5_FLAT__FLAT = exports.SS_4_DOWN_DOWN_COUNTER = exports.SS_3_DOWN_DOWN_CLOCK = exports.SS_2_UP_UP_COUNTER = exports.SS_1_UP_UP_CLOCK = exports.SS_14_BLOCKED = exports.SS_13_DOWN__UP = exports.SS_12_UP__DOWN = exports.SS_11_DOWN__DOWN = exports.SS_10_UP__UP = void 0;
-var _constants = require("../../constants.js");
+var _theConstants = require("../../values/the-constants.js");
 const x_start = 0;
 const z_start = 0;
 const x_finish = 0;
@@ -26113,19 +26194,19 @@ const SS_11_DOWN__DOWN = exports.SS_11_DOWN__DOWN = "SS_11_DOWN__DOWN";
 const SS_12_UP__DOWN = exports.SS_12_UP__DOWN = "SS_12_UP__DOWN";
 const SS_13_DOWN__UP = exports.SS_13_DOWN__UP = "SS_13_DOWN__UP";
 const SS_14_BLOCKED = exports.SS_14_BLOCKED = "SS_14_BLOCKED";
-const SS_1_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], SS_1_UP_UP_CLOCK];
-const SS_222_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], SS_2_UP_UP_COUNTER];
-const SS_3_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], SS_3_DOWN_DOWN_CLOCK];
-const SS_444_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], SS_4_DOWN_DOWN_COUNTER];
-const SS_5_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2], SS_5_FLAT__FLAT];
-const SS_6_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], SS_6_FLAT__UP];
-const SS_7_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 2, z_finish, _constants.COL_2], SS_7_UP__FLAT];
-const SS_8_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 2, z_finish, _constants.COL_2], SS_8_DOWN__FLAT];
-const SS_9_TEST = [[x_start, 2, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], SS_9_FLAT__DOWN];
-const SS_10_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 2, z_finish, _constants.COL_2, _constants.TILT_SS, 1], SS_10_UP__UP];
-const SS_11_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], SS_11_DOWN__DOWN];
-const SS_12_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NN, 1], SS_12_UP__DOWN];
-const SS_13_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SS, 1], SS_13_DOWN__UP];
+const SS_1_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SW, 1], SS_1_UP_UP_CLOCK];
+const SS_222_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SW, 1], SS_2_UP_UP_COUNTER];
+const SS_3_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NW, 1], SS_3_DOWN_DOWN_CLOCK];
+const SS_444_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NW, 1], SS_4_DOWN_DOWN_COUNTER];
+const SS_5_TEST = [[x_start, 1, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2], SS_5_FLAT__FLAT];
+const SS_6_TEST = [[x_start, 1, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SS, 1], SS_6_FLAT__UP];
+const SS_7_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SS, 1], [x_finish, 2, z_finish, _theConstants.COL_2], SS_7_UP__FLAT];
+const SS_8_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TILT_NN, 1], [x_finish, 2, z_finish, _theConstants.COL_2], SS_8_DOWN__FLAT];
+const SS_9_TEST = [[x_start, 2, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NN, 1], SS_9_FLAT__DOWN];
+const SS_10_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SS, 1], [x_finish, 2, z_finish, _theConstants.COL_2, _theConstants.TILT_SS, 1], SS_10_UP__UP];
+const SS_11_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TILT_NN, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NN, 1], SS_11_DOWN__DOWN];
+const SS_12_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SS, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NN, 1], SS_12_UP__DOWN];
+const SS_13_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NN, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SS, 1], SS_13_DOWN__UP];
 const SS_START_FINISHES = exports.SS_START_FINISHES = {
   1: SS_1_TEST,
   2: SS_222_TEST,
@@ -26142,7 +26223,7 @@ const SS_START_FINISHES = exports.SS_START_FINISHES = {
   13: SS_13_TEST
 };
 
-},{"../../constants.js":10}],37:[function(require,module,exports){
+},{"../../values/the-constants.js":52}],42:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26150,145 +26231,42 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.moveToSs = moveToSs;
 var _consoleShort = require("../../misc/console-short.js");
-var _constants = require("../../constants.js");
+var _groundTiles = require("../ground-tiles.js");
+var _theConstants = require("../../values/the-constants.js");
 var _hexRoutines = require("../hex-routines.js");
 var _ssConstants = require("./ss-constants.js");
-function ssAllow(local_data, mess_1) {
+function moveToSs(the_objects, prev_hex, this_hex, is_a_trampoline) {
   let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST allowed SS :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_NEW_TILE;
-}
-function ssBlock(local_data, mess_1) {
-  let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST blocked SS :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_BLOCKED;
-}
-function ssFall(local_data, mess_1) {
-  let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST airborne SS :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_FALLING;
-}
-function ssAirborne(run_or_test, print_allowed) {
-  const local_data = {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up: _ssConstants.SS_AIRBORNE,
-    new_tilt_up: _ssConstants.SS_AIRBORNE
-  };
-  return ssFall(local_data, _ssConstants.SS_AIRBORNE);
-}
-function ssInAir(walkway_columns, new_index) {
-  let current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
-  let current_xz_column = walkway_columns.get(current_xz_index);
-  if (current_xz_column == undefined) {
-    return true; // falling in a column with no tiles
-  }
-  let current_xyz_walkway_index = current_xz_column.get(new_index);
-  if (current_xyz_walkway_index == undefined) {
-    return true; // falling in a column with tiles, but no tile at this height
-  }
-  return false;
-}
-function ssHitSsWall(wall_squares, wall_columns, new_index) {
-  let current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
-  let cur_xz_wall_column = wall_columns.get(current_xz_index);
-  if (cur_xz_wall_column) {
-    let possible_wall = wall_squares.get(new_index);
-    if (possible_wall) {
-      return true;
-    }
-  }
-  return false;
-}
-function ssTileData(walkway_tiles, prev_index, new_index) {
-  let current_walkway_tile = walkway_tiles.get(new_index);
-  const {
-    tilt_up: new_tilt_up,
-    low_y: new_low_y,
-    high_y: new_high_y
-  } = current_walkway_tile;
-  let prev_tilt_up, prev_low_y, prev_high_y;
-  let prev_walkway_tile = walkway_tiles.get(prev_index);
-  if (prev_walkway_tile) {
-    prev_tilt_up = prev_walkway_tile.tilt_up;
-    prev_low_y = prev_walkway_tile.low_y;
-    prev_high_y = prev_walkway_tile.high_y;
-  } else {
-    prev_tilt_up = new_tilt_up;
-    prev_low_y = new_low_y;
-    prev_high_y = new_high_y;
-  }
-  const low_to_low = prev_low_y == new_low_y;
-  const high_to_high = prev_high_y == new_high_y;
-  const lows_and_highs = low_to_low && high_to_high;
-  const high_to_low = prev_high_y == new_low_y;
-  const low_to_high = prev_low_y == new_high_y;
-  const prev_new_data = {
-    prev_tilt_up,
-    prev_low_y,
-    prev_high_y,
-    new_tilt_up,
-    new_low_y,
-    new_high_y
-  };
-  const data = {
-    low_to_low,
-    high_to_high,
-    lows_and_highs,
-    high_to_low,
-    low_to_high
-  };
-  return {
-    prev_new_data,
-    data
-  };
-}
-function moveToSs(current_data) {
-  const {
-    run_or_test,
-    print_allowed,
-    walkway_tiles,
-    walkway_columns,
-    wall_squares,
-    wall_columns,
-    prev_index,
-    new_index
-  } = current_data;
-  if (ssHitSsWall(wall_squares, wall_columns, new_index)) {
-    return ssBlock(run_or_test, print_allowed, prev_index, new_index, _ssConstants.SS_14_BLOCKED);
-  }
-  if (ssInAir(walkway_columns, new_index)) {
-    return ssAirborne(run_or_test, print_allowed);
-  }
+    o_walkway_tiles,
+    o_walkway_columns,
+    o_fence_walls,
+    o_fence_columns
+  } = the_objects;
   const {
     prev_new_data,
     data
-  } = ssTileData(walkway_tiles, prev_index, new_index);
+  } = (0, _hexRoutines.tileData)(o_walkway_tiles, prev_hex, this_hex); // we assume there is a tile
+
   const {
     prev_tilt_up,
     new_tilt_up
   } = prev_new_data;
+  const local_data = {
+    prev_tilt_up,
+    new_tilt_up,
+    prev_hex,
+    this_hex
+  };
+  if ((0, _hexRoutines.hitFence)(o_fence_walls, o_fence_columns, prev_hex, this_hex)) {
+    return (0, _groundTiles.moveBlock)(local_data, _ssConstants.SS_14_BLOCKED);
+  }
+  if ((0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex)) {
+    if (is_a_trampoline) {
+      return (0, _groundTiles.moveOntoTrampoline)(local_data, _ssConstants.SS_AIRBORNE);
+    } else {
+      return (0, _groundTiles.moveIntoAir)(local_data, _ssConstants.SS_AIRBORNE);
+    }
+  }
   const {
     low_to_low,
     high_to_high,
@@ -26296,56 +26274,51 @@ function moveToSs(current_data) {
     high_to_low,
     low_to_high
   } = data;
-  const local_data = {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  };
-  if (prev_index == new_index) {
-    return _constants.MOVE_SAME_TILE;
+  if (prev_hex == this_hex) {
+    return _theConstants.MV_TILE_SAME;
   } else if (ssCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return ssAllow(local_data, _ssConstants.SS_1_UP_UP_CLOCK); //      ⭮
+    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_1_UP_UP_CLOCK); //      ⭮
   } else if (ssCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return ssAllow(local_data, _ssConstants.SS_2_UP_UP_COUNTER); //      ⭯
+    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_2_UP_UP_COUNTER); //      ⭯
   } else if (ssCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return ssAllow(local_data, _ssConstants.SS_3_DOWN_DOWN_CLOCK); //  ⭮
+    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_3_DOWN_DOWN_CLOCK); //  ⭮
   } else if (ssCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return ssAllow(local_data, _ssConstants.SS_4_DOWN_DOWN_COUNTER); //  ⭯
+    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_4_DOWN_DOWN_COUNTER); //  ⭯
   } else if (ssFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return ssAllow(local_data, _ssConstants.SS_5_FLAT__FLAT); // - -
+    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_5_FLAT__FLAT); // - -
   } else if (ssFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return ssAllow(local_data, _ssConstants.SS_6_FLAT__UP); //   _⭜
+    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_6_FLAT__UP); //   _⭜
   } else if (ssUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return ssAllow(local_data, _ssConstants.SS_7_UP__FLAT); //   ↗¯¯
+    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_7_UP__FLAT); //   ↗¯¯
   } else if (ssDownToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return ssAllow(local_data, _ssConstants.SS_8_DOWN__FLAT); // ↘__
+    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_8_DOWN__FLAT); // ↘__
   } else if (ssFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return ssAllow(local_data, _ssConstants.SS_9_FLAT__DOWN); // ¯⭝
+    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_9_FLAT__DOWN); // ¯⭝
   } else if (ssUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-    return ssAllow(local_data, _ssConstants.SS_10_UP__UP); //     ↗↗
+    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_10_UP__UP); //     ↗↗
   } else if (ssDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-    return ssAllow(local_data, _ssConstants.SS_11_DOWN__DOWN); // ↘↘
+    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_11_DOWN__DOWN); // ↘↘
   } else if (ssUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return ssAllow(local_data, _ssConstants.SS_12_UP__DOWN); //  ↗↘
+    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_12_UP__DOWN); //  ↗↘
   } else if (ssDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return ssAllow(local_data, _ssConstants.SS_13_DOWN__UP); //  ↘↗
-  } else if (prev_index == new_index) {
-    return _constants.MOVE_SAME_TILE;
+    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_13_DOWN__UP); //  ↘↗
   }
-  return ssAllow(local_data, _ssConstants.SS_13_DOWN__UP); //  ↘↗
+  if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
+    return (0, _groundTiles.moveDescendOneStep)(local_data, _ssConstants.SS_AIRBORNE);
+  }
+  return (0, _groundTiles.moveBlock)(local_data, _ssConstants.SS_14_BLOCKED); // ¯¯↗
 }
 
 /*  curve_up__curve_up.png   like a flower */
 function ssCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const NE_to_SE = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_SE;
+  const NE_to_SE = prev_tilt_up == _theConstants.TILT_NE && new_tilt_up == _theConstants.TILT_SE;
   if (NE_to_SE && lows_and_highs) {
     return true;
   }
   return false;
 }
 function ssCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const NW_to_SW = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_SW;
+  const NW_to_SW = prev_tilt_up == _theConstants.TILT_NW && new_tilt_up == _theConstants.TILT_SW;
   if (NW_to_SW && lows_and_highs) {
     return true;
   }
@@ -26354,84 +26327,84 @@ function ssCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
 
 /*  curve_down__curve_down.png  like a cap */
 function ssCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const SW_to_NW = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_NW;
+  const SW_to_NW = prev_tilt_up == _theConstants.TILT_SW && new_tilt_up == _theConstants.TILT_NW;
   if (SW_to_NW && lows_and_highs) {
     return true;
   }
   return false;
 }
 function ssCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const SE_to_NE = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_NE;
+  const SE_to_NE = prev_tilt_up == _theConstants.TILT_SE && new_tilt_up == _theConstants.TILT_NE;
   if (SE_to_NE && lows_and_highs) {
     return true;
   }
   return false;
 }
 function ssFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NONE_2_NONE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NONE;
+  const NONE_2_NONE = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_NONE;
   if (NONE_2_NONE && low_to_low) {
     return true;
   }
   return false;
 }
 function ssFlatToUp(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NONE_2_SS = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_SS;
+  const NONE_2_SS = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_SS;
   if (NONE_2_SS && low_to_low) {
     return true;
   }
   return false;
 }
 function ssUpToFlat(prev_tilt_up, new_tilt_up, high_to_high) {
-  const SS_2_NONE = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_NONE;
+  const SS_2_NONE = prev_tilt_up == _theConstants.TILT_SS && new_tilt_up == _theConstants.TILT_NONE;
   if (SS_2_NONE && high_to_high) {
     return true;
   }
   return false;
 }
 function ssDownToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NN_2_NONE = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NONE;
+  const NN_2_NONE = prev_tilt_up == _theConstants.TILT_NN && new_tilt_up == _theConstants.TILT_NONE;
   if (NN_2_NONE && low_to_low) {
     return true;
   }
   return false;
 }
 function ssFlatToDown(prev_tilt_up, new_tilt_up, high_to_high) {
-  const NONE_2_NN = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NN;
+  const NONE_2_NN = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_NN;
   if (NONE_2_NN && high_to_high) {
     return true;
   }
   return false;
 }
 function ssUpToUp(prev_tilt_up, new_tilt_up, high_to_low) {
-  const SS_2_SS = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_SS;
+  const SS_2_SS = prev_tilt_up == _theConstants.TILT_SS && new_tilt_up == _theConstants.TILT_SS;
   if (SS_2_SS && high_to_low) {
     return true;
   }
   return false;
 }
 function ssDownToDown(prev_tilt_up, new_tilt_up, low_to_high) {
-  const NN_2_NN = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NN;
+  const NN_2_NN = prev_tilt_up == _theConstants.TILT_NN && new_tilt_up == _theConstants.TILT_NN;
   if (NN_2_NN && low_to_high) {
     return true;
   }
   return false;
 }
 function ssUpToDown(prev_tilt_up, new_tilt_up, high_to_high) {
-  const SS_2_NN = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_NN;
+  const SS_2_NN = prev_tilt_up == _theConstants.TILT_SS && new_tilt_up == _theConstants.TILT_NN;
   if (SS_2_NN && high_to_high) {
     return true;
   }
   return false;
 }
 function ssDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NN_2_SS = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_SS;
+  const NN_2_SS = prev_tilt_up == _theConstants.TILT_NN && new_tilt_up == _theConstants.TILT_SS;
   if (NN_2_SS && low_to_low) {
     return true;
   }
   return false;
 }
 
-},{"../../constants.js":10,"../../misc/console-short.js":17,"../hex-routines.js":25,"./ss-constants.js":36}],38:[function(require,module,exports){
+},{"../../misc/console-short.js":17,"../../values/the-constants.js":52,"../ground-tiles.js":29,"../hex-routines.js":30,"./ss-constants.js":41}],43:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26439,61 +26412,47 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.startGameTiles = startGameTiles;
 var _consoleShort = require("../misc/console-short.js");
-var _hexTile = require("./hex-tile.js");
-var HEX_CONST = _interopRequireWildcard(require("../constants.js"));
-function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-function startGameTiles(GAME_WALKWAY) {
-  const start_hexes = GAME_WALKWAY.shift();
-  const [game_start_hex_x, game_start_coord_y, game_start_hex_z] = start_hexes;
-  let [game_start_coord_x, game_start_coord_z] = (0, _hexTile.tileCenterCoord)(game_start_hex_x, game_start_hex_z);
-  let start_xyz_camera = [game_start_coord_x, game_start_coord_y, game_start_coord_z];
-  const walkway_coords = GAME_WALKWAY;
-  const start_xyz_lookat = GAME_WALKWAY.shift();
-  const start_3colors = GAME_WALKWAY.shift();
-  const light_3colors = GAME_WALKWAY.shift();
-  const dark_3colors = GAME_WALKWAY.shift();
-  const edge_3colors = GAME_WALKWAY.shift(); // edge_color
-
-  const tile_3colors = {
-    start_3colors,
-    light_3colors,
-    dark_3colors,
-    edge_3colors
-  };
-
-  //    const top_3colors = GAME_WALKWAY.shift();
-  // const top_3colors = GAME_WALKWAY.shift();
-
-  //  const outline_3colors = GAME_WALKWAY.shift();
-  //return { walkway_coords, start_xyz_camera, start_xyz_lookat, top_3colors, outline_3colors };
+var _theConstants = require("../values/the-constants.js");
+function startGameTiles(the_map) {
+  const o_trampolines = the_map.trampoline_locs;
+  const o_pentagons = the_map.pentagon_locs;
+  const o_walkway_ndxs = the_map.walkway_locs;
+  var o_unvisited_tiles = new Map([]);
+  for (const a_tile of o_walkway_ndxs) {
+    const [x_index, y_100_index, z_index] = a_tile;
+    const xyz_index = `${x_index},${y_100_index},${z_index}`;
+    o_unvisited_tiles.set(xyz_index, xyz_index);
+  }
+  const o_fence_ndxs = the_map.fence_locs;
   return {
-    walkway_coords,
-    start_xyz_camera,
-    start_xyz_lookat,
-    tile_3colors
+    o_pentagons,
+    o_trampolines,
+    o_fence_ndxs,
+    o_walkway_ndxs,
+    o_unvisited_tiles
   };
 }
 function startTestTiles(test_direction) {
-  if (TEST_DIRECTION == HEX_CONST.TEST_SS) {
+  if (TEST_DIRECTION == _theConstants.TEST_SS) {
     [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = ss_load_test(TEST_NUMBER_1_TO_11);
     // the_coords.pop(); // get rid of name
     (0, _consoleShort.ee)("main start test coord ss", the_coords);
-  } else if (TEST_DIRECTION == HEX_CONST.TEST_NN) {
+  } else if (TEST_DIRECTION == _theConstants.TEST_NN) {
     [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = nn_load_test(TEST_NUMBER_1_TO_11);
     // the_coords.pop(); // get rid of name
     (0, _consoleShort.ee)("main start test coord nn", the_coords);
-  } else if (TEST_DIRECTION == HEX_CONST.TEST_NE) {
+  } else if (TEST_DIRECTION == _theConstants.TEST_NE) {
     [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = ne_load_test(TEST_NUMBER_1_TO_11);
     // the_coords.pop(); // get rid of name
     (0, _consoleShort.ee)("main start test coord ne", the_coords);
-  } else if (TEST_DIRECTION == HEX_CONST.TEST_SW) {
+  } else if (TEST_DIRECTION == _theConstants.TEST_SW) {
     [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = sw_load_test(TEST_NUMBER_1_TO_11);
     // the_coords.pop(); // get rid of name
-  } else if (TEST_DIRECTION == HEX_CONST.TEST_NW) {
+  } else if (TEST_DIRECTION == _theConstants.TEST_NW) {
     [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = nw_load_test(TEST_NUMBER_1_TO_11);
     // the_coords.pop(); // get rid of name
     (0, _consoleShort.ee)("main start test coord nw", the_coords);
-  } else if (TEST_DIRECTION == HEX_CONST.TEST_SE) {
+  } else if (TEST_DIRECTION == _theConstants.TEST_SE) {
     [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = se_load_test(TEST_NUMBER_1_TO_11);
     // the_coords.pop(); // get rid of name
   }
@@ -26502,14 +26461,14 @@ function startTestTiles(test_direction) {
   }
 }
 
-},{"../constants.js":10,"../misc/console-short.js":17,"./hex-tile.js":26}],39:[function(require,module,exports){
+},{"../misc/console-short.js":17,"../values/the-constants.js":52}],44:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.SW_START_FINISHES = exports.SW_INTO_AIR = exports.SW_AIRBORNE = exports.SW_9_FLAT__DOWN = exports.SW_8_DOWN__FLAT = exports.SW_7_UP__FLAT = exports.SW_6_FLAT__UP = exports.SW_5_FLAT__FLAT = exports.SW_4_DOWN_DOWN_COUNTER = exports.SW_3_DOWN_DOWN_CLOCK = exports.SW_2_UP_UP_COUNTER = exports.SW_1_UP_UP_CLOCK = exports.SW_14_BLOCKED = exports.SW_13_DOWN__UP = exports.SW_11_UP__DOWN = exports.SW_10_UP__UP = exports.SW_10_DOWN__DOWN = void 0;
-var _constants = require("../../constants.js");
+var _theConstants = require("../../values/the-constants.js");
 const x_start = 0;
 const z_start = 0;
 const x_finish = -1;
@@ -26530,19 +26489,19 @@ const SW_10_DOWN__DOWN = exports.SW_10_DOWN__DOWN = "SW_10_DOWN__DOWN";
 const SW_11_UP__DOWN = exports.SW_11_UP__DOWN = "SW_11_UP__DOWN";
 const SW_13_DOWN__UP = exports.SW_13_DOWN__UP = "SW_13_DOWN__UP";
 const SW_14_BLOCKED = exports.SW_14_BLOCKED = "SW_14_BLOCKED";
-const SW_1_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], SW_1_UP_UP_CLOCK];
-const SW_222_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NN, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NW, 1], SW_2_UP_UP_COUNTER];
-const SW_3_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], SW_3_DOWN_DOWN_CLOCK];
-const SW_444_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SS, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SE, 1], SW_4_DOWN_DOWN_COUNTER];
-const SW_5_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2], SW_5_FLAT__FLAT];
-const SW_6_TEST = [[x_start, 1, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], SW_6_FLAT__UP];
-const SW_7_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 2, z_finish, _constants.COL_2], SW_7_UP__FLAT];
-const SW_8_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 2, z_finish, _constants.COL_2], SW_8_DOWN__FLAT];
-const SW_9_TEST = [[x_start, 2, z_start, _constants.COL_1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], SW_9_FLAT__DOWN];
-const SW_10_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 2, z_finish, _constants.COL_2, _constants.TILT_SW, 1], SW_10_UP__UP];
-const SW_11_TEST = [[x_start, 2, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], SW_10_DOWN__DOWN];
-const SW_12_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_SW, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_NE, 1], SW_11_UP__DOWN];
-const SW_13_TEST = [[x_start, 1, z_start, _constants.COL_1, _constants.TILT_NE, 1], [x_finish, 1, z_finish, _constants.COL_2, _constants.TILT_SW, 1], SW_13_DOWN__UP];
+const SW_1_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NN, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NW, 1], SW_1_UP_UP_CLOCK];
+const SW_222_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NN, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NW, 1], SW_2_UP_UP_COUNTER];
+const SW_3_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SS, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SE, 1], SW_3_DOWN_DOWN_CLOCK];
+const SW_444_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SS, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SE, 1], SW_4_DOWN_DOWN_COUNTER];
+const SW_5_TEST = [[x_start, 1, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2], SW_5_FLAT__FLAT];
+const SW_6_TEST = [[x_start, 1, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SW, 1], SW_6_FLAT__UP];
+const SW_7_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SW, 1], [x_finish, 2, z_finish, _theConstants.COL_2], SW_7_UP__FLAT];
+const SW_8_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TILT_NE, 1], [x_finish, 2, z_finish, _theConstants.COL_2], SW_8_DOWN__FLAT];
+const SW_9_TEST = [[x_start, 2, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], SW_9_FLAT__DOWN];
+const SW_10_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SW, 1], [x_finish, 2, z_finish, _theConstants.COL_2, _theConstants.TILT_SW, 1], SW_10_UP__UP];
+const SW_11_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TILT_NE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], SW_10_DOWN__DOWN];
+const SW_12_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], SW_11_UP__DOWN];
+const SW_13_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SW, 1], SW_13_DOWN__UP];
 const SW_START_FINISHES = exports.SW_START_FINISHES = {
   1: SW_1_TEST,
   2: SW_222_TEST,
@@ -26559,7 +26518,7 @@ const SW_START_FINISHES = exports.SW_START_FINISHES = {
   13: SW_13_TEST
 };
 
-},{"../../constants.js":10}],40:[function(require,module,exports){
+},{"../../values/the-constants.js":52}],45:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26567,145 +26526,42 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.moveToSw = moveToSw;
 var _consoleShort = require("../../misc/console-short.js");
-var _constants = require("../../constants.js");
+var _theConstants = require("../../values/the-constants.js");
 var _hexRoutines = require("../hex-routines.js");
+var _groundTiles = require("../ground-tiles.js");
 var _swConstants = require("./sw-constants.js");
-function swAllow(local_data, mess_1) {
+function moveToSw(the_objects, prev_hex, this_hex, is_a_trampoline) {
   let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST allowed SW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_NEW_TILE;
-}
-function swBlock(local_data, mess_1) {
-  let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST blocked SW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_BLOCKED;
-}
-function swFall(local_data, mess_1) {
-  let {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  } = local_data;
-  if (print_allowed == _constants.TESTING_PRINT) {
-    (0, _consoleShort.ee)(`TEST airborne SW :: ${run_or_test} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
-  }
-  return _constants.MOVE_FALLING;
-}
-function swAirborne(run_or_test, print_allowed) {
-  const local_data = {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up: _swConstants.SW_AIRBORNE,
-    new_tilt_up: _swConstants.SW_AIRBORNE
-  };
-  return swFall(local_data, _swConstants.SW_AIRBORNE);
-}
-function swInAir(walkway_columns, new_index) {
-  let current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
-  let current_xz_column = walkway_columns.get(current_xz_index);
-  if (current_xz_column == undefined) {
-    return true; // falling in a column with no tiles
-  }
-  let current_xyz_walkway_index = current_xz_column.get(new_index);
-  if (current_xyz_walkway_index == undefined) {
-    return true; // falling in a column with tiles, but no tile at this height
-  }
-  return false;
-}
-function swHitSwWall(wall_squares, wall_columns, new_index) {
-  let current_xz_index = (0, _hexRoutines.stripYindex)(new_index);
-  let cur_xz_wall_column = wall_columns.get(current_xz_index);
-  if (cur_xz_wall_column) {
-    let possible_wall = wall_squares.get(new_index);
-    if (possible_wall) {
-      return true;
-    }
-  }
-  return false;
-}
-function swTileData(walkway_tiles, prev_index, new_index) {
-  let current_walkway_tile = walkway_tiles.get(new_index);
-  const {
-    tilt_up: new_tilt_up,
-    low_y: new_low_y,
-    high_y: new_high_y
-  } = current_walkway_tile;
-  let prev_tilt_up, prev_low_y, prev_high_y;
-  let prev_walkway_tile = walkway_tiles.get(prev_index);
-  if (prev_walkway_tile) {
-    prev_tilt_up = prev_walkway_tile.tilt_up;
-    prev_low_y = prev_walkway_tile.low_y;
-    prev_high_y = prev_walkway_tile.high_y;
-  } else {
-    prev_tilt_up = new_tilt_up;
-    prev_low_y = new_low_y;
-    prev_high_y = new_high_y;
-  }
-  const low_to_low = prev_low_y == new_low_y;
-  const high_to_high = prev_high_y == new_high_y;
-  const lows_and_highs = low_to_low && high_to_high;
-  const high_to_low = prev_high_y == new_low_y;
-  const low_to_high = prev_low_y == new_high_y;
-  const prev_new_data = {
-    prev_tilt_up,
-    prev_low_y,
-    prev_high_y,
-    new_tilt_up,
-    new_low_y,
-    new_high_y
-  };
-  const data = {
-    low_to_low,
-    high_to_high,
-    lows_and_highs,
-    high_to_low,
-    low_to_high
-  };
-  return {
-    prev_new_data,
-    data
-  };
-}
-function moveToSw(current_data) {
-  const {
-    run_or_test,
-    print_allowed,
-    walkway_tiles,
-    walkway_columns,
-    wall_squares,
-    wall_columns,
-    prev_index,
-    new_index
-  } = current_data;
-  if (swHitSwWall(wall_squares, wall_columns, new_index)) {
-    return swBlock(run_or_test, print_allowed, prev_index, new_index, _swConstants.SW_14_BLOCKED);
-  }
-  if (swInAir(walkway_columns, new_index)) {
-    return swAirborne(run_or_test, print_allowed);
-  }
+    o_walkway_tiles,
+    o_walkway_columns,
+    o_fence_walls,
+    o_fence_columns
+  } = the_objects;
   const {
     prev_new_data,
     data
-  } = swTileData(walkway_tiles, prev_index, new_index);
+  } = (0, _hexRoutines.tileData)(o_walkway_tiles, prev_hex, this_hex);
   const {
     prev_tilt_up,
     new_tilt_up
   } = prev_new_data;
+  const local_data = {
+    prev_tilt_up,
+    new_tilt_up,
+    prev_hex,
+    this_hex
+  };
+  if ((0, _hexRoutines.hitFence)(o_fence_walls, o_fence_columns, prev_hex, this_hex)) {
+    const is_blocked = (0, _groundTiles.moveBlock)(local_data, _swConstants.SW_14_BLOCKED);
+    return is_blocked;
+  }
+  if ((0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex)) {
+    if (is_a_trampoline) {
+      return (0, _groundTiles.moveOntoTrampoline)(local_data, _swConstants.SW_AIRBORNE);
+    } else {
+      return (0, _groundTiles.moveIntoAir)(local_data, _swConstants.SW_AIRBORNE);
+    }
+  }
   const {
     low_to_low,
     high_to_high,
@@ -26713,49 +26569,46 @@ function moveToSw(current_data) {
     high_to_low,
     low_to_high
   } = data;
-  const local_data = {
-    run_or_test,
-    print_allowed,
-    prev_tilt_up,
-    new_tilt_up
-  };
-  if (prev_index == new_index) {
-    return _constants.MOVE_SAME_TILE;
+  if (prev_hex == this_hex) {
+    return _theConstants.MV_TILE_SAME;
   } else if (swCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return swAllow(local_data, _swConstants.SW_1_UP_UP_CLOCK); //      ⭮
+    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_1_UP_UP_CLOCK); //      ⭮
   } else if (swCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return swAllow(local_data, _swConstants.SW_2_UP_UP_COUNTER); //      ⭯
+    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_2_UP_UP_COUNTER); //      ⭯
   } else if (swCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return swAllow(local_data, _swConstants.SW_3_DOWN_DOWN_CLOCK); //  ⭮
+    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_3_DOWN_DOWN_CLOCK); //  ⭮
   } else if (swCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return swAllow(local_data, _swConstants.SW_4_DOWN_DOWN_COUNTER); //  ⭯
+    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_4_DOWN_DOWN_COUNTER); //  ⭯
   } else if (swFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return swAllow(local_data, _swConstants.SW_5_FLAT__FLAT); // - -
+    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_5_FLAT__FLAT); // - -
   } else if (swFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return swAllow(local_data, _swConstants.SW_6_FLAT__UP); //   _⭜
+    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_6_FLAT__UP); //   _⭜
   } else if (swUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return swAllow(local_data, _swConstants.SW_7_UP__FLAT); //   ↗¯¯
+    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_7_UP__FLAT); //   ↗¯¯
   } else if (swDownToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return swAllow(local_data, _swConstants.SW_8_DOWN__FLAT); // ↘__
+    ///////////
+    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_8_DOWN__FLAT); // ↘__
+    ////////////
   } else if (swFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return swAllow(local_data, _swConstants.SW_9_FLAT__DOWN); // ¯⭝
+    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_9_FLAT__DOWN); // ¯⭝
   } else if (swUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-    return swAllow(local_data, _swConstants.SW_10_UP__UP); //     ↗↗
+    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_10_UP__UP); //     ↗↗
   } else if (swDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-    return swAllow(local_data, _swConstants.SW_10_DOWN__DOWN); // ↘↘
+    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_10_DOWN__DOWN); // ↘↘
   } else if (swUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return swAllow(local_data, _swConstants.SW_11_UP__DOWN); //  ↗↘
+    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_11_UP__DOWN); //  ↗↘
   } else if (swDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return swAllow(local_data, _swConstants.SW_13_DOWN__UP); //  ↘↗
-  } else if (prev_index == new_index) {
-    return _constants.MOVE_SAME_TILE;
+    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_13_DOWN__UP); //  ↘↗
   }
-  return swAllow(local_data, _swConstants.SW_13_DOWN__UP); //  ↘↗
+  if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
+    return (0, _groundTiles.moveDescendOneStep)(local_data, _swConstants.SW_AIRBORNE);
+  }
+  return (0, _groundTiles.moveBlock)(local_data, _swConstants.SW_14_BLOCKED); //  ↘↗
 }
 
 /*  curve_up__curve_up.png   like a flower */
 function swCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const SE_to_SS = prev_tilt_up == _constants.TILT_SE && new_tilt_up == _constants.TILT_SS;
+  const SE_to_SS = prev_tilt_up == _theConstants.TILT_SE && new_tilt_up == _theConstants.TILT_SS;
   if (SE_to_SS && lows_and_highs) {
     (0, _consoleShort.ee)("FLOWER CLOCK sw");
     return true;
@@ -26763,7 +26616,7 @@ function swCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   return false;
 }
 function swCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const NN_to_NW = prev_tilt_up == _constants.TILT_NN && new_tilt_up == _constants.TILT_NW;
+  const NN_to_NW = prev_tilt_up == _theConstants.TILT_NN && new_tilt_up == _theConstants.TILT_NW;
   if (NN_to_NW && lows_and_highs) {
     (0, _consoleShort.ee)("FLOWER COUNT sw");
     return true;
@@ -26773,7 +26626,7 @@ function swCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
 
 /*  curve_down__curve_down.png  like a cap */
 function swCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const NW_to_NN = prev_tilt_up == _constants.TILT_NW && new_tilt_up == _constants.TILT_NN;
+  const NW_to_NN = prev_tilt_up == _theConstants.TILT_NW && new_tilt_up == _theConstants.TILT_NN;
   if (NW_to_NN && lows_and_highs) {
     (0, _consoleShort.ee)("hat CLOCK sw");
     return true;
@@ -26781,7 +26634,7 @@ function swCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   return false;
 }
 function swCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
-  const SS_to_SE = prev_tilt_up == _constants.TILT_SS && new_tilt_up == _constants.TILT_SE;
+  const SS_to_SE = prev_tilt_up == _theConstants.TILT_SS && new_tilt_up == _theConstants.TILT_SE;
   if (SS_to_SE && lows_and_highs) {
     (0, _consoleShort.ee)("hat COUNT sw");
     return true;
@@ -26789,70 +26642,124 @@ function swCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   return false;
 }
 function swFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NONE_2_NONE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NONE;
+  const NONE_2_NONE = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_NONE;
   if (NONE_2_NONE && low_to_low) {
     return true;
   }
   return false;
 }
 function swFlatToUp(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NONE_2_SW = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_SW;
+  const NONE_2_SW = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_SW;
   if (NONE_2_SW && low_to_low) {
     return true;
   }
   return false;
 }
 function swUpToFlat(prev_tilt_up, new_tilt_up, high_to_high) {
-  const SW_2_NONE = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_NONE;
+  const SW_2_NONE = prev_tilt_up == _theConstants.TILT_SW && new_tilt_up == _theConstants.TILT_NONE;
   if (SW_2_NONE && high_to_high) {
     return true;
   }
   return false;
 }
 function swDownToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NE_2_NONE = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_NONE;
+  const NE_2_NONE = prev_tilt_up == _theConstants.TILT_NE && new_tilt_up == _theConstants.TILT_NONE;
   if (NE_2_NONE && low_to_low) {
     return true;
   }
   return false;
 }
 function swFlatToDown(prev_tilt_up, new_tilt_up, high_to_high) {
-  const NONE_2_NE = prev_tilt_up == _constants.TILT_NONE && new_tilt_up == _constants.TILT_NE;
+  const NONE_2_NE = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_NE;
   if (NONE_2_NE && high_to_high) {
     return true;
   }
   return false;
 }
 function swUpToUp(prev_tilt_up, new_tilt_up, high_to_low) {
-  const SW_2_SW = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_SW;
+  const SW_2_SW = prev_tilt_up == _theConstants.TILT_SW && new_tilt_up == _theConstants.TILT_SW;
   if (SW_2_SW && high_to_low) {
     return true;
   }
   return false;
 }
 function swDownToDown(prev_tilt_up, new_tilt_up, low_to_high) {
-  const NE_2_NE = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_NE;
+  const NE_2_NE = prev_tilt_up == _theConstants.TILT_NE && new_tilt_up == _theConstants.TILT_NE;
   if (NE_2_NE && low_to_high) {
     return true;
   }
   return false;
 }
 function swUpToDown(prev_tilt_up, new_tilt_up, high_to_high) {
-  const SW_2_NE = prev_tilt_up == _constants.TILT_SW && new_tilt_up == _constants.TILT_NE;
+  const SW_2_NE = prev_tilt_up == _theConstants.TILT_SW && new_tilt_up == _theConstants.TILT_NE;
   if (SW_2_NE && high_to_high) {
     return true;
   }
   return false;
 }
 function swDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NE_2_SW = prev_tilt_up == _constants.TILT_NE && new_tilt_up == _constants.TILT_SW;
+  const NE_2_SW = prev_tilt_up == _theConstants.TILT_NE && new_tilt_up == _theConstants.TILT_SW;
   if (NE_2_SW && low_to_low) {
     return true;
   }
   return false;
 }
 
-},{"../../constants.js":10,"../../misc/console-short.js":17,"../hex-routines.js":25,"./sw-constants.js":39}],41:[function(require,module,exports){
+},{"../../misc/console-short.js":17,"../../values/the-constants.js":52,"../ground-tiles.js":29,"../hex-routines.js":30,"./sw-constants.js":44}],46:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.tileMesh = tileMesh;
+var _consoleShort = require("../misc/console-short.js");
+var THREE = _interopRequireWildcard(require("three"));
+var _theConstants = require("../values/the-constants.js");
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
+// only ramp needs to be double sided
+function intToHexBGR(intColor) {
+  let r = (intColor & 0xff) << 16;
+  let g = intColor & 0xff00;
+  let b = (intColor & 0xff0000) >>> 16;
+  let combined = r | g | b;
+  return "#" + (combined >>> 0).toString(16).padStart(6, "0");
+}
+function tileMesh(group, vertices_set, start_color, outline_color, is_transparent) {
+  const side_geometry = geometricVertices(vertices_set);
+  let side_material;
+  if (is_transparent) {
+    side_material = new THREE.MeshLambertMaterial({
+      color: start_color,
+      opacity: 0.3,
+      transparent: true
+    });
+  } else {
+    side_material = new THREE.MeshLambertMaterial({
+      color: start_color,
+      opacity: 1
+    });
+  }
+  side_material.side = THREE.DoubleSide;
+  const hexagon_side = new THREE.Mesh(side_geometry, side_material);
+  hexagon_side.name = _theConstants.HEXAGON_PART;
+  const edges = new THREE.EdgesGeometry(side_geometry);
+  const lineMaterial = new THREE.LineBasicMaterial({
+    color: outline_color,
+    linewidth: 8
+  });
+  lineMaterial.side = THREE.DoubleSide;
+  const edgeLines = new THREE.LineSegments(edges, lineMaterial);
+  hexagon_side.add(edgeLines);
+  group.add(hexagon_side);
+}
+function geometricVertices(the_vertices) {
+  const float_vertices = new Float32Array(the_vertices);
+  const the_geometry = new THREE.BufferGeometry();
+  the_geometry.setAttribute("position", new THREE.Float32BufferAttribute(float_vertices, 3));
+  return the_geometry;
+}
+
+},{"../misc/console-short.js":17,"../values/the-constants.js":52,"three":3}],47:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26860,13 +26767,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.makeWalkway = makeWalkway;
 var _consoleShort = require("../misc/console-short.js");
-var HEX_CONST = _interopRequireWildcard(require("../constants.js"));
 var _hexTile = require("./hex-tile.js");
 var _tileColors = require("../misc/tile-colors.js");
-function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-//import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
+//import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../values/constants.js";
 
-// const walkway_coords = [
+// const o_walkway_ndxs = [
 //     // x,     y,      z,  incline_dir, incline_amount
 //     ["001", "040", "002"],
 //     ["001", "040", "001"],
@@ -26900,7 +26805,7 @@ function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r
 //     ["000", "008", "007", "yellow", TILT_NE, 0.4], // 0.7       0.8
 
 //     // 0.8 ==> 8       /10
-//     // 5 ==> 50  therefore we can have g_walkway_height as ints
+//     // 5 ==> 50  therefore we can have s_walkway_height as ints
 
 //     // so we modify the indexs of x,z now y as well
 
@@ -26920,18 +26825,10 @@ function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r
 // ];
 
 //
-//         x,      y,      z,  hex_color, slope_direction, incline_amount
+//         x,      y,      z,  hex_color, slope_tilt, incline_amount
 //    ["-001", "00.5", "-001",  c____red,         TILT_NN, 0.1]
 //    ["0000", "0000", "0000",  c_yellow,         TILT_NN, 1]    // more better way !!!!!!!!!!
 //    ["-003", "0050", "-002",  c_purple]
-
-// const walkway_coords = [
-//     // x,     y,      z,  incline_dir, incline_amount
-//     ["0000", "1", "0000", HEX_CONST.C____GREEN],
-//     //    ["-99.1", "099.1", "-99.1", TILT_NN, "0.1" "green"]
-//     ["0001", "1", "-001", HEX_CONST.C_____BLUE, HEX_CONST.TILT_NE, 10]
-//     //  ["003", "050", "002", "yellow"]
-// ];
 
 function coordsBad(x_index, y_level, z_index) {
   if (x_index % 1 != 0) {
@@ -26948,28 +26845,25 @@ function coordsBad(x_index, y_level, z_index) {
   }
   return false;
 }
-function makeWalkway(the_scene, walkway_meshes, walkway_coords, walkway_tiles, walkway_colors, walkway_columns, tile_3colors) {
-  for (var i = 0; i < walkway_coords.length; i++) {
-    const ramp_piece = walkway_coords[i];
+function makeWalkway(g_scene, walkway_meshes, o_walkway_ndxs, walkway_tiles, walkway_columns, WALK_COLORS, WALK_EDGE) {
+  for (var i = 0; i < o_walkway_ndxs.length; i++) {
+    const ramp_piece = o_walkway_ndxs[i];
     if (Array.isArray(ramp_piece)) {
       const [x_str, y_str, z_str] = ramp_piece;
       const x_index = parseInt(x_str);
       const y_100_index = parseInt(y_str); /// y_level
-
       const z_index = parseInt(z_str);
-      const xyz_index = `${x_index},${y_100_index},${z_index}`;
-      walkway_colors.set(xyz_index, "dark-color");
       if (coordsBad(x_index, y_100_index, z_index)) {
         debugger;
       }
       const ramp_xyz = [x_index, y_100_index, z_index];
-      let tile_3_colors = (0, _tileColors.tile3color)(ramp_xyz, tile_3colors);
       if (ramp_piece.length == 3) {
-        [walkway_meshes, walkway_tiles] = (0, _hexTile.HexTile)(the_scene, walkway_meshes, walkway_tiles, ramp_xyz, tile_3_colors);
+        [walkway_meshes, walkway_tiles] = (0, _hexTile.HexTile)(g_scene, walkway_meshes, walkway_tiles, ramp_xyz, WALK_COLORS, WALK_EDGE);
       } else {
-        const slope_direction = ramp_piece[3];
+        const slope_tilt = ramp_piece[3];
         const incline_amount = ramp_piece[4];
-        [walkway_meshes, walkway_tiles] = (0, _hexTile.HexTile)(the_scene, walkway_meshes, walkway_tiles, ramp_xyz, tile_3_colors, slope_direction, incline_amount);
+        const is_transparent = ramp_piece[5];
+        [walkway_meshes, walkway_tiles] = (0, _hexTile.HexTile)(g_scene, walkway_meshes, walkway_tiles, ramp_xyz, WALK_COLORS, WALK_EDGE, slope_tilt, incline_amount, is_transparent);
       }
     }
   }
@@ -26977,8 +26871,8 @@ function makeWalkway(the_scene, walkway_meshes, walkway_coords, walkway_tiles, w
   for (const [_key, a_tile] of walkway_tiles) {
     const x_z = a_tile.x_z;
     const xyz_index = a_tile.xyz_index;
-    const missing_x_z_column = !walkway_columns.has(x_z);
-    if (missing_x_z_column) {
+    const missins_x_z_column = !walkway_columns.has(x_z);
+    if (missins_x_z_column) {
       let empty_x_z_column = new Map();
       walkway_columns.set(x_z, empty_x_z_column);
     }
@@ -26991,10 +26885,10 @@ function makeWalkway(the_scene, walkway_meshes, walkway_coords, walkway_tiles, w
       cur_x_z_column.set(a_y_index, xyz_index);
     }
   }
-  return [walkway_meshes, walkway_tiles, walkway_colors, walkway_columns];
+  return [walkway_meshes, walkway_tiles, walkway_columns];
 }
 
-},{"../constants.js":10,"../misc/console-short.js":17,"../misc/tile-colors.js":19,"./hex-tile.js":26}],42:[function(require,module,exports){
+},{"../misc/console-short.js":17,"../misc/tile-colors.js":21,"./hex-tile.js":31}],48:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -27002,13 +26896,16 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.walkwayIncline = walkwayIncline;
 var _consoleShort = require("../misc/console-short.js");
-var _constants = require("../constants.js");
-var _maths = require("../maths.js");
-function hexIndex(x_hex_ind, y_height, z_hex_ind) {
-  let y_fixed_to_10ths = Math.trunc(y_height * 10) / 10;
-  let hex_index = `${x_hex_ind},${y_fixed_to_10ths},${z_hex_ind}`;
-  return hex_index;
-}
+var _theConstants = require("../values/the-constants.js");
+var _hexRoutines = require("./hex-routines.js");
+var _hexMaths = require("../misc/hex-maths.js");
+// function hexIndex(x_hex_ind, y_height, z_hex_ind) {
+//     let y_fixed_to_10ths = Math.trunc(y_height * 10) / 10;
+
+//     let hex_index = `${x_hex_ind},${y_fixed_to_10ths},${z_hex_ind}`;
+//     return hex_index;
+// }
+
 function swivelIntercept(cam_x_z, swivel_a, swivel_b) {
   let [cam_x, cam_z] = cam_x_z;
   let x1 = swivel_a[0];
@@ -27041,19 +26938,19 @@ function dotsSideOfLine(cam_x_z, line_point_a, line_point_b) {
   const pos_or_neg = (cam_x - nw_x1) * (nw_z2 - nw_z1) - (cam_z - nw_z1) * (nw_x2 - nw_x1);
   return pos_or_neg;
 }
-function inclineNW_NE_SE_SW(cam_pos, stair_tile, swivel_a, swivel_b) {
+function inclineNW_NE_SE_SW(f_cam_vect, stair_tile, swivel_a, swivel_b) {
   const {
     tilt_up,
     accross_length,
     angle_incline,
     y_position
   } = stair_tile;
-  const cam_x_z = [cam_pos.x, cam_pos.z];
+  const cam_x_z = [f_cam_vect.x, f_cam_vect.z];
   const swivel_intercept = swivelIntercept(cam_x_z, swivel_a, swivel_b);
   const length_from_swivel2 = intercept2cam(cam_x_z, swivel_intercept);
   const dot_side_of_line = dotsSideOfLine(cam_x_z, swivel_a, swivel_b);
   let pixel_size;
-  if (tilt_up == _constants.TILT_NW || tilt_up == _constants.TILT_SW) {
+  if (tilt_up == _theConstants.TILT_NW || tilt_up == _theConstants.TILT_SW) {
     if (dot_side_of_line < 0) {
       pixel_size = accross_length / 2 - length_from_swivel2;
     } else {
@@ -27072,7 +26969,7 @@ function inclineNW_NE_SE_SW(cam_pos, stair_tile, swivel_a, swivel_b) {
 }
 const ABOVE_WALKWAY = 0.52; // Base offset for camera height above surface
 const ABOVE_WALKWAY_SS = 1.52;
-function inclineNN(cam_pos, current_tile) {
+function inclineNN(f_cam_vect, current_tile) {
   let {
     angle_incline,
     tile_positions
@@ -27081,13 +26978,13 @@ function inclineNN(cam_pos, current_tile) {
   const lowest_z = tile_positions[3][2];
   let total_z_width = highest_z - lowest_z;
   let z_distance_traveled, nn_ss_offset;
-  z_distance_traveled = highest_z - cam_pos.z;
+  z_distance_traveled = highest_z - f_cam_vect.z;
   nn_ss_offset = 0; //ABOVE_WALKWAY;
   let height_increase = z_distance_traveled / total_z_width * angle_incline;
   let new_cam_y2 = height_increase + nn_ss_offset;
   return new_cam_y2;
 }
-function inclineSS(cam_pos, current_tile) {
+function inclineSS(f_cam_vect, current_tile) {
   let {
     angle_incline,
     tile_positions
@@ -27096,40 +26993,559 @@ function inclineSS(cam_pos, current_tile) {
   const lowest_z = tile_positions[3][2];
   let total_z_width = highest_z - lowest_z;
   let z_distance_traveled, nn_ss_offset;
-  z_distance_traveled = cam_pos.z - lowest_z;
-  nn_ss_offset = 0; // ABOVE_WALKWAY_SS; // qbert
+  z_distance_traveled = f_cam_vect.z - lowest_z;
+  nn_ss_offset = 0; // ABOVE_WALKWAY_SS;
 
   let height_increase = z_distance_traveled / total_z_width * angle_incline;
   let new_cam_y2 = height_increase + nn_ss_offset;
   return new_cam_y2;
 }
-function walkwayIncline(walkway_tiles, cam_pos) {
-  let [x_hex_ind, z_hex_ind] = (0, _maths.coords2HexIndexes)(cam_pos.x, cam_pos.z);
-  let tile_index = hexIndex(x_hex_ind, cam_pos.y, z_hex_ind);
+function walkwayIncline(walkway_tiles, f_cam_vect) {
+  let [x_hex_ind, z_hex_ind] = (0, _hexMaths.coords2Indexes)(f_cam_vect.x, f_cam_vect.z);
+  let tile_index = (0, _hexRoutines.hexIndex)(x_hex_ind, f_cam_vect.y, z_hex_ind);
   if (walkway_tiles.has(tile_index)) {
     let current_tile = walkway_tiles.get(tile_index);
     let {
       tilt_up,
       tile_positions
     } = current_tile;
-    if (tilt_up == _constants.TILT_NW) {
-      return inclineNW_NE_SE_SW(cam_pos, current_tile, tile_positions[0], tile_positions[3]);
-    } else if (tilt_up == _constants.TILT_NE) {
-      return inclineNW_NE_SE_SW(cam_pos, current_tile, tile_positions[1], tile_positions[4]);
-    } else if (tilt_up == _constants.TILT_SE) {
-      return inclineNW_NE_SE_SW(cam_pos, current_tile, tile_positions[0], tile_positions[3]);
-    } else if (tilt_up == _constants.TILT_SW) {
-      return inclineNW_NE_SE_SW(cam_pos, current_tile, tile_positions[1], tile_positions[4]);
-    } else if (tilt_up == _constants.TILT_NN) {
-      return inclineNN(cam_pos, current_tile);
-    } else if (tilt_up == _constants.TILT_SS) {
-      return inclineSS(cam_pos, current_tile);
+    if (tilt_up == _theConstants.TILT_NW) {
+      return inclineNW_NE_SE_SW(f_cam_vect, current_tile, tile_positions[0], tile_positions[3]);
+    } else if (tilt_up == _theConstants.TILT_NE) {
+      return inclineNW_NE_SE_SW(f_cam_vect, current_tile, tile_positions[1], tile_positions[4]);
+    } else if (tilt_up == _theConstants.TILT_SE) {
+      return inclineNW_NE_SE_SW(f_cam_vect, current_tile, tile_positions[0], tile_positions[3]);
+    } else if (tilt_up == _theConstants.TILT_SW) {
+      return inclineNW_NE_SE_SW(f_cam_vect, current_tile, tile_positions[1], tile_positions[4]);
+    } else if (tilt_up == _theConstants.TILT_NN) {
+      return inclineNN(f_cam_vect, current_tile);
+    } else if (tilt_up == _theConstants.TILT_SS) {
+      return inclineSS(f_cam_vect, current_tile);
     }
   }
   return 0; // y_position + ABOVE_WALKWAY;
 }
 
-},{"../constants.js":10,"../maths.js":16,"../misc/console-short.js":17}],43:[function(require,module,exports){
+},{"../misc/console-short.js":17,"../misc/hex-maths.js":19,"../values/the-constants.js":52,"./hex-routines.js":30}],49:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.WALK_EDGE = exports.WALK_BEFORE_COLORS = exports.WALK_AFTER_COLORS = exports.SEA_EDGE = exports.SEA_COLORS = exports.BARRIER_MIDDLE_COLOR = exports.BARRIER_EDGE_COLOR = void 0;
+const SEA_COLORS = exports.SEA_COLORS = [0x0000dd, 0x0000aa, 0x000077];
+const SEA_EDGE = exports.SEA_EDGE = 0x8888cc;
+const WALK_BEFORE_COLORS = exports.WALK_BEFORE_COLORS = [0xdd0000, 0xaa0000, 0x770000];
+const WALK_EDGE = exports.WALK_EDGE = 0xcccccc;
+const WALK_AFTER_COLORS = exports.WALK_AFTER_COLORS = [0x00dd00, 0x00aa00, 0x007700];
+const BARRIER_MIDDLE_COLOR = exports.BARRIER_MIDDLE_COLOR = 0x00cccc;
+const BARRIER_EDGE_COLOR = exports.BARRIER_EDGE_COLOR = 0x00ffff;
+
+},{}],50:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.X_Z_2D_INCREMENT = exports.TRAMPOLINE_RISE_SPEED = exports.TRAMPOLINE_ITERATIONS = exports.TRAMPOLINE_FALL_SPEED = exports.RISE_Y_ADD = exports.RISE_XZ_SPEED_SLOW = exports.RISE_SS_Z_DIFF = exports.RISE_NN_Z_DIFF = exports.JUMP_RISE_STEP_SIZE = exports.JUMP_ITERATIONS = exports.JUMP_FALL_STEP_SIZE = exports.HOR_JUMP_MULTIPLIER = exports.FALL_Y_SUB = void 0;
+var _consoleShort = require("../misc/console-short.js");
+const JUMP_RISE_STEP_SIZE = exports.JUMP_RISE_STEP_SIZE = 25;
+const JUMP_FALL_STEP_SIZE = exports.JUMP_FALL_STEP_SIZE = 25;
+const JUMP_ITERATIONS = exports.JUMP_ITERATIONS = 21; /// must be in 10s
+
+const TRAMPOLINE_RISE_SPEED = exports.TRAMPOLINE_RISE_SPEED = 5;
+const TRAMPOLINE_FALL_SPEED = exports.TRAMPOLINE_FALL_SPEED = 5;
+const TRAMPOLINE_ITERATIONS = exports.TRAMPOLINE_ITERATIONS = 51;
+const X_Z_2D_INCREMENT = exports.X_Z_2D_INCREMENT = 4; // 10 FAST, 2 SLOW
+
+const VERTICAL_INCREMENT = 5; // Y_VERITCAL_INCREMENT
+
+const RISE_Y_ADD = exports.RISE_Y_ADD = VERTICAL_INCREMENT * 1;
+const FALL_Y_SUB = exports.FALL_Y_SUB = VERTICAL_INCREMENT * 1;
+const RISE_XZ_SPEED_SLOW = exports.RISE_XZ_SPEED_SLOW = 25;
+const RISE_NN_Z_DIFF = exports.RISE_NN_Z_DIFF = +1 / RISE_XZ_SPEED_SLOW; ///0.25;
+const RISE_SS_Z_DIFF = exports.RISE_SS_Z_DIFF = -1 / RISE_XZ_SPEED_SLOW; ///0.25;
+
+if (JUMP_RISE_STEP_SIZE % 5 != 0) {
+  (0, _consoleShort.ee)("JUMP RISE size must be in units of 5, not ", JUMP_RISE_STEP_SIZE);
+}
+if (JUMP_FALL_STEP_SIZE % 5 != 0) {
+  (0, _consoleShort.ee)("JUMP FALL size must be in units of 5, not ", JUMP_FALL_STEP_SIZE);
+}
+if (TRAMPOLINE_RISE_SPEED % 5 != 0) {
+  (0, _consoleShort.ee)("TRAMPOLINE RISE size must be in units of 5, not ", TRAMPOLINE_RISE_SPEED);
+}
+if (TRAMPOLINE_FALL_SPEED % 5 != 0) {
+  (0, _consoleShort.ee)("TRAMPOLINE FALL size must be in units of 5, not ", TRAMPOLINE_FALL_SPEED);
+}
+const HOR_JUMP_MULTIPLIER = exports.HOR_JUMP_MULTIPLIER = 2;
+
+},{"../misc/console-short.js":17}],51:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.the_objects = exports.the_globals = exports.g_renderer = exports.g_bench = exports.frame_vars = exports.e_do_click = void 0;
+var _consoleShort = require("../misc/console-short.js");
+var _theGlobals = require("./the-globals.js");
+var _liveTest = require("../tests/live-test.js");
+var _startTiles = require("../tiles/start-tiles.js");
+var _map = require("../maps/map-1.js");
+var _minorRoutines = require("../misc/minor-routines.js");
+var _buildObjects = require("../objects/build-objects.js");
+var THREE = _interopRequireWildcard(require("three"));
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
+//import { doMap2 } from "../maps/map-2.js";
+
+let e_do_click = exports.e_do_click = {
+  was_clicked: false
+};
+let e_enemy_points = {
+  copy_output: ""
+};
+let [the_map, start_location, start_look_at] = (0, _map.doMap1)();
+let {
+  o_pentagons,
+  o_trampolines,
+  o_fence_ndxs,
+  o_walkway_ndxs,
+  o_unvisited_tiles
+} = (0, _startTiles.startGameTiles)(the_map);
+let the_globals = exports.the_globals = (0, _theGlobals.buildGlobals)(e_enemy_points, e_do_click);
+let {
+  g_scene,
+  g_camera,
+  g_renderer,
+  g_bench
+} = the_globals;
+exports.g_bench = g_bench;
+exports.g_renderer = g_renderer;
+(0, _theGlobals.setCamera)(the_globals, start_location, start_look_at);
+let the_objects = exports.the_objects = (0, _buildObjects.buildObjects)(g_scene, o_fence_ndxs, o_walkway_ndxs, o_trampolines, o_pentagons, o_unvisited_tiles);
+(0, _liveTest.staticTests)();
+let frame_vars = exports.frame_vars = {
+  g_camera: the_globals.g_camera,
+  f_step_iterations: 20,
+  f_bounce_speed: 4,
+  f_cam_vect: new THREE.Vector3(-1.36, 12, 0.58),
+  f_fall_step_size: 20,
+  f_rise_step_size: 21,
+  f_jump_x_step: 0.13,
+  f_jump_z_step: 0.31,
+  f_move_result: "MV_TILE_SAME",
+  f_prev_coords: {
+    x: -1.17,
+    y: 1100,
+    z: -0.21
+  },
+  f_prev_hex: "-1,1000,0",
+  f_this_coords: {
+    x: g_camera.position.x,
+    y: g_camera.position.y,
+    z: g_camera.position.z
+  },
+  f_this_hex: "-2,900,1",
+  f_y100_height: g_camera.position.y * 100
+};
+g_renderer.setAnimationLoop(now_time => (0, _minorRoutines.drawFps)(g_bench, now_time));
+
+},{"../maps/map-1.js":15,"../misc/console-short.js":17,"../misc/minor-routines.js":20,"../objects/build-objects.js":24,"../tests/live-test.js":26,"../tiles/start-tiles.js":43,"./the-globals.js":53,"three":3}],52:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.TILT_NE = exports.TILT_GLASS = exports.TEST_TILE_MOVE = exports.TEST_SW = exports.TEST_SS = exports.TEST_SE = exports.TEST_PASSED = exports.TEST_NW = exports.TEST_NN = exports.TEST_NE = exports.TEST_FAILED = exports.TEST_ENVIRONMENT = exports.TESTINs_PRINT = exports.START_Z_LOOK = exports.START_Z_HEX = exports.START_Y_LOOK = exports.START_Y_HEX = exports.START_X_LOOK = exports.START_X_HEX = exports.START_XYZ = exports.SQRT_3 = exports.RUN_OR_TEST = exports.RUNNINs_NO_PRINT = exports.RECORD_ENEMY_POINTS = exports.PROD_ENVIRONMENT = exports.PRINT_ALLOWED = exports.PHYS_TILE_MOVE = exports.MV_TILE_SAME = exports.MV_TILE_NEW = exports.MV_START_TRAMPOLINE = exports.MV_RISE_TRAMPOLINE = exports.MV_RISE_JUMP_STRAIGHT = exports.MV_FENCE_BLOCKED = exports.MV_FALL_TRAMPOLINE = exports.MV_FALL_STEP_OFF = exports.MV_FALL_JUMP_STRAIGHT = exports.MOVE_STOP = exports.MOVE_GO = exports.LIGHT_COLOR = exports.IS_TRANSPARENT = exports.INCLINE___3 = exports.INCLINE___2 = exports.INCLINE___1 = exports.INCLINE___0 = exports.INCLINE_2_5 = exports.INCLINE_1_5 = exports.INCLINE_0_5 = exports.HEX_PAIR_DIVIDER = exports.HEXAGON_PART = exports.HEIGHT_Y____9 = exports.HEIGHT_Y____8 = exports.HEIGHT_Y____7 = exports.HEIGHT_Y____6 = exports.HEIGHT_Y____5 = exports.HEIGHT_Y____4 = exports.HEIGHT_Y____3 = exports.HEIGHT_Y____2 = exports.HEIGHT_Y____1 = exports.HEIGHT_Y____0 = exports.HEIGHT_Y___11 = exports.HEIGHT_Y___10 = exports.HEIGHT_Y__9_5 = exports.HEIGHT_Y__8_5 = exports.HEIGHT_Y__7_5 = exports.HEIGHT_Y__6_5 = exports.HEIGHT_Y__5_5 = exports.HEIGHT_Y__4_5 = exports.HEIGHT_Y__3_5 = exports.HEIGHT_Y__2_5 = exports.HEIGHT_Y__1_5 = exports.HEIGHT_Y__0_5 = exports.HEIGHT_Y_10_5 = exports.HEIGHT_ABOVE_WALKWAY = exports.GET_ABOVE_TILES = exports.FENCE_SW = exports.FENCE_SS = exports.FENCE_SE = exports.FENCE_NW = exports.FENCE_NN = exports.FENCE_NE = exports.DROP_PER_TICK_FLOAT = exports.DIRECTION_SW = exports.DIRECTION_SS = exports.DIRECTION_SE = exports.DIRECTION_NW = exports.DIRECTION_NONE = exports.DIRECTION_NN = exports.DIRECTION_NE = exports.DARK_COLOR = exports.C______RED = exports.C_____BLUE = exports.C____GREEN = exports.C____BROWN = exports.C___YELLOW = exports.C___PURPLE = exports.C_NONE = exports.COL_2 = exports.COL_1 = exports.BREAD_CRUMBS_ON = exports.BREAD_CRUMBS_OFF = void 0;
+exports.Z_INDX = exports.Y_INDX = exports.X_INDX = exports.TILT_SW = exports.TILT_SS = exports.TILT_SE90 = exports.TILT_SE = exports.TILT_NW = exports.TILT_NONE = exports.TILT_NN90 = exports.TILT_NN = void 0;
+const HEX_PAIR_DIVIDER = exports.HEX_PAIR_DIVIDER = "!!!";
+const HEIGHT_ABOVE_WALKWAY = exports.HEIGHT_ABOVE_WALKWAY = 0.0;
+const BREAD_CRUMBS_ON = exports.BREAD_CRUMBS_ON = "BREAD_CRUMBS_ON";
+const BREAD_CRUMBS_OFF = exports.BREAD_CRUMBS_OFF = "BREAD_CRUMBS_OFF";
+const RUN_OR_TEST = exports.RUN_OR_TEST = "RUN_OR_TEST";
+const PRINT_ALLOWED = exports.PRINT_ALLOWED = "PRINT_ALLOWED";
+const TESTINs_PRINT = exports.TESTINs_PRINT = "TESTINs_PRINT"; // print_moves
+const RUNNINs_NO_PRINT = exports.RUNNINs_NO_PRINT = "RUNNINs_NO_PRINT"; // hide_moves
+
+const DARK_COLOR = exports.DARK_COLOR = "DARK_COLOR";
+const LIGHT_COLOR = exports.LIGHT_COLOR = "LIGHT_COLOR";
+const HEXAGON_PART = exports.HEXAGON_PART = "HEXAGON_PART";
+const START_X_LOOK = exports.START_X_LOOK = 3;
+const START_Y_LOOK = exports.START_Y_LOOK = 1; // *10 !!!!!!!!!!!!
+const START_Z_LOOK = exports.START_Z_LOOK = 3;
+const START_X_HEX = exports.START_X_HEX = 0;
+const START_Y_HEX = exports.START_Y_HEX = 1 + HEIGHT_ABOVE_WALKWAY; //  *10  !!!!!!!!!!!!
+const START_Z_HEX = exports.START_Z_HEX = 0;
+const START_XYZ = exports.START_XYZ = `${START_X_HEX},${START_Y_HEX},${START_Z_HEX}`;
+const X_INDX = exports.X_INDX = 0;
+const Y_INDX = exports.Y_INDX = 1;
+const Z_INDX = exports.Z_INDX = 2;
+
+//[top_left, top_rght, rght_tip, bot_rght, bot_left, left_tip];
+const TOP_LEFT_HEX_IND = 0;
+const TOP_RGHT_HEX_IND = 1;
+const RGHT_TIP_HEX_IND = 2;
+const BOT_RGHT_HEX_IND = 3;
+const BOT_LEFT_HEX_IND = 4;
+const LEFT_TIP_HEX_IND = 5;
+const DIRECTION_NN = exports.DIRECTION_NN = "DIRECTION_NN";
+const DIRECTION_SS = exports.DIRECTION_SS = "DIRECTION_SS";
+const DIRECTION_NW = exports.DIRECTION_NW = "DIRECTION_NW";
+const DIRECTION_NE = exports.DIRECTION_NE = "DIRECTION_NE";
+const DIRECTION_SE = exports.DIRECTION_SE = "DIRECTION_SE";
+const DIRECTION_SW = exports.DIRECTION_SW = "DIRECTION_SW";
+const DIRECTION_NONE = exports.DIRECTION_NONE = "DIRECTION_NONE";
+const TILT_NN = exports.TILT_NN = "TILT_NN";
+const TILT_NN90 = exports.TILT_NN90 = "TILT_NN90";
+const FENCE_NN = exports.FENCE_NN = "FENCE_NN";
+const FENCE_SS = exports.FENCE_SS = "FENCE_SS";
+const FENCE_NW = exports.FENCE_NW = "FENCE_NW";
+const FENCE_NE = exports.FENCE_NE = "FENCE_NE";
+const FENCE_SE = exports.FENCE_SE = "FENCE_SE";
+const FENCE_SW = exports.FENCE_SW = "FENCE_SW";
+const TILT_SS = exports.TILT_SS = "TILT_SS";
+const TILT_NW = exports.TILT_NW = "TILT_NW";
+const TILT_NE = exports.TILT_NE = "TILT_NE";
+const TILT_SE = exports.TILT_SE = "TILT_SE";
+const TILT_SW = exports.TILT_SW = "TILT_SW";
+const TILT_NONE = exports.TILT_NONE = "TILT_NONE";
+const TILT_GLASS = exports.TILT_GLASS = "TILT_GLASS";
+const TILT_SE90 = exports.TILT_SE90 = "TILT_SE90";
+const TEST_NN = exports.TEST_NN = "TEST_NN";
+const TEST_SS = exports.TEST_SS = "TEST_SS";
+const TEST_NW = exports.TEST_NW = "TEST_NW";
+const TEST_NE = exports.TEST_NE = "TEST_NE";
+const TEST_SE = exports.TEST_SE = "TEST_SE";
+const TEST_SW = exports.TEST_SW = "TEST_SW";
+const TEST_NONE = "TEST_NONE";
+const HIGHEST_Y = 10;
+const DROP_PER_TICK_FLOAT = exports.DROP_PER_TICK_FLOAT = 0.05;
+const SQRT_3 = exports.SQRT_3 = Math.sqrt(3);
+const C______RED = exports.C______RED = "red";
+const C_____BLUE = exports.C_____BLUE = "blue";
+const C____GREEN = exports.C____GREEN = "green";
+const C___YELLOW = exports.C___YELLOW = "yellow";
+const C___PURPLE = exports.C___PURPLE = "purple";
+const C____BROWN = exports.C____BROWN = "brown";
+const C_NONE = exports.C_NONE = "pink";
+const COL_1 = exports.COL_1 = C___YELLOW;
+const COL_2 = exports.COL_2 = C___PURPLE;
+const TEST_PASSED = exports.TEST_PASSED = "pass";
+const TEST_FAILED = exports.TEST_FAILED = "FAIL !";
+const MOVE_GO = exports.MOVE_GO = "Go";
+const MOVE_STOP = exports.MOVE_STOP = "Stop";
+const TEST_TILE_MOVE = exports.TEST_TILE_MOVE = "TEST_TILE_MOVE";
+const PHYS_TILE_MOVE = exports.PHYS_TILE_MOVE = "PHYS_TILE_MOVE";
+const MV_TILE_SAME = exports.MV_TILE_SAME = "MV_TILE_SAME";
+const MV_TILE_NEW = exports.MV_TILE_NEW = "MV_TILE_NEW";
+const MV_FENCE_BLOCKED = exports.MV_FENCE_BLOCKED = "MV_FENCE_BLOCKED";
+const MV_FALL_JUMP_STRAIGHT = exports.MV_FALL_JUMP_STRAIGHT = "MV_FALL_JUMP_STRAIGHT";
+const MV_RISE_JUMP_STRAIGHT = exports.MV_RISE_JUMP_STRAIGHT = "MV_RISE_JUMP_STRAIGHT";
+const MV_FALL_TRAMPOLINE = exports.MV_FALL_TRAMPOLINE = "MV_FALL_TRAMPOLINE";
+const MV_RISE_TRAMPOLINE = exports.MV_RISE_TRAMPOLINE = "MV_RISE_TRAMPOLINE";
+const MV_START_TRAMPOLINE = exports.MV_START_TRAMPOLINE = "MV_START_TRAMPOLINE";
+const MV_FALL_STEP_OFF = exports.MV_FALL_STEP_OFF = "MV_FALL_STEP_OFF";
+const HEIGHT_Y____0 = exports.HEIGHT_Y____0 = "000";
+const HEIGHT_Y__0_5 = exports.HEIGHT_Y__0_5 = "050";
+const HEIGHT_Y____1 = exports.HEIGHT_Y____1 = "100";
+const HEIGHT_Y__1_5 = exports.HEIGHT_Y__1_5 = "150";
+const HEIGHT_Y____2 = exports.HEIGHT_Y____2 = "200";
+const HEIGHT_Y__2_5 = exports.HEIGHT_Y__2_5 = "250";
+const HEIGHT_Y____3 = exports.HEIGHT_Y____3 = "300";
+const HEIGHT_Y__3_5 = exports.HEIGHT_Y__3_5 = "350";
+const HEIGHT_Y____4 = exports.HEIGHT_Y____4 = "400";
+const HEIGHT_Y__4_5 = exports.HEIGHT_Y__4_5 = "450";
+const HEIGHT_Y____5 = exports.HEIGHT_Y____5 = "500";
+const HEIGHT_Y__5_5 = exports.HEIGHT_Y__5_5 = "550";
+const HEIGHT_Y____6 = exports.HEIGHT_Y____6 = "600";
+const HEIGHT_Y__6_5 = exports.HEIGHT_Y__6_5 = "650";
+const HEIGHT_Y____7 = exports.HEIGHT_Y____7 = "700";
+const HEIGHT_Y__7_5 = exports.HEIGHT_Y__7_5 = "750";
+const HEIGHT_Y____8 = exports.HEIGHT_Y____8 = "800";
+const HEIGHT_Y__8_5 = exports.HEIGHT_Y__8_5 = "850";
+const HEIGHT_Y____9 = exports.HEIGHT_Y____9 = "900";
+const HEIGHT_Y__9_5 = exports.HEIGHT_Y__9_5 = "950";
+const HEIGHT_Y___10 = exports.HEIGHT_Y___10 = "1000";
+const HEIGHT_Y_10_5 = exports.HEIGHT_Y_10_5 = "1050";
+const HEIGHT_Y___11 = exports.HEIGHT_Y___11 = "1100";
+const INCLINE___0 = exports.INCLINE___0 = 0.0;
+const INCLINE_0_5 = exports.INCLINE_0_5 = 0.5;
+const INCLINE___1 = exports.INCLINE___1 = 1.0;
+const INCLINE_1_5 = exports.INCLINE_1_5 = 1.5;
+const INCLINE___2 = exports.INCLINE___2 = 2.0;
+const INCLINE_2_5 = exports.INCLINE_2_5 = 2.5;
+const INCLINE___3 = exports.INCLINE___3 = 3.0;
+const IS_TRANSPARENT = exports.IS_TRANSPARENT = "IS_TRANSPARENT";
+const GET_ABOVE_TILES = exports.GET_ABOVE_TILES = 1;
+const RECORD_ENEMY_POINTS = exports.RECORD_ENEMY_POINTS = "RECORD_ENEMY_POINTS";
+const TEST_ENVIRONMENT = exports.TEST_ENVIRONMENT = "TEST_ENVIRONMENT";
+const PROD_ENVIRONMENT = exports.PROD_ENVIRONMENT = "PROD_ENVIRONMENT";
+
+},{}],53:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+Object.defineProperty(exports, "EE", {
+  enumerable: true,
+  get: function () {
+    return _consoleShort.EE;
+  }
+});
+Object.defineProperty(exports, "TT", {
+  enumerable: true,
+  get: function () {
+    return _consoleShort.TT;
+  }
+});
+exports.buildGlobals = buildGlobals;
+exports.camVectCoords = camVectCoords;
+exports.drawBreadcrumbs = drawBreadcrumbs;
+Object.defineProperty(exports, "ee", {
+  enumerable: true,
+  get: function () {
+    return _consoleShort.ee;
+  }
+});
+exports.moveCamera = moveCamera;
+exports.renderRequest = renderRequest;
+exports.resetUnderneath = resetUnderneath;
+exports.setCamera = setCamera;
+Object.defineProperty(exports, "tt", {
+  enumerable: true,
+  get: function () {
+    return _consoleShort.tt;
+  }
+});
+var _consoleShort = require("../misc/console-short.js");
+var THREE = _interopRequireWildcard(require("three"));
+var _keyControls = require("../controls/key-controls.js");
+var _theConstants = require("./the-constants.js");
+var _walkwayHeights = require("../tiles/walkway-heights.js");
+var _buildObjects = require("../objects/build-objects.js");
+var _aDot = require("../objects/a-dot.js");
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
+window.HEX_VARS = {
+  PRINT_ALLOWED: "PRINT_ALLXXOWED",
+  MAX_PRINTS: 1111111150,
+  BREAD_CRUMBS: true
+};
+function camVectCoords(g_camera, f_y100_height) {
+  const f_cam_vect = g_camera.position;
+  let f_this_coords = {
+    x: f_cam_vect.x,
+    y: f_y100_height,
+    z: f_cam_vect.z
+  };
+  return [f_cam_vect, f_this_coords];
+}
+function buildGlobals(e_enemy_points, e_do_click) {
+  let {
+    g_scene,
+    g_camera,
+    g_width,
+    g_height
+  } = (0, _buildObjects.buildScene)();
+  let g_key_controls = (0, _keyControls.makeControls)(g_camera, e_enemy_points, e_do_click);
+  const g_clock = new THREE.Clock();
+  let g_vector_3 = new THREE.Vector3();
+  const {
+    g_renderer,
+    g_bench
+  } = (0, _buildObjects.buildRenderer)(g_scene, g_width, g_height);
+  (0, _buildObjects.buildListener)(g_camera, g_renderer);
+  const built_globals = {
+    g_clock,
+    g_vector_3,
+    g_scene,
+    g_camera,
+    g_width,
+    g_height,
+    g_key_controls,
+    g_renderer,
+    g_bench
+  };
+  return built_globals;
+}
+function drawBreadcrumbs(the_globals, f_cam_vect) {
+  if (window.HEX_VARS.BREAD_CRUMBS) {
+    let {
+      g_scene,
+      g_camera
+    } = the_globals;
+    (0, _aDot.XyzDot)(g_scene, f_cam_vect.x, g_camera.position.y, f_cam_vect.z, 0x666666);
+  }
+}
+function setCamera(the_globals, test_xyz_camera, start_look_at) {
+  let {
+    g_scene,
+    g_camera
+  } = the_globals;
+  g_camera.position.set(test_xyz_camera[0], test_xyz_camera[1] / 100, test_xyz_camera[2]);
+  g_camera.lookAt(start_look_at[0], start_look_at[1] / 100, start_look_at[2]);
+  g_scene.add(g_camera);
+}
+function renderRequest(the_globals, frameTick) {
+  let {
+    g_renderer,
+    g_scene,
+    g_camera
+  } = the_globals;
+  g_renderer.render(g_scene, g_camera);
+  window.requestAnimationFrame(frameTick);
+}
+function resetUnderneath(f_y100_height) {
+  if (f_y100_height < -100) {
+    f_y100_height = 1600;
+  }
+  return f_y100_height;
+}
+function moveCamera(the_globals, the_objects, f_this_coords, f_y100_height, f_move_result) {
+  let {
+    g_key_controls,
+    g_camera,
+    g_clock,
+    g_vector_3
+  } = the_globals;
+  let o_walkway_tiles = the_objects.o_walkway_tiles;
+  const clock_delta = g_clock.getDelta();
+  g_camera.getWorldDirection(g_vector_3);
+  if (f_move_result == _theConstants.MV_RISE_JUMP_STRAIGHT || f_move_result == _theConstants.MV_FALL_JUMP_STRAIGHT) {
+    g_key_controls.enabled = false;
+  } else {
+    g_key_controls.enabled = true;
+    (0, _keyControls.moveKeys)(clock_delta, g_key_controls);
+  }
+  const inc_y = (0, _walkwayHeights.walkwayIncline)(o_walkway_tiles, f_this_coords);
+  g_camera.position.y = f_y100_height / 100 + _theConstants.GET_ABOVE_TILES + inc_y;
+  return g_camera;
+}
+
+},{"../controls/key-controls.js":7,"../misc/console-short.js":17,"../objects/a-dot.js":22,"../objects/build-objects.js":24,"../tiles/walkway-heights.js":48,"./the-constants.js":52,"three":3}],54:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.bouncePlayer = bouncePlayer;
+exports.doFallJump = doFallJump;
+exports.doFallPlayer = doFallPlayer;
+exports.doRiseJump = doRiseJump;
+exports.jumpClick = jumpClick;
+var _consoleShort = require("../misc/console-short.js");
+var _trampolineConst = require("./trampoline-const.js");
+var _theConstants = require("../values/the-constants.js");
+var _moveConsts = require("../values/move-consts.js");
+/////////
+function doRiseJump(f_step_iterations, f_rise_step_size, f_y100_height) {
+  if (f_step_iterations == 0) {
+    let c_move_result = _theConstants.MV_FALL_JUMP_STRAIGHT;
+    return [c_move_result, f_y100_height];
+  }
+  const rise_y_100 = f_y100_height + f_rise_step_size;
+  let c_move_result = _theConstants.MV_RISE_JUMP_STRAIGHT;
+  return [c_move_result, rise_y_100];
+}
+function doFallJump(fall_data) {
+  let {
+    o_walkway_tiles,
+    o_trampolines,
+    f_this_hex,
+    f_y100_height,
+    f_fall_step_size
+  } = fall_data;
+  if (o_walkway_tiles.has(f_this_hex)) {
+    let c_move_result = _theConstants.MV_TILE_SAME;
+    return [c_move_result, f_y100_height];
+  } else if (o_trampolines.has(f_this_hex)) {
+    let c_move_result = _theConstants.MV_START_TRAMPOLINE;
+    return [c_move_result, f_y100_height];
+  } else {
+    const fall_y_100 = f_y100_height - f_fall_step_size;
+    let c_move_result = _theConstants.MV_FALL_JUMP_STRAIGHT;
+    return [c_move_result, fall_y_100];
+  }
+}
+function doFallPlayer(fall_data) {
+  let {
+    o_walkway_tiles,
+    o_trampolines,
+    f_this_hex,
+    f_y100_height,
+    f_fall_step_size
+  } = fall_data;
+  if (o_walkway_tiles.has(f_this_hex)) {
+    let c_move_result = _theConstants.MV_TILE_SAME;
+    return [c_move_result, f_y100_height];
+  } else if (o_trampolines.has(f_this_hex)) {
+    let c_move_result = _theConstants.MV_START_TRAMPOLINE;
+    return [c_move_result, f_y100_height];
+  } else {
+    const fall_y_100 = f_y100_height - f_fall_step_size;
+    let c_move_result = _theConstants.MV_FALL_STEP_OFF;
+    return [c_move_result, fall_y_100];
+  }
+}
+function bouncePlayer(bounce_data, unvisited_tiles) {
+  let {
+    f_step_iterations,
+    f_move_result,
+    g_camera,
+    f_jump_x_step,
+    f_jump_z_step,
+    f_y100_height
+  } = bounce_data;
+  let done_died = f_y100_height == 0;
+  let done_finished = unvisited_tiles.size === 0;
+  if (done_died || done_finished) {
+    window.location.reload();
+  }
+  if (f_move_result == _theConstants.MV_FALL_TRAMPOLINE || f_move_result == _theConstants.MV_RISE_TRAMPOLINE || f_move_result == _theConstants.MV_FALL_JUMP_STRAIGHT || f_move_result == _theConstants.MV_RISE_JUMP_STRAIGHT || f_move_result == _theConstants.MV_FALL_STEP_OFF) {
+    g_camera.position.z += f_jump_z_step;
+    g_camera.position.x += f_jump_x_step;
+    f_step_iterations--;
+  }
+  return [f_step_iterations, g_camera];
+}
+function jumpClick(f_prev_coords, f_this_coords) {
+  const x_dif = f_this_coords.x - f_prev_coords.x;
+  const z_dif = f_this_coords.z - f_prev_coords.z;
+  let f_jump_x_step = x_dif * _moveConsts.HOR_JUMP_MULTIPLIER;
+  let f_jump_z_step = z_dif * _moveConsts.HOR_JUMP_MULTIPLIER;
+  //
+  let f_bounce_speed = _trampolineConst.BOUNCE_SPEED___4;
+  let f_rise_step_size = _moveConsts.JUMP_RISE_STEP_SIZE;
+  let f_fall_step_size = _moveConsts.JUMP_FALL_STEP_SIZE;
+  let f_step_iterations = _moveConsts.JUMP_ITERATIONS;
+  let data_values = {
+    f_jump_x_step,
+    f_jump_z_step,
+    f_bounce_speed,
+    f_rise_step_size,
+    f_fall_step_size,
+    f_step_iterations
+  };
+  return data_values;
+}
+
+},{"../misc/console-short.js":17,"../values/move-consts.js":50,"../values/the-constants.js":52,"./trampoline-const.js":55}],55:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.BOUNCE_SPEED___4 = exports.BOUNCE_SPEED___3 = exports.BOUNCE_SPEED___2 = exports.BOUNCE_SPEED___1 = exports.BOUNCE_SPEED_3_5 = exports.BOUNCE_SPEED_2_5 = exports.BOUNCE_SPEED_1_5 = exports.BOUNCE_COUNT___25 = void 0;
+const BOUNCE_SPEED___1 = exports.BOUNCE_SPEED___1 = 1;
+const BOUNCE_SPEED_1_5 = exports.BOUNCE_SPEED_1_5 = 1.5;
+const BOUNCE_SPEED___2 = exports.BOUNCE_SPEED___2 = 2;
+const BOUNCE_SPEED_2_5 = exports.BOUNCE_SPEED_2_5 = 2.5;
+const BOUNCE_SPEED___3 = exports.BOUNCE_SPEED___3 = 3;
+const BOUNCE_SPEED_3_5 = exports.BOUNCE_SPEED_3_5 = 3.5;
+const BOUNCE_SPEED___4 = exports.BOUNCE_SPEED___4 = 4;
+const BOUNCE_COUNT___25 = exports.BOUNCE_COUNT___25 = 25;
+
+},{}],56:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -27137,18 +27553,13 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.makeTrampolines = makeTrampolines;
 var _consoleShort = require("../misc/console-short.js");
-var HEX_CONST = _interopRequireWildcard(require("../constants.js"));
-var _three = _interopRequireWildcard(require("three"));
-var THREE = _three;
+var _theConstants = require("../values/the-constants.js");
+var THREE = _interopRequireWildcard(require("three"));
 var _hexTile = require("../tiles/hex-tile.js");
 var _trampolineMesh = require("./trampoline-mesh.js");
 var _meshTiles = require("../tiles/mesh-tiles.js");
-var _maths = require("../maths.js");
+var _hexMaths = require("../misc/hex-maths.js");
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-//import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
-
-//import { roundTrampoline } from "./circle-trampoline.js";
-
 function trampolineTriangles(hex_points) {
   const [top_left, top_right, right_tip, bot_right, bot_left, left_tip, middle_point] = hex_points;
   const t1 = [...middle_point, ...top_left, ...top_right];
@@ -27160,361 +27571,58 @@ function trampolineTriangles(hex_points) {
   let hexagon_triangles = [t1, t2, t3, t4, t5, t6];
   return hexagon_triangles;
 }
-function makeTrampolines(the_scene, object_meshes, g_trampolines) {
-  (0, _consoleShort.tt)("g_tramps", g_trampolines);
+function makeTrampolines(g_scene, o_trampolines) {
   var trampoline_columns = new Map();
-  let trampoline_meshes = new Map();
-  for (var i = 0; i < g_trampolines.length; i++) {
-    //  let { _light_color, dark_color, edge_color } = tile_3colors;
-    const trampoline_data = g_trampolines[i];
-    let [x_str, y_str, z_str, slope_direction, incline_amount] = trampoline_data;
+  let o_trampoline_meshes = new Map();
+  for (var i = 0; i < o_trampolines.length; i++) {
+    const trampoline_data = o_trampolines[i];
+
+    // ["0", HEIGHT_Y____9, "1", BOUNCE_SPEED___4, BOUNCE_COUNT___25, TILT_SW, INCLINE___1]
+    let [x_str, y_str, z_str, f_bounce_speed, f_step_iterations, slope_tilt, incline_amount] = trampoline_data;
+    f_step_iterations = parseInt(f_step_iterations);
     const x_index = parseInt(x_str);
     const y_100_index = parseInt(y_str);
     const z_index = parseInt(z_str);
     const x_y_z = [x_index, y_100_index, z_index];
-    // let incline_amount = 0;
-
     const xyz_index = `${x_index},${y_100_index},${z_index}`;
-    if (slope_direction == undefined) {
-      slope_direction = HEX_CONST.TILT_NONE;
+    if (slope_tilt == undefined) {
+      slope_tilt = _theConstants.TILT_NONE;
       incline_amount = 0;
     }
     if (incline_amount == undefined) {
-      incline_amount[HEX_CONST.TILT_NONE, 0];
+      incline_amount[_theConstants.TILT_NONE, 0];
     }
-    let [x_center, z_center] = (0, _maths.tileCenterCoord)(x_index, z_index);
+    let [x_center, z_center] = (0, _hexMaths.tileCenterCoord)(x_index, z_index);
     const tile_radius = 1;
-    const a_tile = new _three.Group();
+    const a_tile = new THREE.Group();
     a_tile.position.set(x_center, 0, z_center);
-    const tile_points = (0, _hexTile.hexPoints)(tile_radius, y_100_index, slope_direction, incline_amount);
-    let tile_3colors = {
+    const tile_points = (0, _hexTile.hexPoints)(tile_radius, y_100_index, slope_tilt, incline_amount);
+    let d_tile_3colors = {
       dark_color: "red",
       light_color: "green",
       edge_color: "blue"
     };
-    trampoline_columns = (0, _hexTile.offsetTilePoints)(trampoline_columns, x_y_z, slope_direction, incline_amount, tile_points, tile_3colors);
-    (0, _consoleShort.tt)("tile_points", tile_points);
+    trampoline_columns = trampolineObj(trampoline_columns, x_y_z, f_bounce_speed, f_step_iterations, slope_tilt, incline_amount, tile_points, d_tile_3colors);
     const top_triangles = trampolineTriangles(tile_points);
-    (0, _consoleShort.tt)("top_triangles", top_triangles);
-    (0, _trampolineMesh.trampolineMesh)(a_tile, top_triangles, "red", "blue");
-    the_scene.add(a_tile);
-    (0, _meshTiles.addCoords)(a_tile, x_y_z, slope_direction, incline_amount);
-    trampoline_meshes.set(xyz_index, a_tile);
-
-    // trampoline_columns.set(xyz_index, xyz_index);
-
-    // trampoline_meshes.set(xyz_index, a_circle2);
+    (0, _trampolineMesh.trampolineMesh)(a_tile, top_triangles, f_bounce_speed);
+    g_scene.add(a_tile);
+    (0, _meshTiles.addCoords)(a_tile, x_y_z, slope_tilt, incline_amount);
+    o_trampoline_meshes.set(xyz_index, a_tile);
   }
-  return [trampoline_meshes, trampoline_columns];
-  //return [walkway_meshes, walkway_tiles];
+  return [o_trampoline_meshes, trampoline_columns];
 }
-
-//function makeWalls(the_scene, wall_coords, walkway_meshes, wall_squares, walkway_columns, walkway_overlaps) {
-function makeTrampolinesOLD(the_scene, object_meshes, g_trampolines) {
-  var trampoline_columns = new Map();
-  let trampoline_meshes = new Map();
-  for (var i = 0; i < g_trampolines.length; i++) {
-    const trampoline_data = g_trampolines[i];
-    const [x_str, y_str, z_str, tramp_tilt] = trampoline_data;
-    const x_index = parseInt(x_str);
-    const y_index = parseInt(y_str);
-    const z_index = parseInt(z_str);
-
-    // const two_circles = new Group();
-
-    // const circle_geometry = new THREE.CircleGeometry(0.8, 32); // Radius 5, 32 segments
-    // const circle_material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    // const a_circle = new THREE.Mesh(circle_geometry, circle_material);
-    // a_circle.material.side = THREE.DoubleSide;
-    let [x_center, z_center] = (0, _maths.tileCenterCoord)(x_index, z_index);
-    // a_circle.position.set(x_center, y_index / 100, z_center);
-    // a_circle.rotation.x = (2 * Math.PI) / 4;
-
-    // two_circles.add(a_circle);
-
-    const circle_geometry2 = new THREE.CircleGeometry(0.7, 32); // Radius 5, 32 segments
-    const circle_material2 = new THREE.MeshBasicMaterial({
-      color: 0x003300
-    });
-    const a_circle2 = new THREE.Mesh(circle_geometry2, circle_material2);
-    a_circle2.material.side = THREE.DoubleSide;
-    //  let [x_center, z_center] = tileCenterCoord(x_index, z_index);
-    a_circle2.position.set(x_center, y_index / 100 + 0.001, z_center);
-
-    // flat
-    //a_circle2.rotation.x = (2 * Math.PI) / 4;
-    let x_mult = 2;
-    let y_mult = 0; // none or flat
-    let z_mult = 0;
-    if (tramp_tilt == HEX_CONST.TILT_NN) {
-      x_mult = 3;
-      y_mult = 0;
-      z_mult = 1;
-    } else if (tramp_tilt == HEX_CONST.TILT_NE) {
-      // ne = 3x,1y,0z
-      x_mult = 3;
-      y_mult = 1.5;
-      z_mult = 1.5;
-    }
-    a_circle2.rotation.x = x_mult * Math.PI / 4;
-    a_circle2.rotation.y = y_mult * Math.PI / 4;
-    a_circle2.rotation.z = z_mult * Math.PI / 4;
-
-    // sw = 1x,3y,0z
-    // a_circle2.rotation.x = (1 * Math.PI) / 4;
-    // a_circle2.rotation.y = (3 * Math.PI) / 4;
-
-    // ss = 1x,0y,3z
-    // a_circle2.rotation.x = (1 * Math.PI) / 4;
-    // a_circle2.rotation.z = (3 * Math.PI) / 4;
-
-    // nn = 3x,0y,1z
-    // a_circle2.rotation.x = (3 * Math.PI) / 4;
-    // a_circle2.rotation.z = (1 * Math.PI) / 4;
-
-    // se = 1x,1y,3z
-    // a_circle2.rotation.x = (1 * Math.PI) / 4;
-    // a_circle2.rotation.y = (1 * Math.PI) / 4;
-    // a_circle2.rotation.z = (3 * Math.PI) / 4;
-
-    // NW = 3x,3y,1z
-    // a_circle2.rotation.x = (3 * Math.PI) / 4;
-    // a_circle2.rotation.y = (3 * Math.PI) / 4;
-    // a_circle2.rotation.z = (1 * Math.PI) / 4;
-
-    //two_circles.add(a_circle2);
-
-    the_scene.add(a_circle2);
-    const trampoline_index = `${x_str},${y_str},${z_str}`;
-    trampoline_columns.set(trampoline_index, trampoline_index);
-    trampoline_meshes.set(trampoline_index, a_circle2);
-  }
-  return [trampoline_meshes, trampoline_columns];
-}
-
-},{"../constants.js":10,"../maths.js":16,"../misc/console-short.js":17,"../tiles/hex-tile.js":26,"../tiles/mesh-tiles.js":27,"./trampoline-mesh.js":44,"three":3}],44:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.trampolineMesh = trampolineMesh;
-var _consoleShort = require("../misc/console-short.js");
-var _three = require("three");
-//import * as THREE from "three";
-
-// import { LineGeometry } from "three/addons/lines/LineGeometry.js";
-// import { LineMaterial } from "three/addons/lines/LineMaterial.js";
-// import { Line2 } from "three/addons/lines/Line2.js";
-// only ramp needs to be double sided
-
-//  777700  770077 007777
-
-function hexToRGB(hex) {
-  //tt("hex", hex);
-
-  let rr = hex >> 16;
-  let gg = hex >> 8 & 255;
-  let bb = hex & 255;
-
-  //tt("rr", rr, gg, bb);
-
-  // // Remove the '#' character if present
-  // const cleanHex = hex.replace("#", "");
-
-  // // Parse the 2-character substrings as hexadecimal numbers
-  // const r = parseInt(cleanHex.substring(0, 2), 16);
-  // const g = parseInt(cleanHex.substring(2, 4), 16);
-  // const b = parseInt(cleanHex.substring(4, 6), 16);
-
-  return {
-    r: rr,
-    g: gg,
-    b: bb
-  };
-}
-function trampolineMeshOLD(group, vertices_set, top_color, outline_color) {
-  const side_geometry = geometricVertices(vertices_set);
-  const side_material = new _three.MeshLambertMaterial({
-    vertexColors: true,
-    color: 0x888888,
-    transparent: true,
-    opacity: 1
-  });
-  const positionAttribute = side_geometry.getAttribute("position");
-  const colors = [];
-  const col_1 = hexToRGB(0x777700);
-  const col_2 = hexToRGB(0x770077);
-  const col_3 = hexToRGB(0x770077);
-  const hex_colors = [0x770000, 0x770000, 0x007700, 0x000077, 0x000077, 0x007700];
-  //[0x007700, 0x770000, 0x000077, 0x007700, 0x770000, 0x000077];
-  let the_hex = 0;
-  for (let i = 0; i < positionAttribute.count; i += 3) {
-    const triangle_hex = hex_colors[the_hex];
-    let color_obj = hexToRGB(triangle_hex);
-    //   const color = new Color(Math.random(), Math.random(), Math.random());
-    colors.push(color_obj.r, color_obj.g, color_obj.b);
-    colors.push(color_obj.r, color_obj.g, color_obj.b);
-    colors.push(color_obj.r, color_obj.g, color_obj.b);
-    the_hex++;
-  }
-  side_geometry.setAttribute("color", new _three.Float32BufferAttribute(colors, 3));
-  const hexagon_side = new _three.Mesh(side_geometry, side_material);
-  hexagon_side.name = "Hexagon-Part";
-  const geometry = new LineGeometry();
-  geometry.setPositions(vertices_set);
-  let matLine = new LineMaterial({
-    color: 0xffff00,
-    linewidth: 1,
-    // in world units with size attenuation, pixels otherwise
-    vertexColors: true,
-    dashed: false,
-    alphaToCoverage: true
-  });
-  let line = new Line2(geometry, matLine);
-  line.computeLineDistances();
-  line.scale.set(1, 1, 1);
-  hexagon_side.add(line);
-  group.add(hexagon_side);
-}
-function geometricVertices(the_vertices) {
-  const float_vertices = new Float32Array(the_vertices);
-  const the_geometry = new _three.BufferGeometry(1, 1, 1); //.toNonIndexed();
-  the_geometry.setAttribute("position", new _three.Float32BufferAttribute(float_vertices, 3));
-  return the_geometry;
-}
-function trampolineMeshInCase(group, vertices_set, top_color, outline_color) {
-  const side_geometry = geometricVertices(vertices_set);
-  const side_material = new _three.MeshLambertMaterial({
-    vertexColors: true,
-    color: 0x888888,
-    transparent: true,
-    opacity: 1
-  });
-  side_material.side = _three.DoubleSide;
-  const positionAttribute = side_geometry.getAttribute("position");
-  const colors = [];
-  const col_1 = hexToRGB(0x777700);
-  const col_2 = hexToRGB(0x007777);
-  const col_3 = hexToRGB(0x770077);
-  const hex_colors = [col_1, col_1, col_3, col_2, col_2, col_3];
-  let the_hex = 0;
-  for (let i = 0; i < positionAttribute.count; i += 3) {
-    const color_obj = hex_colors[the_hex];
-    colors.push(color_obj.r, color_obj.g, color_obj.b);
-    colors.push(color_obj.r, color_obj.g, color_obj.b);
-    colors.push(color_obj.r, color_obj.g, color_obj.b);
-    the_hex++;
-  }
-  side_geometry.setAttribute("color", new _three.Float32BufferAttribute(colors, 3));
-  const hexagon_side = new _three.Mesh(side_geometry, side_material);
-  hexagon_side.name = "Hexagon-Part";
-  const geometry = new LineGeometry();
-  geometry.setPositions(vertices_set);
-  let matLine = new LineMaterial({
-    color: 0x888888,
-    linewidth: 8,
-    // in world units with size attenuation, pixels otherwise
-    vertexColors: false,
-    dashed: false,
-    alphaToCoverage: true
-  });
-  let line = new Line2(geometry, matLine);
-  line.computeLineDistances();
-  line.scale.set(1, 1, 1);
-  hexagon_side.add(line);
-  group.add(hexagon_side);
-}
-//                     11       11         33        22         22      33
-const pie_colors = [0xffff00, 0xffff00, 0xff00ff, 0x00ffff, 0x00ffff, 0xff00ff];
-function trampolineMesh(group, vertices_set, top_color, outline_color) {
-  for (let i = 0; i < vertices_set.length; i += 1) {
-    let a_pie = vertices_set[i];
-    const side_geometry = geometricVertices(a_pie);
-    const side_material = new _three.MeshLambertMaterial({
-      color: pie_colors[i],
-      opacity: 1
-    });
-    side_material.side = _three.DoubleSide;
-    const hexagon_side = new _three.Mesh(side_geometry, side_material);
-    hexagon_side.name = "Hexagon-Part";
-    group.add(hexagon_side);
-  }
-}
-
-},{"../misc/console-short.js":17,"three":3}],45:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.SquareWall = SquareWall;
-Object.defineProperty(exports, "coords2HexIndexes", {
-  enumerable: true,
-  get: function () {
-    return _maths.coords2HexIndexes;
-  }
-});
-exports.squarePoints = squarePoints;
-Object.defineProperty(exports, "tileCenterCoord", {
-  enumerable: true,
-  get: function () {
-    return _maths.tileCenterCoord;
-  }
-});
-exports.wallRectangles = wallRectangles;
-var _consoleShort = require("../misc/console-short.js");
-var _three = require("three");
-var _wallMesh = require("./wall-mesh.js");
-var _geoMesh = require("../geo-mesh.js");
-var _maths = require("../maths.js");
-var _constants = require("../constants.js");
-const SQRT_3 = Math.sqrt(3);
-
-/*
-                          square_up_left  
-                             /---------\
-                            / |      / |\       
-             triangle_left /  |    /   | \ triangle_right
-                           \  |  /     | /
-                            \ |/       |/      
-                             \---------/
-                               square_down_right   
-*/
-
-function wallRectangles(hex_points) {
-  const [top_left, top_right, bot_right, bot_left] = hex_points;
-  const square_up_left = [...bot_left, ...top_left, ...top_right];
-  const square_down_right = [...bot_left, ...top_right, ...bot_right];
-  const hexagon_triangles = [...square_up_left, ...square_down_right];
-  return hexagon_triangles;
-}
-function SquareWall(the_scene, object_meshes, walkway_tiles, x_y_z, tile_color, wall_position, wall_height) {
+function trampolineObj(stair_tiles, x_y_z, f_bounce_speed, f_step_iterations, slope_tilt, incline_amount, tile_points, d_tile_3colors) {
+  let {
+    light_color,
+    dark_color,
+    _edge_color
+  } = d_tile_3colors;
   const [x_index, y_index, z_index] = x_y_z;
   const xyz_index = `${x_index},${y_index},${z_index}`;
-  let [x_center, z_center] = (0, _maths.tileCenterCoord)(x_index, z_index);
-  const tile_radius = 1;
-  const a_tile = new _three.Group();
-  a_tile.position.set(x_center, 0, z_center);
-  const square_points = squarePoints(tile_radius, y_index, wall_position, wall_height);
-  walkway_tiles = offsetWallPoints(walkway_tiles, x_y_z, wall_position, square_points);
-  const top_triangles = wallRectangles(square_points);
-  (0, _geoMesh.geoMesh)(a_tile, top_triangles, tile_color, tile_color);
-  the_scene.add(a_tile);
-  (0, _wallMesh.wallCoords)(a_tile, x_y_z, wall_position, wall_height);
-  object_meshes.set(xyz_index, a_tile);
-  return [object_meshes, walkway_tiles];
-}
-
-//    ["000", "010", "000", "green", TILT_NN, 10], just the objects
-
-function offsetWallPoints(stair_tiles, x_y_z, wall_position, square_points) {
-  const [x_index, y_index, z_index] = x_y_z;
-  const xyz_index = `${x_index},${y_index},${z_index}`;
-  let [x_center, z_center] = (0, _maths.tileCenterCoord)(x_index, z_index);
+  let [x_center, z_center] = (0, _hexMaths.tileCenterCoord)(x_index, z_index);
   let tile_positions = [];
-  for (let i = 0; i < square_points.length; i++) {
-    let tile_point = square_points[i];
+  for (let i = 0; i < tile_points.length; i++) {
+    let tile_point = tile_points[i];
     if (Array.isArray(tile_point)) {
       let [x, y, z] = tile_point;
       x = x + x_center;
@@ -27522,8 +27630,36 @@ function offsetWallPoints(stair_tiles, x_y_z, wall_position, square_points) {
       tile_positions.push([x, y, z]);
     }
   }
-  let top_point_y = tile_positions[3][1];
-  let bottom_point_y = tile_positions[0][1];
+  let accross_length = 0;
+  let top_point, bottom_point;
+  if (slope_tilt == _theConstants.TILT_NW) {
+    bottom_point = tile_positions[1];
+    top_point = tile_positions[5];
+    accross_length = (0, _hexMaths.distance2hexpoints)(bottom_point, top_point);
+  } else if (slope_tilt == _theConstants.TILT_NE) {
+    bottom_point = tile_positions[0];
+    top_point = tile_positions[2];
+    accross_length = (0, _hexMaths.distance2hexpoints)(bottom_point, top_point);
+  } else if (slope_tilt == _theConstants.TILT_SW) {
+    bottom_point = tile_positions[2];
+    top_point = tile_positions[0];
+    accross_length = (0, _hexMaths.distance2hexpoints)(bottom_point, top_point);
+  } else if (slope_tilt == _theConstants.TILT_SE) {
+    bottom_point = tile_positions[5];
+    top_point = tile_positions[2];
+    accross_length = (0, _hexMaths.distance2hexpoints)(bottom_point, top_point);
+  } else if (slope_tilt == _theConstants.TILT_NN) {
+    bottom_point = tile_positions[0];
+    top_point = tile_positions[3];
+  } else if (slope_tilt == _theConstants.TILT_SS) {
+    bottom_point = tile_positions[3];
+    top_point = tile_positions[0];
+  } else {
+    bottom_point = tile_positions[0];
+    top_point = bottom_point;
+  }
+  let top_point_y = top_point[1];
+  let bottom_point_y = bottom_point[1];
   if (top_point_y === bottom_point_y) {
     top_point_y = top_point_y; // * 10;
     bottom_point_y = top_point_y;
@@ -27534,201 +27670,184 @@ function offsetWallPoints(stair_tiles, x_y_z, wall_position, square_points) {
   var tile_obj = {
     x_center: x_center,
     y_position: y_index,
+    //
     z_center: z_center,
-    // wall_side: square_position
-    wall_side: wall_position,
+    tilt_up: slope_tilt,
+    angle_incline: incline_amount,
+    accross_length: accross_length,
     tile_positions: tile_positions,
-    // square_positions
     x_z: `${x_index},${z_index}`,
+    // a_c !!!
     xyz_index: xyz_index,
+    f_bounce_speed: f_bounce_speed,
+    f_step_iterations: f_step_iterations,
+    light_color: light_color,
+    dark_color: dark_color,
     high_y: top_point_y,
-    // - 0.0001,
-    low_y: bottom_point_y // why?????????/
+    // high_y,
+    low_y: bottom_point_y // low_y
   };
   stair_tiles.set(xyz_index, tile_obj);
   return stair_tiles;
 }
 
-// these must flip around
-function squarePoints(tile_radius, y_100_height, wall_position, wall_height) {
-  //function squarePoints(tile_radius, y_height, wall_position, wall_height) {
-  const y_height = y_100_height / 100;
-  tile_radius = tile_radius - 0.2; // - 0.2;
-
-  const hex_dist = tile_radius * Math.sqrt(3) / 2;
-  const half_radius = tile_radius / 2;
-  var top_left, bot_left, top_rght, bot_rght; //, left_tip, rght_tip;
-
-  const top_height = y_height + wall_height;
-  const bot_height = y_height;
-  const top_left_x = 0 - half_radius;
-  const bot_left_x = 0 - half_radius;
-  const top_rght_x = 0 + half_radius;
-  const bot_rght_x = 0 + half_radius;
-  const left_tip_x = 0 - tile_radius;
-  const rght_tip_x = 0 + tile_radius;
-  const top_left_z = 0 + hex_dist;
-  const bot_left_z = 0 - hex_dist;
-  const top_rght_z = 0 + hex_dist;
-  const bot_rght_z = 0 - hex_dist;
-  const left_tip_z = 0;
-  const rght_tip_z = 0;
-  if (wall_position === _constants.WALL_NN) {
-    top_rght = [bot_rght_x, bot_height, bot_rght_z];
-    top_left = [bot_left_x, bot_height, bot_left_z];
-    bot_rght = [bot_rght_x, top_height, bot_rght_z];
-    bot_left = [bot_left_x, top_height, bot_left_z];
-  } else if (wall_position === _constants.WALL_NE) {
-    bot_left = [bot_rght_x, top_height, bot_rght_z];
-    bot_rght = [rght_tip_x, top_height, rght_tip_z];
-    top_left = [bot_rght_x, bot_height, bot_rght_z];
-    top_rght = [rght_tip_x, bot_height, rght_tip_z];
-  } else if (wall_position === _constants.WALL_SW) {
-    bot_left = [top_left_x, top_height, top_left_z];
-    bot_rght = [left_tip_x, top_height, left_tip_z];
-    top_left = [top_left_x, bot_height, top_left_z];
-    top_rght = [left_tip_x, bot_height, left_tip_z];
-  } else if (wall_position === _constants.WALL_NW) {
-    bot_left = [bot_left_x, top_height, bot_left_z];
-    bot_rght = [left_tip_x, top_height, left_tip_z];
-    top_left = [bot_left_x, bot_height, bot_left_z];
-    top_rght = [left_tip_x, bot_height, left_tip_z];
-  } else if (wall_position === _constants.WALL_SE) {
-    bot_left = [top_rght_x, top_height, top_rght_z];
-    bot_rght = [rght_tip_x, top_height, rght_tip_z];
-    top_rght = [rght_tip_x, bot_height, rght_tip_z];
-    top_left = [top_rght_x, bot_height, top_rght_z];
-  } else if (wall_position === _constants.WALL_SS) {
-    top_left = [top_left_x, bot_height, top_left_z];
-    top_rght = [top_rght_x, bot_height, top_rght_z];
-    bot_rght = [top_rght_x, top_height, top_rght_z];
-    bot_left = [top_left_x, top_height, top_left_z];
-  } else {
-    (0, _consoleShort.ee)("squarePoints unknown  wall_position==", wall_position);
-  }
-  const wall_corners = [top_left, top_rght, bot_rght, bot_left];
-  return wall_corners;
-}
-
-},{"../constants.js":10,"../geo-mesh.js":13,"../maths.js":16,"../misc/console-short.js":17,"./wall-mesh.js":47,"three":3}],46:[function(require,module,exports){
+},{"../misc/console-short.js":17,"../misc/hex-maths.js":19,"../tiles/hex-tile.js":31,"../tiles/mesh-tiles.js":32,"../values/the-constants.js":52,"./trampoline-mesh.js":57,"three":3}],57:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.makeWalls = makeWalls;
+exports.trampolineMesh = trampolineMesh;
 var _consoleShort = require("../misc/console-short.js");
-var HEX_CONST = _interopRequireWildcard(require("../constants.js"));
-var _squareWalls = require("./square-walls.js");
+var _trampolineConst = require("./trampoline-const.js");
+var _theConstants = require("../values/the-constants.js");
+var THREE = _interopRequireWildcard(require("three"));
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-//import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
-
-//function makeWalls(the_scene, wall_coords, object_meshes, wall_squares, walkway_columns, walkway_overlaps) {
-function makeWalls(the_scene, object_meshes, wall_coords, wall_squares, wall_columns) {
-  for (var i = 0; i < wall_coords.length; i++) {
-    const ramp_piece = wall_coords[i];
-    if (Array.isArray(ramp_piece)) {
-      const [x_str, y_str, z_str] = ramp_piece;
-      const x_index = parseInt(x_str);
-      const y_index = parseInt(y_str);
-      //            const y_index = parseFloat(y_str);
-      const z_index = parseInt(z_str);
-      const ramp_xyz = [x_index, y_index, z_index];
-      const [,,, tile_color, wall_position, wall_height] = ramp_piece;
-      [object_meshes, wall_squares] = (0, _squareWalls.SquareWall)(the_scene, object_meshes, wall_squares, ramp_xyz, tile_color, wall_position,
-      // wall_position
-      wall_height // wall_height
-      );
-    }
+function hexToRGB(hex) {
+  let rr = hex >> 16;
+  let gg = hex >> 8 & 255;
+  let bb = hex & 255;
+  return {
+    r: rr,
+    g: gg,
+    b: bb
+  };
+}
+function geometricVertices(the_vertices) {
+  const float_vertices = new Float32Array(the_vertices);
+  const the_geometry = new THREE.BufferGeometry(1, 1, 1); //.toNonIndexed();
+  the_geometry.setAttribute("position", new THREE.Float32BufferAttribute(float_vertices, 3));
+  return the_geometry;
+}
+function trampolineMesh(group, vertices_set, f_bounce_speed) {
+  let pie_colors;
+  if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED___1) {
+    pie_colors = PIE_COLOR___1;
+  } else if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED_1_5) {
+    pie_colors = PIE_COLOR_1_5;
+  } else if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED___2) {
+    pie_colors = PIE_COLOR___2;
+  } else if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED_2_5) {
+    pie_colors = PIE_COLOR_2_5;
+  } else if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED___3) {
+    pie_colors = PIE_COLOR___3;
+  } else if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED_3_5) {
+    pie_colors = PIE_COLOR_3_5;
+  } else {
+    pie_colors = PIE_COLOR___4;
   }
-  var wall_columns = new Map();
-  for (const [_key, a_wall] of wall_squares) {
-    const x_z = a_wall.x_z;
-    const xyz_index = a_wall.xyz_index;
-    const missing_x_z_column = !wall_columns.has(x_z);
-    if (missing_x_z_column) {
-      let empty_x_z_column = new Map();
-      wall_columns.set(x_z, empty_x_z_column);
-    }
-    let cur_x_z_column = wall_columns.get(x_z);
-    const [x_index, z_index] = x_z.split(",");
-    let low_y_10 = a_wall.low_y * 10;
-    let high_y_10 = a_wall.high_y * 10;
-    for (let y_10_index = low_y_10; y_10_index <= high_y_10; y_10_index++) {
-      const a_y_index = `${x_index},${y_10_index / 10},${z_index}`;
-      cur_x_z_column.set(a_y_index, xyz_index);
-    }
+  for (let i = 0; i < vertices_set.length; i += 1) {
+    let a_pie = vertices_set[i];
+    const side_geometry = geometricVertices(a_pie);
+    const side_material = new THREE.MeshLambertMaterial({
+      color: pie_colors[i],
+      opacity: 1
+    });
+    side_material.side = THREE.DoubleSide;
+    const hexagon_side = new THREE.Mesh(side_geometry, side_material);
+    hexagon_side.name = _theConstants.HEXAGON_PART;
+    group.add(hexagon_side);
   }
-  return [object_meshes, wall_squares, wall_columns];
 }
 
-},{"../constants.js":10,"../misc/console-short.js":17,"./square-walls.js":45}],47:[function(require,module,exports){
+// should be in color.js
+const p__white = 0xffffff;
+const p___grey = 0xcccccc;
+const p_violet = 0xff00ff;
+const p_yellow = 0xffff00;
+const p___cyan = 0x00ffff;
+const PIE_COLOR___1 = [p___grey, p_violet, p___grey, p_violet, p___grey, p_violet];
+const PIE_COLOR_1_5 = [p___grey, p___cyan, p___grey, p___cyan, p___grey, p___cyan];
+const PIE_COLOR___2 = [p___grey, p_yellow, p___grey, p_yellow, p___grey, p_yellow];
+const PIE_COLOR_2_5 = [p__white, p_violet, p__white, p_violet, p__white, p_violet];
+const PIE_COLOR___3 = [p__white, p___cyan, p__white, p___cyan, p__white, p___cyan];
+const PIE_COLOR_3_5 = [p__white, p_yellow, p__white, p_yellow, p__white, p_yellow];
+const PIE_COLOR___4 = [p_yellow, p_yellow, p_violet, p___cyan, p_violet, p___cyan];
+
+},{"../misc/console-short.js":17,"../values/the-constants.js":52,"./trampoline-const.js":55,"three":3}],58:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.wallCoords = wallCoords;
+exports.doFallTrampoline = doFallTrampoline;
+exports.doRiseTrampoline = doRiseTrampoline;
+exports.trampolineLift = trampolineLift;
 var _consoleShort = require("../misc/console-short.js");
-var _three = require("three");
-var _constants = require("../constants.js");
-var _FontLoader = require("three/examples/jsm/loaders/FontLoader.js");
-var _TextGeometry = require("three/examples/jsm/geometries/TextGeometry.js");
-var _helvetiker_regularTypeface = require("../misc/helvetiker_regular.typeface.js");
-var loader2 = new _FontLoader.FontLoader();
-const WHITE_LABELS = 0xffffff;
-var the_font = loader2.parse(_helvetiker_regularTypeface.type_face);
-function wallCoords(a_tile, x_y_z, wall_position, wall_height) {
-  const [x_index, y_index, z_index] = x_y_z;
-  var textMaterial = new _three.MeshLambertMaterial({
-    emissive: 0xffffff,
-    color: WHITE_LABELS
-  });
-  const wall_text = `${x_index},${z_index}`; // ${wall_position}`;
-  var textGeometry = new _TextGeometry.TextGeometry(wall_text, {
-    font: the_font,
-    size: 0.2,
-    depth: 0,
-    curveSegments: 12
-  });
-  var text_mesh = new _three.Mesh(textGeometry, textMaterial);
-  text_mesh.position.y = y_index + wall_height + 0.4; // qbert hard to see
-
-  if (wall_position != _constants.TILT_NONE) {
-    text_mesh.rotation.y = -Math.PI / 2;
-    text_mesh.rotation.z = -Math.PI / 2;
+var _theConstants = require("../values/the-constants.js");
+var _moveConsts = require("../values/move-consts.js");
+function doRiseTrampoline(f_step_iterations, f_rise_step_size, f_y100_height) {
+  if (f_step_iterations == 0) {
+    let c_move_result = _theConstants.MV_FALL_TRAMPOLINE;
+    return [c_move_result, f_y100_height];
   }
-  let x, z;
-  if (wall_position == _constants.TILT_NONE) {
-    x = -0.15;
-    z = 0.1;
-  } else if (wall_position == _constants.WALL_NN) {
-    x = -0.15;
-    z = -0.55;
-  } else if (wall_position == _constants.WALL_NE) {
-    x = 0.3;
-    z = -0.25;
-  } else if (wall_position == _constants.WALL_SE) {
-    x = 1;
-    z = 0.4;
-    //text_mesh.position.y -= 0.1;
-  } else if (wall_position == _constants.WALL_SS) {
-    x = -0.15;
-    z = 0.48;
-  } else if (wall_position == _constants.WALL_SW) {
-    x = -0.6;
-    z = 0.4;
-  } else if (wall_position == _constants.WALL_NW) {
-    x = +0.9;
-    z = 0.25;
+  const rise_y_100 = f_y100_height + f_rise_step_size;
+  let c_move_result = _theConstants.MV_RISE_TRAMPOLINE;
+  return [c_move_result, rise_y_100];
+}
+function doFallTrampoline(fall_data) {
+  let {
+    o_walkway_tiles,
+    o_trampolines,
+    f_this_hex,
+    f_y100_height,
+    f_fall_step_size
+  } = fall_data;
+  if (o_walkway_tiles.has(f_this_hex)) {
+    let c_move_result = _theConstants.MV_TILE_SAME;
+    return [c_move_result, f_y100_height];
+  } else if (o_trampolines.has(f_this_hex)) {
+    let c_move_result = _theConstants.MV_START_TRAMPOLINE;
+    return [c_move_result, f_y100_height];
   } else {
-    (0, _consoleShort.ee)(" wallCoords() unknown wall_position", wall_position);
+    const fall_y_100 = f_y100_height - f_fall_step_size;
+    let c_move_result = _theConstants.MV_FALL_TRAMPOLINE;
+    return [c_move_result, fall_y_100];
   }
-  text_mesh.position.x = x;
-  text_mesh.position.z = z;
-  a_tile.add(text_mesh);
 }
 
-//, geoMesh };
+// https://www.dummies.com/article/academics-the-arts/math/pre-calculus/quick-guide-to-the-30-60-90-degree-triangle-168056/
+function trampolineLift(o_trampolines, tile_index) {
+  let the_trampo = o_trampolines.get(tile_index);
+  let f_jump_x_step, f_jump_z_step;
+  let f_bounce_speed = the_trampo.f_bounce_speed;
+  let f_rise_step_size = _moveConsts.TRAMPOLINE_RISE_SPEED;
+  let f_fall_step_size = _moveConsts.TRAMPOLINE_FALL_SPEED;
+  let f_step_iterations = the_trampo.f_step_iterations;
+  const tamp_tilt = the_trampo.tilt_up;
+  if (tamp_tilt == _theConstants.TILT_NONE) {
+    f_jump_x_step = 0;
+    f_jump_z_step = 0;
+  } else if (tamp_tilt == _theConstants.TILT_NN) {
+    f_jump_x_step = 0;
+    f_jump_z_step = _moveConsts.RISE_NN_Z_DIFF;
+  } else if (tamp_tilt == _theConstants.TILT_SS) {
+    f_jump_x_step = 0;
+    f_jump_z_step = _moveConsts.RISE_SS_Z_DIFF;
+  } else if (tamp_tilt == _theConstants.TILT_SW) {
+    f_jump_x_step = +(0.5 * _theConstants.SQRT_3) / _moveConsts.RISE_XZ_SPEED_SLOW;
+    f_jump_z_step = -0.5 / _moveConsts.RISE_XZ_SPEED_SLOW;
+  } else if (tamp_tilt == _theConstants.TILT_NE) {
+    f_jump_x_step = -(0.5 * _theConstants.SQRT_3) / _moveConsts.RISE_XZ_SPEED_SLOW;
+    f_jump_z_step = +0.5 / _moveConsts.RISE_XZ_SPEED_SLOW;
+  } else if (tamp_tilt == _theConstants.TILT_NW) {
+    f_jump_x_step = +(0.5 * _theConstants.SQRT_3) / _moveConsts.RISE_XZ_SPEED_SLOW;
+    f_jump_z_step = +0.5 / _moveConsts.RISE_XZ_SPEED_SLOW;
+  } else if (tamp_tilt == _theConstants.TILT_SE) {
+    f_jump_x_step = -(0.5 * _theConstants.SQRT_3) / _moveConsts.RISE_XZ_SPEED_SLOW;
+    f_jump_z_step = -0.5 / _moveConsts.RISE_XZ_SPEED_SLOW;
+  }
+  f_jump_z_step *= f_bounce_speed;
+  f_jump_x_step *= f_bounce_speed;
+  let data_values = {
+    f_jump_x_step,
+    f_jump_z_step,
+    f_bounce_speed,
+    f_rise_step_size,
+    f_fall_step_size,
+    f_step_iterations
+  };
+  return data_values;
+}
 
-},{"../constants.js":10,"../misc/console-short.js":17,"../misc/helvetiker_regular.typeface.js":18,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}]},{},[14]);
+},{"../misc/console-short.js":17,"../values/move-consts.js":50,"../values/the-constants.js":52}]},{},[14]);

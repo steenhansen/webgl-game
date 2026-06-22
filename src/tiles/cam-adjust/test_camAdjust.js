@@ -1,22 +1,22 @@
 import { ee, tt, EE, TT } from "../../console-short.js";
 
 import { AScene } from "../../a-scene.js";
-import { C____GREEN, C_____BLUE, C___YELLOW, TILT_NE, TILT_NONE, TILT_NN, TILT_SW } from "../../constants.js";
+import { C____GREEN, C_____BLUE, C___YELLOW, TILT_NE, TILT_NONE, TILT_NN, TILT_SW } from "../../values/constants.js";
 import { makeWalkway } from "../walkway-coords.js";
 import { tileTransition } from "./camAdjust.js";
 
 import { tileCenterCoord } from "../hex-tile.js";
 
-import * as HEX_CONST from "../constants.js";
+import { TEST_TILE_MOVE, TEST_TILE_MOVE } from "../values/constants.js";
 
 function make_camPos(x_hex_index, y_height, z_hex_index) {
     let [x_center_coord, z_center_coord] = tileCenterCoord(x_hex_index, z_hex_index);
-    let a_cam_pos = { x: x_center_coord, y: y_height, z: z_center_coord };
-    return a_cam_pos;
+    let a_f_cam_vect = { x: x_center_coord, y: y_height, z: z_center_coord };
+    return a_f_cam_vect;
 }
 
 function checkPrevNextTiles(prev_tile, new_tile) {
-    const the_scene = AScene(0x202025);
+    const g_scene = AScene(0x202025);
     const [xa, ya, za] = prev_tile.tile;
     const [xb, yb, zb] = new_tile.tile;
 
@@ -31,15 +31,15 @@ function checkPrevNextTiles(prev_tile, new_tile) {
     } else {
         walkway_1 = [xb, yb, zb, C_____BLUE, new_tile.tilt, new_tile.incline];
     }
-    const walkway_coords = [walkway_0, walkway_1];
+    const o_walkway_ndxs = [walkway_0, walkway_1];
     let walkway_meshes = new Map();
     let walkway_tiles = new Map();
     var walkway_columns = new Map([]);
     var walkway_overlaps = new Map([]);
 
     [walkway_meshes, walkway_tiles, walkway_columns, walkway_overlaps] = makeWalkway(
-        the_scene,
-        walkway_coords,
+        g_scene,
+        o_walkway_ndxs,
         walkway_meshes,
         walkway_tiles,
         walkway_columns,
@@ -48,7 +48,7 @@ function checkPrevNextTiles(prev_tile, new_tile) {
 
     let cam_prev = make_camPos(xa, ya, za);
     let cam_new = make_camPos(xb, yb, zb);
-    let change_allowed = tileTransition(HEX_CONST.TEST_TILE_MOVE, HEX_CONST.TESTING_PRINT, walkway_coords, walkway_tiles, walkway_columns, cam_prev, cam_new);
+    let change_allowed = tileTransition(TEST_TILE_MOVE, TESTINs_PRINT, o_walkway_ndxs, walkway_tiles, walkway_columns, cam_prev, cam_new);
     return change_allowed;
 }
 
@@ -97,7 +97,7 @@ function test_tileTransition(test_map) {
     // {
     //     var prev_tile = { tile: [0, 3, 0] };
     //     var new_tile = { tile: [1, 1, -1], tilt: TILT_SW, incline: 1 };
-    //     test_map.set("ne_g_flat_2_angled_gap_down", checkPrevNextTiles(prev_tile, new_tile));
+    //     test_map.set("ne_s_flat_2_angled_gap_down", checkPrevNextTiles(prev_tile, new_tile));
     // }
     // //////////////////////////////
     // {

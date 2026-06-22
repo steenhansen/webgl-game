@@ -1,14 +1,14 @@
 import { ee, tt, EE, TT } from "../misc/console-short.js";
 
-import { X_INDX, Y_INDX, Z_INDX, TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../constants.js";
+import { X_INDX, Y_INDX, Z_INDX, TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../values/the-constants.js";
+import { hexIndex } from "./hex-routines.js";
+import { distance2hexpoints, axial_round, coords2Indexes, tileCenterCoord } from "../misc/hex-maths.js";
+// function hexIndex(x_hex_ind, y_height, z_hex_ind) {
+//     let y_fixed_to_10ths = Math.trunc(y_height * 10) / 10;
 
-import { distance2hexpoints, axial_round, coords2HexIndexes, tileCenterCoord } from "../maths.js";
-function hexIndex(x_hex_ind, y_height, z_hex_ind) {
-    let y_fixed_to_10ths = Math.trunc(y_height * 10) / 10;
-
-    let hex_index = `${x_hex_ind},${y_fixed_to_10ths},${z_hex_ind}`;
-    return hex_index;
-}
+//     let hex_index = `${x_hex_ind},${y_fixed_to_10ths},${z_hex_ind}`;
+//     return hex_index;
+// }
 
 function swivelIntercept(cam_x_z, swivel_a, swivel_b) {
     let [cam_x, cam_z] = cam_x_z;
@@ -45,9 +45,9 @@ function dotsSideOfLine(cam_x_z, line_point_a, line_point_b) {
     return pos_or_neg;
 }
 
-function inclineNW_NE_SE_SW(cam_pos, stair_tile, swivel_a, swivel_b) {
+function inclineNW_NE_SE_SW(f_cam_vect, stair_tile, swivel_a, swivel_b) {
     const { tilt_up, accross_length, angle_incline, y_position } = stair_tile;
-    const cam_x_z = [cam_pos.x, cam_pos.z];
+    const cam_x_z = [f_cam_vect.x, f_cam_vect.z];
     const swivel_intercept = swivelIntercept(cam_x_z, swivel_a, swivel_b);
     const length_from_swivel2 = intercept2cam(cam_x_z, swivel_intercept);
     const dot_side_of_line = dotsSideOfLine(cam_x_z, swivel_a, swivel_b);
@@ -73,53 +73,53 @@ function inclineNW_NE_SE_SW(cam_pos, stair_tile, swivel_a, swivel_b) {
 const ABOVE_WALKWAY = 0.52; // Base offset for camera height above surface
 const ABOVE_WALKWAY_SS = 1.52;
 
-function inclineNN(cam_pos, current_tile) {
+function inclineNN(f_cam_vect, current_tile) {
     let { angle_incline, tile_positions } = current_tile;
     const highest_z = tile_positions[0][2];
     const lowest_z = tile_positions[3][2];
     let total_z_width = highest_z - lowest_z;
     let z_distance_traveled, nn_ss_offset;
-    z_distance_traveled = highest_z - cam_pos.z;
+    z_distance_traveled = highest_z - f_cam_vect.z;
     nn_ss_offset = 0; //ABOVE_WALKWAY;
     let height_increase = (z_distance_traveled / total_z_width) * angle_incline;
     let new_cam_y2 = height_increase + nn_ss_offset;
     return new_cam_y2;
 }
 
-function inclineSS(cam_pos, current_tile) {
+function inclineSS(f_cam_vect, current_tile) {
     let { angle_incline, tile_positions } = current_tile;
     const highest_z = tile_positions[0][2];
     const lowest_z = tile_positions[3][2];
     let total_z_width = highest_z - lowest_z;
     let z_distance_traveled, nn_ss_offset;
 
-    z_distance_traveled = cam_pos.z - lowest_z;
+    z_distance_traveled = f_cam_vect.z - lowest_z;
 
-    nn_ss_offset = 0; // ABOVE_WALKWAY_SS; // qbert
+    nn_ss_offset = 0; // ABOVE_WALKWAY_SS;
 
     let height_increase = (z_distance_traveled / total_z_width) * angle_incline;
     let new_cam_y2 = height_increase + nn_ss_offset;
     return new_cam_y2;
 }
 
-function walkwayIncline(walkway_tiles, cam_pos) {
-    let [x_hex_ind, z_hex_ind] = coords2HexIndexes(cam_pos.x, cam_pos.z);
-    let tile_index = hexIndex(x_hex_ind, cam_pos.y, z_hex_ind);
+function walkwayIncline(walkway_tiles, f_cam_vect) {
+    let [x_hex_ind, z_hex_ind] = coords2Indexes(f_cam_vect.x, f_cam_vect.z);
+    let tile_index = hexIndex(x_hex_ind, f_cam_vect.y, z_hex_ind);
     if (walkway_tiles.has(tile_index)) {
         let current_tile = walkway_tiles.get(tile_index);
         let { tilt_up, tile_positions } = current_tile;
         if (tilt_up == TILT_NW) {
-            return inclineNW_NE_SE_SW(cam_pos, current_tile, tile_positions[0], tile_positions[3]);
+            return inclineNW_NE_SE_SW(f_cam_vect, current_tile, tile_positions[0], tile_positions[3]);
         } else if (tilt_up == TILT_NE) {
-            return inclineNW_NE_SE_SW(cam_pos, current_tile, tile_positions[1], tile_positions[4]);
+            return inclineNW_NE_SE_SW(f_cam_vect, current_tile, tile_positions[1], tile_positions[4]);
         } else if (tilt_up == TILT_SE) {
-            return inclineNW_NE_SE_SW(cam_pos, current_tile, tile_positions[0], tile_positions[3]);
+            return inclineNW_NE_SE_SW(f_cam_vect, current_tile, tile_positions[0], tile_positions[3]);
         } else if (tilt_up == TILT_SW) {
-            return inclineNW_NE_SE_SW(cam_pos, current_tile, tile_positions[1], tile_positions[4]);
+            return inclineNW_NE_SE_SW(f_cam_vect, current_tile, tile_positions[1], tile_positions[4]);
         } else if (tilt_up == TILT_NN) {
-            return inclineNN(cam_pos, current_tile);
+            return inclineNN(f_cam_vect, current_tile);
         } else if (tilt_up == TILT_SS) {
-            return inclineSS(cam_pos, current_tile);
+            return inclineSS(f_cam_vect, current_tile);
         }
     }
     return 0; // y_position + ABOVE_WALKWAY;

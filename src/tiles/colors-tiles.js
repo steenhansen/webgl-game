@@ -1,4 +1,9 @@
-import { ee, tt, EE, TT } from "../console-short.js";
+import { ee, tt, EE, TT } from "../misc/console-short.js";
+import { HEXAGON_PART } from "../values/the-constants.js";
+
+import { WALK_AFTER_COLORS } from "../values/color-consts.js";
+
+import { seaColor } from "../misc/tile-colors.js";
 
 const colorLeft = (hex) => {
     const r = hex & 0xff0000;
@@ -22,38 +27,21 @@ const colorRight = (hex) => {
     return color_right;
 };
 
-function tileColor(g_hex_tiles, xz_color, new_color) {
-    const xz_index = xz_color[0];
-    if (g_hex_tiles.has(xz_index)) {
-        const recolor_tile = g_hex_tiles.get(xz_index);
-        let top_hex_group = recolor_tile.children[0];
-        let new_material = top_hex_group.material.clone();
-        new_material.color.setHex(new_color);
-        top_hex_group.material = new_material;
-        top_hex_group.material.needsUpdate = true;
+function flipTileColorG(the_objects, f_this_hex) {
+    const [x_index, y_ind, z_index] = f_this_hex.split(",");
+    let sea_color = seaColor([x_index, y_ind, z_index], WALK_AFTER_COLORS);
+    let { o_object_meshes } = the_objects;
+
+    let possible_tile = o_object_meshes.get(f_this_hex);
+
+    if (possible_tile) {
+        const tile_mesh = possible_tile.getObjectByName(HEXAGON_PART);
+        tile_mesh.material.color.setHex(sea_color);
+    }
+    const unvisited_tiles = the_objects.o_unvisited_tiles;
+    if (unvisited_tiles.has(f_this_hex)) {
+        unvisited_tiles.delete(f_this_hex);
     }
 }
 
-function tileColor2(g_hex_tiles, xz_color, new_color) {
-    const xz_index = xz_color[0];
-    if (g_hex_tiles.has(xz_index)) {
-        const recolor_tile = g_hex_tiles.get(xz_index);
-        let top_hex_group = recolor_tile.children[0];
-        let new_material = top_hex_group.material.clone();
-        new_material.color.setHex(new_color);
-        top_hex_group.material = new_material;
-        top_hex_group.material.needsUpdate = true;
-    }
-}
-
-function hexNewColor(g_hex_tiles, x, z, new_color) {
-    let [xx, zz] = tileCenterCoord(x, z);
-    let xz_index = intTileIndex(xx, zz);
-    if (g_hex_tiles.has(xz_index)) {
-        const recolor_tile = g_hex_tiles.get(xz_index);
-        recolor_tile.userData.the_color = new_color;
-        tileColor(g_hex_tiles, recolor_tile, new_color);
-    }
-}
-
-export { hexNewColor, colorLeft, colorRight };
+export { colorLeft, colorRight, flipTileColorG };

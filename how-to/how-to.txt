@@ -1,5 +1,38 @@
 
-we use hexagons for trampolines
+
+
+f_cam_coord == 1.234, 23.123, 44.2
+
+ndx_x1_y100_z1 == -3,2300,-3
+ndx_x=-3
+f_ndx_y100 =2300
+
+
+
+  const new_level_y = f_tile_transition.level_y;
+    const ndx_y100 = f_tile_transition.ndx_y100;
+
+
+cur_level_y_100 => ndx_y100
+
+
+        f_prev_pos = f_prev_ndxs,
+        f_next_pos = f_next_ndxs
+
+
+    let { d_walkway_tiles, d_trampolines } = the_state;
+        let { s_walkway_tiles, s_trampolines } = the_state;
+
+
+
+http://localhost:5173/index-dev.html?figure=infinity
+
+
+
+
+
+
+
 
   
 /*

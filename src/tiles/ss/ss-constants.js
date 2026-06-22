@@ -1,4 +1,4 @@
-import { COL_1, COL_2, TILT_NW, TILT_NN, TILT_SE, TILT_NE, TILT_SS, TILT_SW } from "../../constants.js";
+import { COL_1, COL_2, TILT_NW, TILT_NN, TILT_SE, TILT_NE, TILT_SS, TILT_SW } from "../../values/the-constants.js";
 
 const x_start = 0;
 const z_start = 0;

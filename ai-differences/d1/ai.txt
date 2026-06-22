@@ -1,0 +1,16 @@
+if (tile_transition.move_result !== MOVE_FALLING && tile_index !== prev_tile_index) {
+    updateTileColor(tile_transition.level_y, prev_x_ind, prev_z_ind);
+}
+
+function updateTileColor(level_y, x_ind, z_ind) { 
+    const idx = hexIndex(x_ind, level_y, z_ind);
+    if (!g_walkway_tiles.has(idx)) return;
+    const tile = g_walkway_tiles.get(idx);
+    const status = g_walkway_colors.get(idx);
+    const isDark = status === "dark-color";
+    const nextColor = isDark ? tile.light_color : tile.dark_color;
+    g_walkway_colors.set(idx, isDark ? "light-color" : "dark-color");
+    const mesh = g_object_meshes.get(idx).getObjectByName("Hexagon-Part");
+    mesh.material.color.setHex(nextColor);
+    prev_tile_index = idx;
+}

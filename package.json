@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "OLcompile2-bundle": "browserify ./src/main.js -p esmify > main-bundle.js -t [ babelify --presets [ @babel/preset-env @babel/preset-react ] --plugins [ @babel/plugin-transform-class-properties ] ]",
     "compile2-bundle": "browserify ./src/main.js -p esmify -o  main-bundle.js ",
     "compress-bundle": "terser main-bundle.js --compress ecma=2015,computed_props=false > main-compressed.js"
   },

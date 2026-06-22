@@ -1,4 +1,56 @@
 import { ee, tt, EE, TT } from "../misc/console-short.js";
+import {
+    PRINT_ALLOWED,
+    RUN_OR_TEST,
+    MV_FALL_JUMP_STRAIGHT,
+    MV_TILE_NEW,
+    MV_TILE_SAME,
+    MV_FENCE_BLOCKED,
+    TESTINs_PRINT,
+    FENCE_SW,
+    TILT_SS,
+    TILT_NONE,
+    TILT_NN,
+    TILT_NE,
+    TILT_SE,
+    TILT_SW,
+    TILT_NW
+} from "../values/the-constants.js";
+import { undefTileDebugInfo, moveAllow, moveBlock } from "./ground-tiles.js";
+import { HEX_PAIR_DIVIDER } from "../values/the-constants.js";
+import { tileCenterCoord, coords2Indexes } from "./hex-tile.js";
+
+function hitFence(o_fence_walls, o_fence_columns, prev_hex, this_hex) {
+    const xyz_1_2_index = `${prev_hex}${HEX_PAIR_DIVIDER}${this_hex}`;
+    let current_xz_index = stripYindex(this_hex);
+    let cur_xz_fence_column = o_fence_walls.get(xyz_1_2_index);
+    if (cur_xz_fence_column) {
+        return true;
+    }
+    return false;
+}
+
+// ####### this should figure out prev, next only
+//                      f_prev_coords
+function currentHexIdxs(hex_data) {
+    let { f_prev_coords, f_this_coords, f_y100_height, f_move_result, f_cam_vect } = hex_data;
+
+    if (f_move_result == MV_FENCE_BLOCKED) {
+        let [ndx_x, ndx_z] = coords2Indexes(f_prev_coords.x, f_prev_coords.z);
+        let [x_coord, z_coord] = tileCenterCoord(ndx_x, ndx_z);
+        f_prev_coords.x = x_coord;
+        f_prev_coords.z = z_coord;
+
+        f_cam_vect.x = f_prev_coords.x;
+        f_cam_vect.y = f_prev_coords.y / 100;
+        f_cam_vect.z = f_prev_coords.z;
+        f_this_coords = f_prev_coords;
+    } else {
+        f_prev_coords = f_this_coords;
+        f_this_coords.y = f_y100_height;
+    }
+    return [f_prev_coords, f_this_coords, f_y100_height];
+}
 
 function hexIndex(x_hex_ind, y_height, z_hex_ind) {
     let y_fixed_to_10ths = Math.trunc(y_height * 10) / 10;
@@ -12,4 +64,46 @@ function stripYindex(hex_index) {
     return `${x_hex_ind},${z_hex_ind}`;
 }
 
-export { hexIndex, stripYindex };
+function offWalkway(walkway_columns, this_hex) {
+    let current_xz_index = stripYindex(this_hex);
+    let current_xz_column = walkway_columns.get(current_xz_index);
+    if (current_xz_column == undefined) {
+        return true; // falling in a column with no tiles
+    }
+    let current_xyz_walkway_index = current_xz_column.get(this_hex);
+    if (current_xyz_walkway_index == undefined) {
+        return true; // falling in a column with tiles, but no tile at this height
+    }
+
+    return false;
+}
+
+function tileData(o_walkway_tiles, prev_hex, this_hex) {
+    let current_walkway_tile = o_walkway_tiles.get(this_hex);
+    if (current_walkway_tile == undefined) {
+        const undef_printable_info = undefTileDebugInfo(TILT_NONE);
+        return undef_printable_info;
+    }
+    const { tilt_up: new_tilt_up, low_y: new_low_y, high_y: new_high_y } = current_walkway_tile;
+    let prev_tilt_up, prev_low_y, prev_high_y;
+    let prev_walkway_tile = o_walkway_tiles.get(prev_hex);
+    if (prev_walkway_tile) {
+        prev_tilt_up = prev_walkway_tile.tilt_up;
+        prev_low_y = prev_walkway_tile.low_y;
+        prev_high_y = prev_walkway_tile.high_y;
+    } else {
+        prev_tilt_up = new_tilt_up;
+        prev_low_y = new_low_y;
+        prev_high_y = new_high_y;
+    }
+    const low_to_low = prev_low_y == new_low_y;
+    const high_to_high = prev_high_y == new_high_y;
+    const lows_and_highs = low_to_low && high_to_high;
+    const high_to_low = prev_high_y == new_low_y;
+    const low_to_high = prev_low_y == new_high_y;
+    const prev_new_data = { prev_tilt_up, prev_low_y, prev_high_y, new_tilt_up, new_low_y, new_high_y };
+    const data = { low_to_low, high_to_high, lows_and_highs, high_to_low, low_to_high };
+    return { prev_new_data, data };
+}
+
+export { hexIndex, stripYindex, tileData, hitFence, offWalkway, currentHexIdxs };
