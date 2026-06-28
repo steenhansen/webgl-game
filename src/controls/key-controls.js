@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../misc/console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls.js";
 import { X_Z_2D_INCREMENT } from "../values/move-consts.js";
@@ -84,9 +84,19 @@ function makeControls(g_camera, e_enemy_points, e_do_click) {
         if (event.button === 0) {
             g_key_controls.lock();
             e_do_click.was_clicked = true;
-        } else if (event.button === 2) {
-            event.preventDefault();
+        }
+    });
+
+    function handleContext(event) {
+        event.preventDefault();
+    }
+
+    document.addEventListener("contextmenu", handleContext);
+
+    document.body.addEventListener("pointerdown", () => {
+        if (event.button === 2) {
             g_key_controls.unlock();
+            removeEventListener("contextmenu", handleContext);
         }
     });
 

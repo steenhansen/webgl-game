@@ -14,6 +14,21 @@ const ee = (...args) => {
 };
 
 /*
+cons ole.log("hexPoints unknown  up_direction==", up_direction);
+ dd("hexPoints unknown  up_direction==", up_direction);
+ */
+
+const dd = (...args) => {
+    const prefix = `DEBUG :`;
+    if (typeof args[0] === "string") {
+        args[0] = `${prefix}  ${args[0]}`;
+    } else {
+        args.unshift(prefix);
+    }
+    window["con" + "sole"].log(...args);
+};
+
+/*
 cons ole.log(`TEST allowed NW :: ${RUN_OR_TEST} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
 t t(`allowed NW :: ${RUN_OR_TEST} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
 */
@@ -41,4 +56,5 @@ const tt = (...args) => {
 
 const TT = tt;
 const EE = ee;
-export { ee, tt, EE, TT };
+const DD = dd;
+export { ee, tt, dd, EE, TT, DD };

@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../console-short.js";
 
 import { mx_hash_vec3_1 } from "three/src/nodes/materialx/lib/mx_noise.js";
 import { SQRT_3, TILT_NN, TILT_SS, TILT_NONE } from "../values/constants.js";

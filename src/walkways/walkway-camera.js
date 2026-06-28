@@ -1,12 +1,12 @@
-import { ee, tt, EE, TT } from "../console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../console-short.js";
 
-import { pointInsideTile } from "./walkway-overlaps.js";
-import { coords2Indexes } from "./hex-tile.js";
+//import { pointInsideTile } from "./walkway-overlaps.js";   // does not seem to be used
+import { coords2Indexes } from "../tiles/hex-tile.js";
 import { DROP_PER_TICK_FLOAT } from "../values/constants.js";
 
 // hex_column_ac='1,3'   imagine testing this .... so no memorizing
 
-// NEW qbert    MAYBE HAVE A GROUND_ZERO_TILES, WHICH HAVE TILE POSITIONS   TO CHECK FOR ...
+// NEW   MAYBE HAVE A GROUND_ZERO_TILES, WHICH HAVE TILE POSITIONS   TO CHECK FOR ...
 // hex_column_ac => hex_column_ac
 function walkwayCamera(cam_xyz, walkway_heights, walkway_bottoms, walkway_tiles, ground_tiles) {
     //let [a_int, c_int] = hex_column_ac.split(",");

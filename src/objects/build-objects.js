@@ -1,9 +1,9 @@
-import { ee, tt, EE, TT } from "../misc/console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 import { SEA_COLORS, SEA_EDGE, WALK_BEFORE_COLORS, WALK_EDGE } from "../values/color-consts.js";
-import { makeWalkway } from "../tiles/walkway-coords.js";
+import { makeWalkway } from "../walkways/walkway-coords.js";
 import { makeFences } from "../fences/make-fences.js";
-import { makeTrampolines } from "../vertical-movement/trampoline-coords.js";
-import { makePentagon } from "../pentagon/pentagon-coords.js";
+import { makeTrampolines } from "../trampolines/trampoline-coords.js";
+import { makePentagon } from "../pentagons/pentagon-coords.js";
 import { ground_field } from "../tiles/ground-tiles.js";
 
 import * as THREE from "three";
@@ -21,15 +21,7 @@ function buildObjects(g_scene, o_fence_ndxs, o_walkway_ndxs, o_trampolines, o_pe
     var o_fence_walls = new Map([]);
     var o_fence_columns = new Map([]);
 
-    [o_object_meshes, o_walkway_tiles, o_walkway_columns] = makeWalkway(
-        g_scene,
-        o_object_meshes,
-        o_walkway_ndxs,
-        o_walkway_tiles,
-        o_walkway_columns,
-        WALK_BEFORE_COLORS,
-        WALK_EDGE
-    );
+    [o_object_meshes, o_walkway_tiles, o_walkway_columns] = makeWalkway(g_scene, o_object_meshes, o_walkway_ndxs, o_walkway_tiles, o_walkway_columns);
 
     [o_object_meshes, o_fence_walls, o_fence_columns] = makeFences(g_scene, o_object_meshes, o_fence_ndxs, o_fence_walls, o_fence_columns);
 

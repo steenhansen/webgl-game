@@ -1,4 +1,7 @@
-import { ee, tt, EE, TT } from "../misc/console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
+
+const X_Z_2D_INCREMENT = 4; // 10 FAST, 2 SLOW
+//const X_Z_2D_INCREMENT = 0.1; // 10 FAST, 2 SLOW
 
 const JUMP_RISE_STEP_SIZE = 25;
 const JUMP_FALL_STEP_SIZE = 25;
@@ -7,8 +10,6 @@ const JUMP_ITERATIONS = 21; /// must be in 10s
 const TRAMPOLINE_RISE_SPEED = 5;
 const TRAMPOLINE_FALL_SPEED = 5;
 const TRAMPOLINE_ITERATIONS = 51;
-
-const X_Z_2D_INCREMENT = 4; // 10 FAST, 2 SLOW
 
 const VERTICAL_INCREMENT = 5; // Y_VERITCAL_INCREMENT
 

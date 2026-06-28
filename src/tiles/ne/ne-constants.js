@@ -6,15 +6,14 @@ const z_start = 0;
 const x_finish = 1;
 const z_finish = -1;
 
-const NE_INTO_AIR = "NE_INTO_AIR";
-const NE_AIRBORNE = "NE_AIRBORNE";
+const NE_WALK_AIR = "NE_WALK_AIR";
+const NE_TRAMPOLINE_AIR = "NE_TRAMPOLINE_AIR";
 
+const NE_0_SAME = "NE_0_SAME";
 const NE_1_UP_UP_CLOCK = "NE_1_UP_UP_CLOCK";
 const NE_2_UP_UP_COUNTER = "NE_2_UP_UP_COUNTER";
-
 const NE_3_DOWN_DOWN_CLOCK = "NE_3_DOWN_DOWN_CLOCK";
 const NE_4_DOWN_DOWN_COUNTER = "NE_4_DOWN_DOWN_COUNTER";
-
 const NE_5_FLAT__FLAT = "NE_5_FLAT__FLAT";
 const NE_6_FLAT__UP = "NE_6_FLAT__UP";
 const NE_7_UP__FLAT = "NE_7_UP__FLAT";
@@ -26,6 +25,9 @@ const NE_12_UP__DOWN = "NE_12_UP__DOWN";
 const NE_13_DOWN__UP = "NE_13_DOWN__UP";
 const NE_14_BLOCKED = "NE_14_BLOCKED";
 
+const NE_15_TRAMPOLINE = "NE_15_TRAMPOLINE";
+const NE_16_STROLL_INTO_AIR = "NE_16_STROLL_INTO_AIR";
+const NE_17_DESCEND_ONE_STEP = "NE_17_DESCEND_ONE_STEP";
 const NE_1_TEST = [[x_start, 1, z_start, COL_1, TILT_NW, 1], [x_finish, 1, z_finish, COL_2, TILT_NN, 1], NE_1_UP_UP_CLOCK];
 
 const NE_222_TEST = [[x_start, 1, z_start, COL_1, TILT_NW, 1], [x_finish, 1, z_finish, COL_2, TILT_NN, 1], NE_2_UP_UP_COUNTER];
@@ -60,9 +62,10 @@ const NE_START_FINISHES = {
 };
 
 export {
-    NE_INTO_AIR,
-    NE_AIRBORNE,
+    NE_WALK_AIR,
+    NE_TRAMPOLINE_AIR,
     NE_START_FINISHES,
+    NE_0_SAME,
     NE_1_UP_UP_CLOCK,
     NE_2_UP_UP_COUNTER,
     NE_3_DOWN_DOWN_CLOCK,
@@ -76,5 +79,8 @@ export {
     NE_11_DOWN__DOWN,
     NE_12_UP__DOWN,
     NE_13_DOWN__UP,
-    NE_14_BLOCKED
+    NE_14_BLOCKED,
+    NE_15_TRAMPOLINE,
+    NE_16_STROLL_INTO_AIR,
+    NE_17_DESCEND_ONE_STEP
 };

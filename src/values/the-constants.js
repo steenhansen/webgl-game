@@ -1,4 +1,4 @@
-const HEX_PAIR_DIVIDER = "!!!";
+const HEX_PAIR_DIVIDER = "::fence::";
 
 const HEIGHT_ABOVE_WALKWAY = 0.0;
 
@@ -14,7 +14,9 @@ const RUNNINs_NO_PRINT = "RUNNINs_NO_PRINT"; // hide_moves
 
 const DARK_COLOR = "DARK_COLOR";
 const LIGHT_COLOR = "LIGHT_COLOR";
+
 const HEXAGON_PART = "HEXAGON_PART";
+const FENCE_PART = "FENCE_PART";
 
 const START_X_LOOK = 3;
 const START_Y_LOOK = 1; // *10 !!!!!!!!!!!!
@@ -62,6 +64,10 @@ const TILT_NE = "TILT_NE";
 const TILT_SE = "TILT_SE";
 const TILT_SW = "TILT_SW";
 const TILT_NONE = "TILT_NONE";
+
+const SLOPE_NONE = "SLOPE_NONE";
+const IS_TRANSPARENT = "IS_TRANSPARENT";
+const NOT_TRANSPARENT = "NOT_TRANSPARENT";
 
 const TILT_GLASS = "TILT_GLASS";
 const TILT_SE90 = "TILT_SE90";
@@ -135,6 +141,7 @@ const HEIGHT_Y___10 = "1000";
 
 const HEIGHT_Y_10_5 = "1050";
 const HEIGHT_Y___11 = "1100";
+
 const INCLINE___0 = 0.0;
 const INCLINE_0_5 = 0.5;
 const INCLINE___1 = 1.0;
@@ -142,8 +149,6 @@ const INCLINE_1_5 = 1.5;
 const INCLINE___2 = 2.0;
 const INCLINE_2_5 = 2.5;
 const INCLINE___3 = 3.0;
-
-const IS_TRANSPARENT = "IS_TRANSPARENT";
 
 const GET_ABOVE_TILES = 1;
 
@@ -167,6 +172,7 @@ export {
     DARK_COLOR,
     LIGHT_COLOR,
     HEXAGON_PART,
+    FENCE_PART,
     IS_TRANSPARENT,
     INCLINE___0,
     INCLINE_0_5,
@@ -262,5 +268,7 @@ export {
     START_X_LOOK,
     START_Y_LOOK,
     START_Z_LOOK,
-    GET_ABOVE_TILES
+    GET_ABOVE_TILES,
+    SLOPE_NONE,
+    NOT_TRANSPARENT
 };

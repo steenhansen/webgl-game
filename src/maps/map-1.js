@@ -1,5 +1,5 @@
-import { ee, tt, EE, TT } from "../misc/console-short.js";
-import { TRIE_FIGURE } from "../figures/trie-shape.js";
+import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
+
 import { translateFigure, createStartFigure } from "../figures/figure-path.js";
 import { translateAllFigures } from "./merge-figures.js";
 import { tileCenterCoord } from "../tiles/hex-tile.js";
@@ -39,45 +39,62 @@ import {
 } from "../values/the-constants.js";
 
 import {
+    BOUNCE_COUNT__250,
+    BOUNCE_COUNT___50,
     BOUNCE_COUNT___25,
+    BOUNCE_COUNT___10,
     BOUNCE_SPEED___1,
     BOUNCE_SPEED_1_5,
     BOUNCE_SPEED___2,
     BOUNCE_SPEED_2_5,
     BOUNCE_SPEED___3,
     BOUNCE_SPEED_3_5,
-    BOUNCE_SPEED___4
-} from "../vertical-movement/trampoline-const.js";
+    BOUNCE_SPEED___4,
+    BOUNCE_SPEED__10,
+    BOUNCE_SPEED__50
+} from "../trampolines/trampoline-const.js";
 
 import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW, TILT_NONE } from "../values/the-constants.js";
 
-// const start_x_ndx = -3;
-// const start_y_ndx = 2300;
-// const start_z_ndx = -3;
+// const START_X_NDX = 2;  // 2,1000,-5 is ok? on trans green
+// const START_Y_NDX = 1000;
+// const START_Z_NDX = -5;
 
-const start_x_ndx = -4;
-const start_y_ndx = 1100;
-const start_z_ndx = -0;
+// {x: 3, y: 12, z: -6.928203230275509}
 
-const start_tile = [start_x_ndx, start_y_ndx, start_z_ndx, TILT_NONE, INCLINE___0, IS_TRANSPARENT];
+const START_X_NDX = 0;
+const START_Y_NDX = HEIGHT_Y___11; // start on -1,1100,0 ????? waht
+const START_Z_NDX = 0;
 
-const look_x_ndx = -1;
-const look_y_ndx = 1210;
-const look_z_ndx = 0;
+const start_tile = [START_X_NDX, START_Y_NDX, START_Z_NDX, TILT_NONE, INCLINE___0, IS_TRANSPARENT];
+
+const LOOK_X_NDX = 0;
+const LOOK_Y_NDX = 500;
+const LOOK_Z_NDX = -2;
+
+import { TEST_5_17_FIGURE } from "../figures/test-5-17-figure.js";
+import { HAT_FIGURE } from "../figures/hat-figure.js";
+import { FLOWER_FIGURE } from "../figures/flower-figure.js";
 
 function makeMap1() {
     const start_figure = createStartFigure("start-bobo", start_tile);
 
-    const fig_1 = translateFigure(TRIE_FIGURE, 0, 0, 0);
-    // const fig_2 = translateFigure(TRIE_FIGURE, 10, -500, 0);
+    const fig_5_to_17 = translateFigure(TEST_5_17_FIGURE, 0, 0, 0);
+
+    const fig_hat = translateFigure(HAT_FIGURE, -2, 0, 0);
+
+    const fig_flower = translateFigure(FLOWER_FIGURE, 0, -100, 2);
 
     const trampoline_fig = {
-        trampoline_locs: [["0", HEIGHT_Y___11, "3", BOUNCE_SPEED___4, BOUNCE_COUNT___25, TILT_SS, INCLINE___1]]
+        trampoline_locs: [
+            ["01", HEIGHT_Y___10, "00", BOUNCE_SPEED__50, BOUNCE_COUNT___25, TILT_NONE, INCLINE___0],
+            ["00", HEIGHT_Y___11, "-1", BOUNCE_SPEED__50, BOUNCE_COUNT__250, TILT_NONE, INCLINE___0],
+            ["-1", HEIGHT_Y___10, "01", BOUNCE_SPEED___4, BOUNCE_COUNT___50, TILT_SW, INCLINE___1]
+        ]
     };
-
-    // const fig_3 = translateFigure(TRIE_FIGURE, 0, -1000, 10);
-    //    const maps_figures = [start_figure, fig_1, fig_2, fig_3];
-    const maps_figures = [start_figure, fig_1, trampoline_fig];
+    //fig_5_to_17
+    const maps_figures = [start_figure, fig_hat, fig_flower, fig_5_to_17, trampoline_fig];
+    //const maps_figures = [start_figure, fig_1];
 
     const trie_map = translateAllFigures(maps_figures);
 
@@ -85,11 +102,11 @@ function makeMap1() {
 }
 
 function startMap1() {
-    let [start_coord_x, start_coord_z] = tileCenterCoord(start_x_ndx, start_z_ndx);
-    let start_location = [start_coord_x, start_y_ndx, start_coord_z];
+    let [start_coord_x, start_coord_z] = tileCenterCoord(START_X_NDX, START_Z_NDX);
+    let start_location = [start_coord_x, START_Y_NDX, start_coord_z];
 
-    let [look_coord_x, look_coord_z] = tileCenterCoord(look_x_ndx, look_z_ndx);
-    let start_look_at = [look_coord_x, look_y_ndx, look_coord_z];
+    let [look_coord_x, look_coord_z] = tileCenterCoord(LOOK_X_NDX, LOOK_Z_NDX);
+    let start_look_at = [look_coord_x, LOOK_Y_NDX, look_coord_z];
 
     return [start_location, start_look_at];
 }

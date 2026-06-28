@@ -1,7 +1,7 @@
-import { ee, tt, EE, TT } from "../misc/console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 import * as THREE from "three";
-import { seaColor } from "../misc/tile-colors.js";
-import { addCoords } from "./mesh-tiles.js";
+import { seaColor } from "../colors/tile-colors.js";
+import { addTextLoc } from "./text-tiles.js";
 import { tileMesh } from "./tile-mesh.js";
 import { distance2hexpoints, axial_round, coords2Indexes, tileCenterCoord } from "../misc/hex-maths.js";
 
@@ -18,7 +18,9 @@ import {
     TILT_NE,
     TILT_SE,
     TILT_SW,
-    TILT_NONE
+    TILT_NONE,
+    SLOPE_NONE,
+    NOT_TRANSPARENT
 } from "../values/the-constants.js";
 
 /*
@@ -75,8 +77,64 @@ function tileTriangles(hex_points) {
     return hexagon_triangles;
 }
 
+const NORMAL_HEX_RADIUS = 1;
+/*
+  tileSlopedTransparent
+  tileFlatTranspaent  22222222222222222
+  tileSloped
+  tileFlat
+
+
+
+*/
+function HexTileSloped(g_scene, walkway_meshes, walkway_tiles, x_y_z, is_transparent, slope_tilt, incline_amount) {
+    // qbert
+    const [x_index, y_100_index, z_index] = x_y_z;
+    const xyz_index = `${x_index},${y_100_index},${z_index}`;
+    if (slope_tilt == undefined) {
+        slope_tilt = TILT_NONE;
+        incline_amount = 0;
+    }
+    let [x_center, z_center] = tileCenterCoord(x_index, z_index);
+
+    const a_tile = new THREE.Group();
+    a_tile.position.set(x_center, 0, z_center);
+    const tile_points = hexPoints(NORMAL_HEX_RADIUS, y_100_index, slope_tilt, incline_amount);
+    walkway_tiles = offsetTilePoints(walkway_tiles, x_y_z, slope_tilt, incline_amount, tile_points, WALK_BEFORE_COLORS);
+    const top_triangles = tileTriangles(tile_points);
+    let walk_colors = seaColor(x_y_z, WALK_BEFORE_COLORS);
+
+    tileMesh(a_tile, top_triangles, walk_colors, WALK_EDGE, is_transparent);
+
+    g_scene.add(a_tile);
+    addTextLoc(a_tile, x_y_z, slope_tilt, incline_amount);
+    walkway_meshes.set(xyz_index, a_tile);
+    return [walkway_meshes, walkway_tiles];
+}
+
+function HexTileFlat(g_scene, walkway_meshes, walkway_tiles, x_y_z) {
+    // qbert
+    const [x_index, y_100_index, z_index] = x_y_z;
+    const xyz_index = `${x_index},${y_100_index},${z_index}`;
+    let [x_center, z_center] = tileCenterCoord(x_index, z_index);
+    const a_tile = new THREE.Group();
+    a_tile.position.set(x_center, 0, z_center);
+
+    const tile_points = hexPoints(NORMAL_HEX_RADIUS, y_100_index, TILT_NONE, SLOPE_NONE);
+    walkway_tiles = offsetTilePoints(walkway_tiles, x_y_z, slope_tilt, incline_amount, tile_points, WALK_BEFORE_COLORS);
+    const top_triangles = tileTriangles(tile_points);
+    let walk_colors = seaColor(x_y_z, WALK_BEFORE_COLORS);
+
+    tileMesh(a_tile, top_triangles, walk_colors, WALK_EDGE);
+    tileMeshTransparent(a_tile, top_triangles, walk_colors, WALK_EDGE, NOT_TRANSPARENT);
+
+    g_scene.add(a_tile);
+    addTextLoc(a_tile, x_y_z, slope_tilt, incline_amount);
+    walkway_meshes.set(xyz_index, a_tile);
+    return [walkway_meshes, walkway_tiles];
+}
+
 function HexTile(g_scene, walkway_meshes, walkway_tiles, x_y_z, WALK_COLORS, WALK_EDGE, slope_tilt, incline_amount, is_transparent) {
-    //let { start_color, light_color, dark_color, edge_color } = d_tile_3colors;
     const [x_index, y_100_index, z_index] = x_y_z;
     const xyz_index = `${x_index},${y_100_index},${z_index}`;
     if (slope_tilt == undefined) {
@@ -97,7 +155,7 @@ function HexTile(g_scene, walkway_meshes, walkway_tiles, x_y_z, WALK_COLORS, WAL
     tileMesh(a_tile, top_triangles, walk_colors, WALK_EDGE, is_transparent);
 
     g_scene.add(a_tile);
-    addCoords(a_tile, x_y_z, slope_tilt, incline_amount);
+    addTextLoc(a_tile, x_y_z, slope_tilt, incline_amount);
     walkway_meshes.set(xyz_index, a_tile);
     return [walkway_meshes, walkway_tiles];
 }

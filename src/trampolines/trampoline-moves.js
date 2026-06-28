@@ -1,18 +1,10 @@
-import { ee, tt, EE, TT } from "../misc/console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 
 import {
     MV_START_TRAMPOLINE,
     MV_TILE_SAME,
     MV_FALL_TRAMPOLINE,
     MV_RISE_TRAMPOLINE,
-    MV_FALL_JUMP_STRAIGHT,
-    MV_RISE_JUMP_STRAIGHT,
-    MV_FALL_STEP_OFF,
-    X_INDX,
-    Y_INDX,
-    Z_INDX,
-    TILT_SE90,
-    TILT_NN90,
     TILT_NN,
     TILT_SS,
     TILT_NW,

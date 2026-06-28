@@ -1,9 +1,9 @@
-import { ee, tt, EE, TT } from "../../console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../../console-short.js";
 
 import { AScene } from "../../a-scene.js";
-import { tileCenterCoord } from "../hex-tile.js";
+import { tileCenterCoord } from "../tiles/hex-tile.js";
 import { transition2NewTile } from "./camAdjust.js";
-import { makeWalkway } from "../walkway-coords.js";
+import { makeWalkway } from "../walkways/walkway-coords.js";
 
 import {
     MV_FALL_JUMP_STRAIGHT,

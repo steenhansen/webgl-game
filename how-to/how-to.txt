@@ -1,4 +1,9 @@
 
+ndx_x ==> ind_x  
+ndx_z ==> ind_z
+
+
+
 
 
 f_cam_coord == 1.234, 23.123, 44.2

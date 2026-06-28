@@ -1,6 +1,6 @@
 import { drawBreadcrumbs, renderRequest, resetUnderneath } from "../values/the-globals.js";
-import { doSpin, recordPentagon } from "../pentagon/pentagon-coords.js";
-import { ee, tt, EE, TT } from "./console-short.js";
+import { doSpin, recordPentagon } from "../pentagons/pentagon-coords.js";
+import { ee, tt, dd, EE, TT, DD } from "./console-short.js";
 
 import { PROD_ENVIRONMENT, RECORD_ENEMY_POINTS } from "../values/the-constants.js";
 const e_environment = PROD_ENVIRONMENT;

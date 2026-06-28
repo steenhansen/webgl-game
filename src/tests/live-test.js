@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../misc/console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 
 import { TEST_SS, TEST_NN, TEST_NE, TEST_SW, TEST_NW, TEST_SE } from "../values/the-constants.js";
 

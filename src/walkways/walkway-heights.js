@@ -1,14 +1,8 @@
-import { ee, tt, EE, TT } from "../misc/console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 
-import { X_INDX, Y_INDX, Z_INDX, TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../values/the-constants.js";
-import { hexIndex } from "./hex-routines.js";
-import { distance2hexpoints, axial_round, coords2Indexes, tileCenterCoord } from "../misc/hex-maths.js";
-// function hexIndex(x_hex_ind, y_height, z_hex_ind) {
-//     let y_fixed_to_10ths = Math.trunc(y_height * 10) / 10;
-
-//     let hex_index = `${x_hex_ind},${y_fixed_to_10ths},${z_hex_ind}`;
-//     return hex_index;
-// }
+import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../values/the-constants.js";
+import { hexIndex } from "../tiles/hex-routines.js";
+import { coords2Indexes } from "../misc/hex-maths.js";
 
 function swivelIntercept(cam_x_z, swivel_a, swivel_b) {
     let [cam_x, cam_z] = cam_x_z;

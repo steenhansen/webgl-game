@@ -6,9 +6,10 @@ const z_start = 0;
 const x_finish = 1;
 const z_finish = 0;
 
-const SE_INTO_AIR = "SE_INTO_AIR";
-const SE_AIRBORNE = "SE_AIRBORNE";
+const SE_WALK_AIR = "SE_WALK_AIR";
+const SE_TRAMPOLINE_AIR = "SE_TRAMPOLINE_AIR";
 
+const SE_0_SAME = "SE_0_SAME";
 const SE_1_UP_UP_CLOCK = "SE_1_UP_UP_CLOCK";
 const SE_2_UP_UP_COUNTER = "SE_2_UP_UP_COUNTER";
 const SE_3_DOWN_DOWN_CLOCK = "SE_3_DOWN_DOWN_CLOCK";
@@ -24,7 +25,9 @@ const SE_11_DOWN__DOWN = "SE_11_DOWN__DOWN";
 const SE_12_UP__DOWN = "SE_12_UP__DOWN";
 const SE_13_DOWN__UP = "SE_13_DOWN__UP";
 const SE_14_BLOCKED = "SE_14_BLOCKED";
-
+const SE_15_TRAMPOLINE = "SE_15_TRAMPOLINE";
+const SE_16_STROLL_INTO_AIR = "SE_16_STROLL_INTO_AIR";
+const SE_17_DESCEND_ONE_STEP = "SE_17_DESCEND_ONE_STEP";
 const SE_1_TEST = [[x_start, 1, z_start, COL_1, TILT_NN, 1], [x_finish, 1, z_finish, COL_2, TILT_NE, 1], SE_1_UP_UP_CLOCK];
 
 const SE_2222_TEST = [[x_start, 1, z_start, COL_1, TILT_NN, 1], [x_finish, 1, z_finish, COL_2, TILT_NE, 1], SE_2_UP_UP_COUNTER];
@@ -60,9 +63,10 @@ const SE_START_FINISHES = {
 };
 
 export {
-    SE_INTO_AIR,
-    SE_AIRBORNE,
+    SE_WALK_AIR,
+    SE_TRAMPOLINE_AIR,
     SE_START_FINISHES,
+    SE_0_SAME,
     SE_1_UP_UP_CLOCK,
     SE_2_UP_UP_COUNTER,
     SE_3_DOWN_DOWN_CLOCK,
@@ -76,5 +80,8 @@ export {
     SE_11_DOWN__DOWN,
     SE_12_UP__DOWN,
     SE_13_DOWN__UP,
-    SE_14_BLOCKED
+    SE_14_BLOCKED,
+    SE_15_TRAMPOLINE,
+    SE_16_STROLL_INTO_AIR,
+    SE_17_DESCEND_ONE_STEP
 };

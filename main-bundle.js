@@ -21594,6 +21594,370 @@ function createPath(char, scale, offsetX, offsetY, data) {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.colorRight = exports.colorLeft = void 0;
+exports.flipTileColorG = flipTileColorG;
+var _consoleShort = require("../misc/console-short.js");
+var _theConstants = require("../values/the-constants.js");
+var _colorConsts = require("../values/color-consts.js");
+var _tileColors = require("./tile-colors.js");
+const colorLeft = hex => {
+  const r = hex & 0xff0000;
+  const g = hex & 0x00ff00;
+  const b = hex & 0x0000ff;
+  const r2 = r >> 16;
+  const g2 = g << 8;
+  const b2 = b << 8;
+  const color_left = r2 | g2 | b2;
+  return color_left;
+};
+exports.colorLeft = colorLeft;
+const colorRight = hex => {
+  const r = hex & 0xff0000;
+  const g = hex & 0x00ff00;
+  const b = hex & 0x0000ff;
+  const r2 = r >> 8;
+  const g2 = g >> 8;
+  const b2 = b << 16;
+  const color_right = r2 | g2 | b2;
+  return color_right;
+};
+exports.colorRight = colorRight;
+function flipTileColorG(the_objects, f_this_hex) {
+  const [x_index, y_ind, z_index] = f_this_hex.split(",");
+  let sea_color = (0, _tileColors.seaColor)([x_index, y_ind, z_index], _colorConsts.WALK_AFTER_COLORS);
+  let {
+    o_object_meshes
+  } = the_objects;
+  let possible_tile = o_object_meshes.get(f_this_hex);
+  if (possible_tile) {
+    const tile_mesh = possible_tile.getObjectByName(_theConstants.HEXAGON_PART);
+    tile_mesh.material.color.setHex(sea_color);
+  }
+  const unvisited_tiles = the_objects.o_unvisited_tiles;
+  if (unvisited_tiles.has(f_this_hex)) {
+    unvisited_tiles.delete(f_this_hex);
+  }
+}
+
+},{"../misc/console-short.js":28,"../values/color-consts.js":59,"../values/the-constants.js":62,"./tile-colors.js":8}],8:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.seaColor = seaColor;
+var _consoleShort = require("../misc/console-short.js");
+function seaColor(x_y_z, three_colors) {
+  const [x_index, _y_height, z_index] = x_y_z;
+  const c3 = ((x_index - z_index) % 3 + 3) % 3;
+  const start_color = three_colors[c3];
+  return start_color;
+}
+
+},{"../misc/console-short.js":28}],9:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.transition2NewTile = transition2NewTile;
+var _consoleShort = require("../misc/console-short.js");
+var _theConstants = require("../values/the-constants.js");
+var _hexTile = require("../tiles/hex-tile.js");
+var _hexRoutines = require("../tiles/hex-routines.js");
+var _cameraNn = require("./camera-nn.js");
+var _cameraNe = require("./camera-ne.js");
+var _cameraNw = require("./camera-nw.js");
+var _cameraSs = require("./camera-ss.js");
+var _cameraSw = require("./camera-sw.js");
+var _cameraSe = require("./camera-se.js");
+function transition2NewTile(the_objects, f_prev_coords, f_this_coords, is_a_trampoline) {
+  let ndx_y100 = f_this_coords.y;
+  let y_index = ndx_y100 / 100;
+  let y_frac = y_index % 1;
+  let on_meetins_hinge_height = y_frac == 5 || y_frac == 0;
+  if (!on_meetins_hinge_height) {
+    const c_move_result = _theConstants.MV_FALL_STEP_OFF;
+    return c_move_result;
+  }
+  let [prev_x_ind, prev_z_ind] = (0, _hexTile.coords2Indexes)(f_prev_coords.x, f_prev_coords.z);
+  let [ndx_x, ndx_z] = (0, _hexTile.coords2Indexes)(f_this_coords.x, f_this_coords.z);
+  let move_dir = movingDirection(f_prev_coords.x, f_prev_coords.z, f_this_coords.x, f_this_coords.z);
+  let prev_hex = (0, _hexRoutines.hexIndex)(prev_x_ind, f_prev_coords.y, prev_z_ind);
+  let move_result;
+  if (move_dir == _theConstants.DIRECTION_NN) {
+    move_result = (0, _cameraNn.nearTestNN)(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
+  } else if (move_dir == _theConstants.DIRECTION_NE) {
+    move_result = (0, _cameraNe.nearTestNE)(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
+  } else if (move_dir == _theConstants.DIRECTION_SS) {
+    move_result = (0, _cameraSs.nearTestSS)(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
+  } else if (move_dir == _theConstants.DIRECTION_SW) {
+    move_result = (0, _cameraSw.nearTestSW)(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
+  } else if (move_dir == _theConstants.DIRECTION_NW) {
+    move_result = (0, _cameraNw.nearTestNW)(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
+  } else if (move_dir == _theConstants.DIRECTION_SE) {
+    move_result = (0, _cameraSe.nearTestSE)(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
+  } else if (is_a_trampoline) {
+    move_result = MV_START_TRAMPOLINE;
+  } else {
+    move_result = _theConstants.MV_TILE_SAME;
+  }
+  return move_result;
+}
+
+/*
+ https://www.quora.com/How-would-you-find-the-angle-of-a-line-given-two-points-on-a-coordinate-plan
+*/
+
+const NE_START_0D = 0;
+const NE_END_60D = Math.PI / 3;
+const NN_START_60D = Math.PI / 3;
+const NN_END_120D = 2 * Math.PI / 3;
+const NW_START_120D = 2 * Math.PI / 3;
+const NW_END_180D = 3 * Math.PI / 3;
+const SW_START_180D = -2 * Math.PI / 3;
+const SW_END_240D = -3 * Math.PI / 3;
+const SS_START_240D = -1 * Math.PI / 3;
+const SS_END_300D = -2 * Math.PI / 3;
+const SE_START_300D = 0 * Math.PI / 3;
+const SE_END_0D = -1 * Math.PI / 3;
+function movingDirection(prev_x_coord, prev_z_coord, new_x_coord, new_z_coord) {
+  const dx = new_x_coord - prev_x_coord;
+  const dz = prev_z_coord - new_z_coord;
+  const theta = Math.atan2(dz, dx);
+  let move_direction;
+  if (new_x_coord == prev_x_coord && new_z_coord == prev_z_coord) {
+    move_direction = _theConstants.DIRECTION_NONE;
+  } else {
+    if (theta >= NE_START_0D && theta < NE_END_60D) {
+      //    ee("*** NE");
+      move_direction = _theConstants.DIRECTION_NE;
+    } else if (theta >= NN_START_60D && theta < NN_END_120D) {
+      //  ee("*** NN");
+      move_direction = _theConstants.DIRECTION_NN;
+    } else if (theta >= NW_START_120D && theta <= NW_END_180D) {
+      //   ee("*** NW");
+      move_direction = _theConstants.DIRECTION_NW;
+    } else if (theta <= SW_START_180D && theta >= SW_END_240D) {
+      //   ee("*** SW");
+      move_direction = _theConstants.DIRECTION_SW;
+    } else if (theta <= SS_START_240D && theta > SS_END_300D) {
+      //   ee("*** SS");
+      move_direction = _theConstants.DIRECTION_SS;
+    } else if (theta <= SE_START_300D && theta > SE_END_0D) {
+      //    ee("*** SE");
+      move_direction = _theConstants.DIRECTION_SE;
+    } else {
+      (0, _consoleShort.ee)("*** NOT SURE  THETA--=", theta);
+      move_direction = _theConstants.DIRECTION_NONE;
+    }
+  }
+  return move_direction;
+}
+
+},{"../misc/console-short.js":28,"../tiles/hex-routines.js":38,"../tiles/hex-tile.js":39,"../values/the-constants.js":62,"./camera-ne.js":10,"./camera-nn.js":11,"./camera-nw.js":12,"./camera-se.js":13,"./camera-ss.js":14,"./camera-sw.js":15}],10:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.nearTestNE = nearTestNE;
+var _consoleShort = require("../misc/console-short.js");
+var _neMove = require("../tiles/ne/ne-move.js");
+var _verticallyNear = require("./vertically-near.js");
+var _hexRoutines = require("../tiles/hex-routines.js");
+// checkNearNE()
+function nearTestNE(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
+  let this_hex_plus_100 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 + 100, ndx_z);
+  let this_hex_plus_50 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 + 50, ndx_z);
+  let this_hex_minus_50 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 - 50, ndx_z);
+  let this_hex_minus_100 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 - 100, ndx_z);
+  let this_hex_same = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 + 0, ndx_z);
+  let move_result;
+  if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_plus_100)) {
+    move_result = (0, _neMove.leaveTileNE)(the_objects, this_hex_plus_100, prev_hex, is_a_trampoline);
+  } else if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_plus_50)) {
+    move_result = (0, _neMove.leaveTileNE)(the_objects, this_hex_plus_50, prev_hex, is_a_trampoline);
+  } else if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_minus_50)) {
+    move_result = (0, _neMove.leaveTileNE)(the_objects, this_hex_minus_50, prev_hex, is_a_trampoline);
+  } else if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_minus_100)) {
+    move_result = (0, _neMove.leaveTileNE)(the_objects, this_hex_minus_100, prev_hex, is_a_trampoline);
+  } else {
+    move_result = (0, _neMove.leaveTileNE)(the_objects, this_hex_same, prev_hex, is_a_trampoline);
+  }
+  return move_result;
+}
+
+},{"../misc/console-short.js":28,"../tiles/hex-routines.js":38,"../tiles/ne/ne-move.js":41,"./vertically-near.js":18}],11:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.nearTestNN = nearTestNN;
+var _consoleShort = require("../misc/console-short.js");
+var _nnMove = require("../tiles/nn/nn-move.js");
+var _verticallyNear = require("./vertically-near.js");
+var _hexRoutines = require("../tiles/hex-routines.js");
+function nearTestNN(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
+  let this_hex_plus_100 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 + 100, ndx_z);
+  //  let this_hex_plus_50 = hexIndex(ndx_x, ndx_y100 + 50, ndx_z);
+  //let this_hex_minus_50 = hexIndex(ndx_x, ndx_y100 - 50, ndx_z);
+  let this_hex_minus_100 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 - 100, ndx_z);
+  let this_hex_same = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 + 0, ndx_z);
+  let move_result;
+  if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_plus_100)) {
+    move_result = (0, _nnMove.leaveTileNN)(the_objects, this_hex_plus_100, prev_hex, is_a_trampoline);
+    //} else if (isVerticallyNear2(the_objects, this_hex_plus_50)) {
+    //     move_result = leaveTileNN(the_objects, this_hex_plus_50, prev_hex, is_a_trampoline);
+    // } else if (isVerticallyNear2(the_objects, this_hex_minus_50)) {
+    //     move_result = leaveTileNN(the_objects, this_hex_minus_50, prev_hex, is_a_trampoline);
+  } else if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_minus_100)) {
+    move_result = (0, _nnMove.leaveTileNN)(the_objects, this_hex_minus_100, prev_hex, is_a_trampoline);
+  } else {
+    move_result = (0, _nnMove.leaveTileNN)(the_objects, this_hex_same, prev_hex, is_a_trampoline);
+  }
+  return move_result;
+}
+
+},{"../misc/console-short.js":28,"../tiles/hex-routines.js":38,"../tiles/nn/nn-move.js":43,"./vertically-near.js":18}],12:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.nearTestNW = nearTestNW;
+var _consoleShort = require("../misc/console-short.js");
+var _nwMove = require("../tiles/nw/nw-move.js");
+var _verticallyNear = require("./vertically-near.js");
+var _hexRoutines = require("../tiles/hex-routines.js");
+// checkNearNW()
+function nearTestNW(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
+  let this_hex_plus_100 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 + 100, ndx_z);
+  let this_hex_plus_50 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 + 50, ndx_z);
+  let this_hex_minus_50 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 - 50, ndx_z);
+  let this_hex_minus_100 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 - 100, ndx_z);
+  let this_hex_same = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 + 0, ndx_z);
+  let move_result;
+  if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_plus_100)) {
+    move_result = (0, _nwMove.leaveTileNW)(the_objects, this_hex_plus_100, prev_hex, is_a_trampoline);
+  } else if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_plus_50)) {
+    move_result = (0, _nwMove.leaveTileNW)(the_objects, this_hex_plus_50, prev_hex, is_a_trampoline);
+  } else if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_minus_50)) {
+    move_result = (0, _nwMove.leaveTileNW)(the_objects, this_hex_minus_50, prev_hex, is_a_trampoline);
+  } else if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_minus_100)) {
+    move_result = (0, _nwMove.leaveTileNW)(the_objects, this_hex_minus_100, prev_hex, is_a_trampoline);
+  } else {
+    move_result = (0, _nwMove.leaveTileNW)(the_objects, this_hex_same, prev_hex, is_a_trampoline);
+  }
+  return move_result;
+}
+
+},{"../misc/console-short.js":28,"../tiles/hex-routines.js":38,"../tiles/nw/nw-move.js":45,"./vertically-near.js":18}],13:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.nearTestSE = nearTestSE;
+var _consoleShort = require("../misc/console-short.js");
+var _seMove = require("../tiles/se/se-move.js");
+var _verticallyNear = require("./vertically-near.js");
+var _hexRoutines = require("../tiles/hex-routines.js");
+// checkNearSE()
+function nearTestSE(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
+  let this_hex_plus_100 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 + 100, ndx_z);
+  let this_hex_plus_50 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 + 50, ndx_z);
+  let this_hex_minus_50 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 - 50, ndx_z);
+  let this_hex_minus_100 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 - 100, ndx_z);
+  let this_hex_same = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 + 0, ndx_z);
+  let move_result;
+  if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_plus_100)) {
+    move_result = (0, _seMove.leaveTileSE)(the_objects, this_hex_plus_100, prev_hex, is_a_trampoline);
+  } else if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_plus_50)) {
+    move_result = (0, _seMove.leaveTileSE)(the_objects, this_hex_plus_50, prev_hex, is_a_trampoline);
+  } else if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_minus_50)) {
+    move_result = (0, _seMove.leaveTileSE)(the_objects, this_hex_minus_50, prev_hex, is_a_trampoline);
+  } else if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_minus_100)) {
+    move_result = (0, _seMove.leaveTileSE)(the_objects, this_hex_minus_100, prev_hex, is_a_trampoline);
+  } else {
+    move_result = (0, _seMove.leaveTileSE)(the_objects, this_hex_same, prev_hex, is_a_trampoline);
+  }
+  return move_result;
+}
+
+},{"../misc/console-short.js":28,"../tiles/hex-routines.js":38,"../tiles/se/se-move.js":47,"./vertically-near.js":18}],14:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.nearTestSS = nearTestSS;
+var _consoleShort = require("../misc/console-short.js");
+var _ssMove = require("../tiles/ss/ss-move.js");
+var _verticallyNear = require("./vertically-near.js");
+var _hexRoutines = require("../tiles/hex-routines.js");
+// checkNearSS()
+function nearTestSS(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
+  let this_hex_plus_100 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 + 100, ndx_z);
+  let this_hex_plus_50 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 + 50, ndx_z);
+  let this_hex_minus_50 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 - 50, ndx_z);
+  let this_hex_minus_100 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 - 100, ndx_z);
+  let this_hex_same = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 + 0, ndx_z);
+  let move_result;
+  if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_plus_100)) {
+    move_result = (0, _ssMove.leaveTileSS)(the_objects, this_hex_plus_100, prev_hex, is_a_trampoline);
+  } else if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_plus_50)) {
+    move_result = (0, _ssMove.leaveTileSS)(the_objects, this_hex_plus_50, prev_hex, is_a_trampoline);
+  } else if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_minus_50)) {
+    move_result = (0, _ssMove.leaveTileSS)(the_objects, this_hex_minus_50, prev_hex, is_a_trampoline);
+  } else if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_minus_100)) {
+    move_result = (0, _ssMove.leaveTileSS)(the_objects, this_hex_minus_100, prev_hex, is_a_trampoline);
+  } else {
+    move_result = (0, _ssMove.leaveTileSS)(the_objects, this_hex_same, prev_hex, is_a_trampoline);
+  }
+  return move_result;
+}
+
+},{"../misc/console-short.js":28,"../tiles/hex-routines.js":38,"../tiles/ss/ss-move.js":49,"./vertically-near.js":18}],15:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.nearTestSW = nearTestSW;
+var _consoleShort = require("../misc/console-short.js");
+var _swMove = require("../tiles/sw/sw-move.js");
+var _verticallyNear = require("./vertically-near.js");
+var _hexRoutines = require("../tiles/hex-routines.js");
+// checkNearSW()
+function nearTestSW(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
+  let this_hex_plus_100 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 + 100, ndx_z);
+  let this_hex_plus_50 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 + 50, ndx_z);
+  let this_hex_minus_50 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 - 50, ndx_z);
+  let this_hex_minus_100 = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 - 100, ndx_z);
+  let this_hex_same = (0, _hexRoutines.hexIndex)(ndx_x, ndx_y100 + 0, ndx_z);
+  let move_result;
+  if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_plus_100)) {
+    move_result = (0, _swMove.leaveTileSW)(the_objects, this_hex_plus_100, prev_hex, is_a_trampoline);
+  } else if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_plus_50)) {
+    move_result = (0, _swMove.leaveTileSW)(the_objects, this_hex_plus_50, prev_hex, is_a_trampoline);
+  } else if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_minus_50)) {
+    move_result = (0, _swMove.leaveTileSW)(the_objects, this_hex_minus_50, prev_hex, is_a_trampoline);
+  } else if ((0, _verticallyNear.isVerticallyNear2)(the_objects, this_hex_minus_100)) {
+    move_result = (0, _swMove.leaveTileSW)(the_objects, this_hex_minus_100, prev_hex, is_a_trampoline);
+  } else {
+    move_result = (0, _swMove.leaveTileSW)(the_objects, this_hex_same, prev_hex, is_a_trampoline);
+  }
+  return move_result;
+}
+
+},{"../misc/console-short.js":28,"../tiles/hex-routines.js":38,"../tiles/sw/sw-move.js":51,"./vertically-near.js":18}],16:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 exports.makeControls = makeControls;
 exports.moveKeys = moveKeys;
 var _consoleShort = require("../misc/console-short.js");
@@ -21674,9 +22038,16 @@ function makeControls(g_camera, e_enemy_points, e_do_click) {
     if (event.button === 0) {
       g_key_controls.lock();
       e_do_click.was_clicked = true;
-    } else if (event.button === 2) {
-      event.preventDefault();
+    }
+  });
+  function handleContext(event) {
+    event.preventDefault();
+  }
+  document.addEventListener("contextmenu", handleContext);
+  document.body.addEventListener("pointerdown", () => {
+    if (event.button === 2) {
       g_key_controls.unlock();
+      removeEventListener("contextmenu", handleContext);
     }
   });
   document.addEventListener("keydown", onKeyDown);
@@ -21694,29 +22065,37 @@ function moveKeys(delta, g_key_controls) {
   if (moveRight) g_key_controls.moveRight(speed);
 }
 
-},{"../misc/console-short.js":17,"../values/move-consts.js":50,"three/examples/jsm/controls/PointerLockControls.js":4}],8:[function(require,module,exports){
+},{"../misc/console-short.js":28,"../values/move-consts.js":60,"three/examples/jsm/controls/PointerLockControls.js":4}],17:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.PerspCamera = PerspCamera;
+exports.camVectCoords = camVectCoords;
 exports.followCamera = followCamera;
+exports.moveCamera = moveCamera;
 exports.projMatrix = projMatrix;
 var _consoleShort = require("../misc/console-short.js");
 var THREE = _interopRequireWildcard(require("three"));
+var _walkwayHeights = require("../walkways/walkway-heights.js");
+var _keyControls = require("../controls/key-controls.js");
 var _theConstants = require("../values/the-constants.js");
 var _moveConsts = require("../values/move-consts.js");
 var _hexTile = require("../tiles/hex-tile.js");
 var _hexRoutines = require("../tiles/hex-routines.js");
-var _camAdjust = require("../tiles/cam-adjust/camAdjust.js");
-var _colorsTiles = require("../tiles/colors-tiles.js");
-var _trampolineMoves = require("../vertical-movement/trampoline-moves.js");
-var _playerMoves = require("../vertical-movement/player-moves.js");
+var _cameraAdjust = require("./camera-adjust.js");
+var _colorsTiles = require("../colors/colors-tiles.js");
+var _trampolineMoves = require("../trampolines/trampoline-moves.js");
+var _playerMoves = require("../trampolines/player-moves.js");
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
 function followCamera(the_objects, frame_vars, e_do_click, g_camera) {
+  //
   function isWalkwayClick() {
-    const on_walkway = f_move_result == _theConstants.MV_TILE_SAME || f_move_result == _theConstants.MV_TILE_NEW || f_move_result == _theConstants.MV_FENCE_BLOCKED;
+    const tile_same = f_move_result == _theConstants.MV_TILE_SAME;
+    const tile_new = f_move_result == _theConstants.MV_TILE_NEW;
+    const tile_blocked = f_move_result == _theConstants.MV_FENCE_BLOCKED;
+    const on_walkway = tile_same || tile_new || tile_blocked;
     const MV_CLICK_ON_WALKWAY = e_do_click.was_clicked && on_walkway;
     return MV_CLICK_ON_WALKWAY;
   }
@@ -21752,7 +22131,7 @@ function followCamera(the_objects, frame_vars, e_do_click, g_camera) {
     return f_move_result == _theConstants.MV_FALL_STEP_OFF;
   }
   function doStepOff() {
-    f_move_result = (0, _camAdjust.transition2NewTile)(the_objects, f_prev_coords, f_this_coords, false);
+    f_move_result = (0, _cameraAdjust.transition2NewTile)(the_objects, f_prev_coords, f_this_coords, false);
     [f_move_result, f_y100_height] = (0, _playerMoves.doFallPlayer)(fall_data);
   }
   function isStartTrampoline() {
@@ -21790,12 +22169,24 @@ function followCamera(the_objects, frame_vars, e_do_click, g_camera) {
     }
     f_move_result = changed_move;
   }
+
+  // qbert maybe not need as we now have one exit...
+  function isFenceBlockedNew(f_move_result) {
+    const is_nw_blocked = f_move_result == NW_14_BLOCKED;
+    const is_nn_blocked = f_move_result == NN_14_BLOCKED;
+    const is_ne_blocked = f_move_result == NE_14_BLOCKED;
+    const is_se_blocked = f_move_result == SE_14_BLOCKED;
+    const is_ss_blocked = f_move_result == SS_14_BLOCKED;
+    const is_sw_blocked = f_move_result == SW_14_BLOCKED;
+    const is_blocked = is_nw_blocked || is_nn_blocked || is_ne_blocked || is_se_blocked || is_ss_blocked || is_sw_blocked;
+    return is_blocked;
+  }
   function isFenceBlocked() {
     return f_move_result == _theConstants.MV_FENCE_BLOCKED;
   }
   function doFenceBlock() {
     let is_a_trampoline = false;
-    f_move_result = (0, _camAdjust.transition2NewTile)(the_objects, f_prev_coords, f_this_coords, is_a_trampoline);
+    f_move_result = (0, _cameraAdjust.transition2NewTile)(the_objects, f_prev_coords, f_this_coords, is_a_trampoline);
     g_camera.position.x = f_prev_coords.x;
     g_camera.position.z = f_prev_coords.z;
   }
@@ -21807,7 +22198,7 @@ function followCamera(the_objects, frame_vars, e_do_click, g_camera) {
       o_trampolines
     } = the_objects;
     let is_a_trampoline = o_trampolines.has(f_this_hex);
-    f_move_result = (0, _camAdjust.transition2NewTile)(the_objects, f_prev_coords, f_this_coords, is_a_trampoline);
+    f_move_result = (0, _cameraAdjust.transition2NewTile)(the_objects, f_prev_coords, f_this_coords, is_a_trampoline);
     if (is_a_trampoline) {
       f_step_iterations = _moveConsts.TRAMPOLINE_ITERATIONS;
     }
@@ -21817,7 +22208,7 @@ function followCamera(the_objects, frame_vars, e_do_click, g_camera) {
     return f_move_result == _theConstants.MV_TILE_NEW;
   }
   function doSameTile(the_objects) {
-    f_move_result = (0, _camAdjust.transition2NewTile)(the_objects, f_prev_coords, f_this_coords, false);
+    f_move_result = (0, _cameraAdjust.transition2NewTile)(the_objects, f_prev_coords, f_this_coords, false);
     (0, _colorsTiles.flipTileColorG)(the_objects, f_this_hex, f_prev_hex);
   }
 
@@ -21839,11 +22230,11 @@ function followCamera(the_objects, frame_vars, e_do_click, g_camera) {
   } = frame_vars;
   let changed_move;
   let [ndx_x, ndx_z] = (0, _hexTile.coords2Indexes)(f_cam_vect.x, f_cam_vect.z);
-  f_this_hex = (0, _hexRoutines.hexIndex)(ndx_x, f_y100_height, ndx_z);
   let {
     o_walkway_tiles,
     o_trampolines
   } = the_objects;
+  f_this_hex = (0, _hexRoutines.hexIndex)(ndx_x, f_y100_height, ndx_z);
   let fall_data = {
     o_walkway_tiles,
     o_trampolines,
@@ -21868,6 +22259,16 @@ function followCamera(the_objects, frame_vars, e_do_click, g_camera) {
   } else if (isFenceBlocked()) {
     doFenceBlock();
   } else if (isOnNewTile()) {
+    let low = `${ndx_x},${f_y100_height - 100},${ndx_z}`;
+    let med = `${ndx_x},${f_y100_height},${ndx_z}`;
+    let high = `${ndx_x},${f_y100_height + 100},${ndx_z}`;
+    if (o_walkway_tiles.has(low)) {
+      f_y100_height -= 100;
+    }
+    if (o_walkway_tiles.has(high)) {
+      f_y100_height += 100;
+      g_camera.position.y = f_y100_height / 100 + _theConstants.GET_ABOVE_TILES + 0;
+    }
     doNewTile(the_objects);
   } else {
     //_isOnSameTile();
@@ -21904,149 +22305,160 @@ function projMatrix(the_camera, width_height) {
   the_camera.aspect = camera_aspect;
   the_camera.updateProjectionMatrix();
 }
+function moveCamera(the_globals, the_objects, f_this_coords, f_y100_height, f_move_result) {
+  let {
+    g_key_controls,
+    g_camera,
+    g_clock,
+    g_vector_3
+  } = the_globals;
+  let o_walkway_tiles = the_objects.o_walkway_tiles;
+  const clock_delta = g_clock.getDelta();
+  g_camera.getWorldDirection(g_vector_3);
+  if (f_move_result == _theConstants.MV_RISE_JUMP_STRAIGHT || f_move_result == _theConstants.MV_FALL_JUMP_STRAIGHT) {
+    g_key_controls.enabled = false;
+  } else {
+    g_key_controls.enabled = true;
+    (0, _keyControls.moveKeys)(clock_delta, g_key_controls);
+  }
+  const inc_y = (0, _walkwayHeights.walkwayIncline)(o_walkway_tiles, f_this_coords);
+  g_camera.position.y = f_y100_height / 100 + _theConstants.GET_ABOVE_TILES + inc_y;
+  return g_camera;
+}
+function camVectCoords(g_camera, f_y100_height) {
+  const f_cam_vect = g_camera.position;
+  let f_this_coords = {
+    x: f_cam_vect.x,
+    y: f_y100_height,
+    z: f_cam_vect.z
+  };
+  return [f_cam_vect, f_this_coords];
+}
 
-},{"../misc/console-short.js":17,"../tiles/cam-adjust/camAdjust.js":27,"../tiles/colors-tiles.js":28,"../tiles/hex-routines.js":30,"../tiles/hex-tile.js":31,"../values/move-consts.js":50,"../values/the-constants.js":52,"../vertical-movement/player-moves.js":54,"../vertical-movement/trampoline-moves.js":58,"three":3}],9:[function(require,module,exports){
+},{"../colors/colors-tiles.js":7,"../controls/key-controls.js":16,"../misc/console-short.js":28,"../tiles/hex-routines.js":38,"../tiles/hex-tile.js":39,"../trampolines/player-moves.js":54,"../trampolines/trampoline-moves.js":58,"../values/move-consts.js":60,"../values/the-constants.js":62,"../walkways/walkway-heights.js":65,"./camera-adjust.js":9,"three":3}],18:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.buildFence = buildFence;
-Object.defineProperty(exports, "coords2Indexes", {
-  enumerable: true,
-  get: function () {
-    return _hexMaths.coords2Indexes;
+exports.isVerticallyNear2 = isVerticallyNear2;
+var _hexRoutines = require("../tiles/hex-routines.js");
+function isVerticallyNear2(the_objects, this_hex) {
+  const o_walkway_tiles = the_objects.o_walkway_tiles;
+  if (o_walkway_tiles.has(this_hex)) {
+    return true;
   }
+  return false;
+}
+
+},{"../tiles/hex-routines.js":38}],19:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
 });
-exports.fenceRectangles = fenceRectangles;
-exports.squarePoints = squarePoints;
-Object.defineProperty(exports, "tileCenterCoord", {
-  enumerable: true,
-  get: function () {
-    return _hexMaths.tileCenterCoord;
-  }
-});
+exports.corePanePoints = corePanePoints;
+exports.corePaneTriangles = corePaneTriangles;
+exports.fenceMesh = fenceMesh;
+exports.hex2Fence = hex2Fence;
+exports.opposingFenceLocation = opposingFenceLocation;
 var _consoleShort = require("../misc/console-short.js");
 var THREE = _interopRequireWildcard(require("three"));
-var _fenceMesh = require("./fence-mesh.js");
-var _tileMesh = require("../tiles/tile-mesh.js");
-var _colorConsts = require("../values/color-consts.js");
-var _theConstants = require("../values/the-constants.js");
 var _hexMaths = require("../misc/hex-maths.js");
+var _theConstants = require("../values/the-constants.js");
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-function buildFence(g_scene, object_meshes, o_fence_walls, x_y_z_1, x_y_z_2, fence_position, fence_height) {
-  const [x1_index, y1_index, z1_index] = x_y_z_1;
-  const [x2_index, y2_index, z2_index] = x_y_z_2;
-  const xyz1_index = `${x1_index},${y1_index},${z1_index}`;
-  const xyz2_index = `${x2_index},${y2_index},${z2_index}`;
-  const xyz_index = `${xyz1_index}${_theConstants.HEX_PAIR_DIVIDER}${xyz2_index}`;
-  let [x_center, z_center] = (0, _hexMaths.tileCenterCoord)(x1_index, z1_index);
-  const tile_radius = 1;
-  const a_tile = new THREE.Group();
-  a_tile.position.set(x_center, 0, z_center);
-  const square_points = squarePoints(tile_radius, y1_index, fence_position, fence_height);
-  o_fence_walls = offsetfencePoints(o_fence_walls, x_y_z_1, x_y_z_2, fence_position, square_points);
-  const top_triangles = fenceRectangles(square_points);
-  (0, _tileMesh.tileMesh)(a_tile, top_triangles, _colorConsts.BARRIER_MIDDLE_COLOR, _colorConsts.BARRIER_EDGE_COLOR);
-  g_scene.add(a_tile);
-  (0, _fenceMesh.fenceCoords)(a_tile, x_y_z_1, fence_position, fence_height);
-  object_meshes.set(xyz_index, a_tile);
-  return [object_meshes, o_fence_walls];
+function fenceMesh(fence_group, vertices_list, core_color, edge_color, is_transparent) {
+  const core_geometry = coreGeometry(vertices_list);
+  let core_material;
+  if (is_transparent == _theConstants.IS_TRANSPARENT) {
+    core_material = new THREE.MeshLambertMaterial({
+      color: core_color,
+      opacity: 0.3,
+      transparent: true
+    });
+  } else {
+    core_material = new THREE.MeshLambertMaterial({
+      color: core_color,
+      opacity: 1
+    });
+  }
+  core_material.side = THREE.DoubleSide;
+  const fence_mesh = new THREE.Mesh(core_geometry, core_material);
+  fence_mesh.name = _theConstants.FENCE_PART;
+  const edge_geometry = new THREE.EdgesGeometry(core_geometry);
+  const edge_material = new THREE.LineBasicMaterial({
+    color: edge_color
+  });
+  edge_material.side = THREE.DoubleSide;
+  const fence_lines = new THREE.LineSegments(edge_geometry, edge_material);
+  fence_mesh.add(fence_lines);
+  fence_group.add(fence_mesh);
 }
-
-/*
-a_fence = [ {x_ndx:0, z_ndx:0}, {x_ndx:0, z_ndx:-1} ]
-
-                             /---------\
-                            /           \       
-                           /     0,-1    \ 
-                           \             /
-                            \           /      
-                             \---------/
-                               fence  
-                             /---------\
-                            /           \       
-                           /     0,0     \ 
-                           \             /
-                            \           /      
-                             \---------/
-                            
-*/
-
-function fenceRectangles(hex_points) {
-  const [top_left, top_right, bot_right, bot_left] = hex_points;
+function coreGeometry(vertices_list) {
+  const float_vertices = new Float32Array(vertices_list);
+  const core_geometry = new THREE.BufferGeometry();
+  core_geometry.setAttribute("position", new THREE.Float32BufferAttribute(float_vertices, 3));
+  return core_geometry;
+}
+function opposingFenceLocation(fence_position) {
+  let opposing_location;
+  if (fence_position == _theConstants.FENCE_NW) {
+    opposing_location = _theConstants.FENCE_SE;
+  } else if (fence_position == _theConstants.FENCE_NN) {
+    opposing_location = _theConstants.FENCE_SS;
+  } else if (fence_position == _theConstants.FENCE_NE) {
+    opposing_location = _theConstants.FENCE_SW;
+  } else if (fence_position == _theConstants.FENCE_SE) {
+    opposing_location = _theConstants.FENCE_NW;
+  } else if (fence_position == _theConstants.FENCE_SS) {
+    opposing_location = _theConstants.FENCE_NN;
+  } else if (fence_position == _theConstants.FENCE_SW) {
+    opposing_location = _theConstants.FENCE_NE;
+  }
+  return opposing_location;
+}
+function corePaneTriangles(pane_points) {
+  const [top_left, top_right, bot_right, bot_left] = pane_points;
   const square_up_left = [...bot_left, ...top_left, ...top_right];
   const square_down_right = [...bot_left, ...top_right, ...bot_right];
-  const hexagon_triangles = [...square_up_left, ...square_down_right];
-  return hexagon_triangles;
+  const pain_triangle_list = [...square_up_left, ...square_down_right];
+  return pain_triangle_list;
 }
-
-//    ["000", "010", "000", "green", TILT_NN, 10], just the objects
-
-function offsetfencePoints(stair_tiles, x_y_z_1, x_y_z_2, fence_position, square_points) {
-  //function offsetfencePoints(stair_tiles, x_y_z, fence_position, square_points) {
-  const [x1_index, y1_index, z1_index] = x_y_z_1;
-  const [x2_index, y2_index, z2_index] = x_y_z_2;
-  //const [x_index, y_index, z_index] = x_y_z;
-
-  const xyz1_index = `${x1_index},${y1_index},${z1_index}`;
-  const xyz2_index = `${x2_index},${y2_index},${z2_index}`;
-  //const xyz_index = `${x_index},${y_index},${z_index}`;
-
-  let [x_center, z_center] = (0, _hexMaths.tileCenterCoord)(x1_index, z1_index);
-  let tile_positions = [];
-  for (let i = 0; i < square_points.length; i++) {
-    let tile_point = square_points[i];
+function hex2Fence(o_fence_walls, mesh_index, x_y_z_a, fence_position, fence_vertices) {
+  const [x_index, y_index, z_index] = x_y_z_a;
+  const xyz_index = `${x_index},${y_index},${z_index}`;
+  let [x_center, z_center] = (0, _hexMaths.tileCenterCoord)(x_index, z_index);
+  let shifted_vertices = [];
+  for (let i = 0; i < fence_vertices.length; i++) {
+    let tile_point = fence_vertices[i];
     if (Array.isArray(tile_point)) {
       let [x, y, z] = tile_point;
       x = x + x_center;
       z = z + z_center;
-      tile_positions.push([x, y, z]);
+      shifted_vertices.push([x, y, z]);
     }
   }
-  let top_point_y = tile_positions[3][1];
-  let bottom_point_y = tile_positions[0][1];
-  if (top_point_y === bottom_point_y) {
-    top_point_y = top_point_y; // * 10;
-    bottom_point_y = top_point_y;
-  } else {
-    top_point_y = top_point_y; // * 10; // - 0.0001;
-    bottom_point_y = bottom_point_y; // * 10; // + 0.0001;
-  }
-  var tile_obj = {
+  let top_coord_y = shifted_vertices[3][1];
+  let bottom_coord_y = shifted_vertices[0][1];
+  var fence_obj = {
     x_center: x_center,
-    y_position: y1_index,
+    y_position: y_index,
     z_center: z_center,
-    // fence_side: square_position
     fence_side: fence_position,
-    tile_positions: tile_positions,
-    // square_positions
-    x_z: `${x1_index},${z1_index}`,
-    xyz1_index: xyz1_index,
-    xyz2_index: xyz2_index,
-    // xyz_index: xyz_index,
-
-    high_y: top_point_y,
-    // - 0.0001,
-    low_y: bottom_point_y // why?????????/
+    fence_vertices: shifted_vertices,
+    x_z: `${x_index},${z_index}`,
+    xyz_index: xyz_index,
+    high_y: top_coord_y,
+    low_y: bottom_coord_y
   };
-  const xyz_1_2_index = `${xyz1_index}${_theConstants.HEX_PAIR_DIVIDER}${xyz2_index}`;
-  stair_tiles.set(xyz_1_2_index, tile_obj);
-  const xyz_2_1_index = `${xyz2_index}${_theConstants.HEX_PAIR_DIVIDER}${xyz1_index}`;
-  stair_tiles.set(xyz_2_1_index, tile_obj);
-  return stair_tiles;
+  o_fence_walls.set(mesh_index, fence_obj);
+  return o_fence_walls;
 }
-
-// these must flip around
-function squarePoints(tile_radius, y_100_height, fence_position, fence_height) {
-  fence_height = fence_height / 1000;
+function corePanePoints(tile_radius, y_100_height, fence_position, fence_height_1000) {
+  const fence_height = fence_height_1000 / 1000;
   const y_height = y_100_height / 100;
-  tile_radius = tile_radius - 0.0; // - 0.2;
-
   const hex_dist = tile_radius * _theConstants.SQRT_3 / 2;
   const half_radius = tile_radius / 2;
-  var top_left, bot_left, top_rght, bot_rght; //, left_tip, rght_tip;
-
   const top_height = y_height + fence_height;
   const bot_height = y_height;
   const top_left_x = 0 - half_radius;
@@ -22061,7 +22473,12 @@ function squarePoints(tile_radius, y_100_height, fence_position, fence_height) {
   const bot_rght_z = 0 - hex_dist;
   const left_tip_z = 0;
   const rght_tip_z = 0;
+  let top_left, bot_left, top_rght, bot_rght;
   if (fence_position === _theConstants.FENCE_NN) {
+    // bot_rght = [bot_rght_x, bot_height, bot_rght_z];
+    // bot_left = [bot_left_x, bot_height, bot_left_z];
+    // top_rght = [bot_rght_x, top_height, bot_rght_z];
+    // top_left = [bot_left_x, top_height, bot_left_z];
     top_rght = [bot_rght_x, bot_height, bot_rght_z];
     top_left = [bot_left_x, bot_height, bot_left_z];
     bot_rght = [bot_rght_x, top_height, bot_rght_z];
@@ -22092,82 +22509,13 @@ function squarePoints(tile_radius, y_100_height, fence_position, fence_height) {
     bot_rght = [top_rght_x, top_height, top_rght_z];
     bot_left = [top_left_x, top_height, top_left_z];
   } else {
-    (0, _consoleShort.ee)("squarePoints unknown  fence_position==", fence_position);
+    (0, _consoleShort.ee)("corePanePoints() unknown fence_position==", fence_position);
   }
   const fence_corners = [top_left, top_rght, bot_rght, bot_left];
   return fence_corners;
 }
 
-},{"../misc/console-short.js":17,"../misc/hex-maths.js":19,"../tiles/tile-mesh.js":46,"../values/color-consts.js":49,"../values/the-constants.js":52,"./fence-mesh.js":10,"three":3}],10:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.fenceCoords = fenceCoords;
-var _consoleShort = require("../misc/console-short.js");
-var THREE = _interopRequireWildcard(require("three"));
-var _theConstants = require("../values/the-constants.js");
-var _FontLoader = require("three/examples/jsm/loaders/FontLoader.js");
-var _TextGeometry = require("three/examples/jsm/geometries/TextGeometry.js");
-var _helvetiker_regularTypeface = require("../misc/helvetiker_regular.typeface.js");
-function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-var loader2 = new _FontLoader.FontLoader();
-const WHITE_LABELS = 0xffffff;
-var the_font = loader2.parse(_helvetiker_regularTypeface.type_face);
-function fenceCoords(a_tile, x_y_z, fence_position, fence_height) {
-  const [x_index, y_index, z_index] = x_y_z;
-  var textMaterial = new THREE.MeshLambertMaterial({
-    emissive: 0xffffff,
-    color: WHITE_LABELS
-  });
-  const fence_text = `${x_index},${z_index}`; // ${fence_position}`;
-  var textGeometry = new _TextGeometry.TextGeometry(fence_text, {
-    font: the_font,
-    size: 0.2,
-    depth: 0,
-    curveSegments: 12
-  });
-  var text_mesh = new THREE.Mesh(textGeometry, textMaterial);
-  text_mesh.position.y = y_index + fence_height + 0.4;
-  if (fence_position != _theConstants.TILT_NONE) {
-    text_mesh.rotation.y = -Math.PI / 2;
-    text_mesh.rotation.z = -Math.PI / 2;
-  }
-  let x, z;
-  if (fence_position == _theConstants.TILT_NONE) {
-    x = -0.15;
-    z = 0.1;
-  } else if (fence_position == _theConstants.FENCE_NN) {
-    x = -0.15;
-    z = -0.55;
-  } else if (fence_position == _theConstants.FENCE_NE) {
-    x = 0.3;
-    z = -0.25;
-  } else if (fence_position == _theConstants.FENCE_SE) {
-    x = 1;
-    z = 0.4;
-    //text_mesh.position.y -= 0.1;
-  } else if (fence_position == _theConstants.FENCE_SS) {
-    x = -0.15;
-    z = 0.48;
-  } else if (fence_position == _theConstants.FENCE_SW) {
-    x = -0.6;
-    z = 0.4;
-  } else if (fence_position == _theConstants.FENCE_NW) {
-    x = +0.9;
-    z = 0.25;
-  } else {
-    (0, _consoleShort.ee)(" fenceCoords() unknown fence_position", fence_position);
-  }
-  text_mesh.position.x = x;
-  text_mesh.position.z = z;
-  a_tile.add(text_mesh);
-}
-
-//, tileMesh };
-
-},{"../misc/console-short.js":17,"../misc/helvetiker_regular.typeface.js":18,"../values/the-constants.js":52,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}],11:[function(require,module,exports){
+},{"../misc/console-short.js":28,"../misc/hex-maths.js":30,"../values/the-constants.js":62,"three":3}],20:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -22175,26 +22523,54 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.makeFences = makeFences;
 var _consoleShort = require("../misc/console-short.js");
+var THREE = _interopRequireWildcard(require("three"));
+var _colorConsts = require("../values/color-consts.js");
 var _theConstants = require("../values/the-constants.js");
 var _fenceCoords = require("./fence-coords.js");
-//  buildBarrier
+var _hexMaths = require("../misc/hex-maths.js");
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
+const FENCE_HEX_RADIUS = 0.8; // 1 is the normal
 
-function xyz2int(fence_xyz) {
+function xyzHexNdx2Int(fence_xyz) {
   const [x_str, y_str, z_str] = fence_xyz;
   const x_index = parseInt(x_str);
   const y_index = parseInt(y_str);
   const z_index = parseInt(z_str);
-  const ramp_xyz = [x_index, y_index, z_index];
-  return ramp_xyz;
+  const xyz_hex_ndx = [x_index, y_index, z_index];
+  return xyz_hex_ndx;
 }
-function makeFences(g_scene, object_meshes, fence_ndxs, o_fence_walls, fence_columns) {
-  for (var i = 0; i < fence_ndxs.length; i++) {
-    const fence_pair = fence_ndxs[i];
-    const fence_a = xyz2int(fence_pair[0]);
-    const fence_b = xyz2int(fence_pair[1]);
+function makeFences(g_scene, o_object_meshes, o_fence_ndxs, o_fence_walls, o_fence_columns) {
+  [o_object_meshes, o_fence_walls] = makeFencePairs(g_scene, o_object_meshes, o_fence_ndxs, o_fence_walls);
+  var o_fence_columns = new Map();
+  for (const [_key, one_pane_of_fence] of o_fence_walls) {
+    const {
+      x_z,
+      xyz_index
+    } = one_pane_of_fence;
+    const missing_x_z_column = !o_fence_columns.has(x_z);
+    if (missing_x_z_column) {
+      let empty_x_z_column = new Map();
+      o_fence_columns.set(x_z, empty_x_z_column);
+    }
+    let cur_x_z_column = o_fence_columns.get(x_z);
+    const [x_index, z_index] = x_z.split(",");
+    let low_y_10 = one_pane_of_fence.low_y * 10;
+    let high_y_10 = one_pane_of_fence.high_y * 10;
+    for (let y_10_index = low_y_10; y_10_index <= high_y_10; y_10_index++) {
+      const a_y_index = `${x_index},${y_10_index / 10},${z_index}`;
+      cur_x_z_column.set(a_y_index, xyz_index);
+    }
+  }
+  return [o_object_meshes, o_fence_walls, o_fence_columns];
+}
+function makeFencePairs(g_scene, o_object_meshes, o_fence_ndxs, o_fence_walls) {
+  for (var i = 0; i < o_fence_ndxs.length; i++) {
+    const fence_pair = o_fence_ndxs[i];
+    const fence_ndx_a = xyzHexNdx2Int(fence_pair[0]);
+    const fence_ndx_b = xyzHexNdx2Int(fence_pair[1]);
     const fence_height = parseInt(fence_pair[2]);
-    const [x_a, _y_a, z_a] = fence_a;
-    const [x_b, _y_b, z_b] = fence_b;
+    const [x_a, _y_a, z_a] = fence_ndx_a;
+    const [x_b, _y_b, z_b] = fence_ndx_b;
     let fence_position;
     if (x_a == x_b) {
       if (z_a > z_b) {
@@ -22215,30 +22591,96 @@ function makeFences(g_scene, object_meshes, fence_ndxs, o_fence_walls, fence_col
         fence_position = _theConstants.FENCE_NE;
       }
     }
-    [object_meshes, o_fence_walls] = (0, _fenceCoords.buildFence)(g_scene, object_meshes, o_fence_walls, fence_a, fence_b, fence_position, fence_height);
+    [o_object_meshes, o_fence_walls] = buildFencePanes(g_scene, o_object_meshes, o_fence_walls, fence_ndx_a, fence_ndx_b, fence_position, fence_height);
   }
-  var fence_columns = new Map();
-  for (const [_key, a_fence] of o_fence_walls) {
-    const x_z = a_fence.x_z;
-    const xyz_index = a_fence.xyz_index;
-    const missins_x_z_column = !fence_columns.has(x_z);
-    if (missins_x_z_column) {
-      let empty_x_z_column = new Map();
-      fence_columns.set(x_z, empty_x_z_column);
-    }
-    let cur_x_z_column = fence_columns.get(x_z);
-    const [x_index, z_index] = x_z.split(",");
-    let low_y_10 = a_fence.low_y * 10;
-    let high_y_10 = a_fence.high_y * 10;
-    for (let y_10_index = low_y_10; y_10_index <= high_y_10; y_10_index++) {
-      const a_y_index = `${x_index},${y_10_index / 10},${z_index}`;
-      cur_x_z_column.set(a_y_index, xyz_index);
-    }
+  return [o_object_meshes, o_fence_walls];
+}
+function buildFencePanes(g_scene, o_object_meshes, o_fence_walls, x_y_z_a, x_y_z_b, fence_position, fence_height) {
+  const [x_index_a, y_index_a, z_index_a] = x_y_z_a;
+  const [x_index_b, y_index_b, z_index_b] = x_y_z_b;
+  const xyz_index_a = `${x_index_a},${y_index_a},${z_index_a}`;
+  const xyz_index_b = `${x_index_b},${y_index_b},${z_index_b}`;
+  const mesh_index_a = `${xyz_index_a}${_theConstants.HEX_PAIR_DIVIDER}${xyz_index_b}`;
+  const mesh_index_b = `${xyz_index_b}${_theConstants.HEX_PAIR_DIVIDER}${xyz_index_a}`;
+  let core_a = verticalPane(g_scene, o_object_meshes, o_fence_walls, mesh_index_a, x_y_z_a, fence_position, fence_height);
+  let oppose_position = (0, _fenceCoords.opposingFenceLocation)(fence_position);
+  let core_b = verticalPane(g_scene, o_object_meshes, o_fence_walls, mesh_index_b, x_y_z_b, oppose_position, fence_height);
+  edgePanes(g_scene, core_a, core_b);
+  return [o_object_meshes, o_fence_walls];
+}
+function verticalPane(g_scene, object_meshes, o_fence_walls, mesh_index, x_y_z, fence_position, fence_height) {
+  const [x_index, y_index, z_index] = x_y_z;
+  let [x_center, z_center] = (0, _hexMaths.tileCenterCoord)(x_index, z_index);
+  const vertical_pane = new THREE.Group();
+  vertical_pane.position.set(x_center, 0, z_center);
+  const pane_points = (0, _fenceCoords.corePanePoints)(FENCE_HEX_RADIUS, y_index, fence_position, fence_height);
+  o_fence_walls = (0, _fenceCoords.hex2Fence)(o_fence_walls, mesh_index, x_y_z, fence_position, pane_points);
+  const two_pane_triangles = (0, _fenceCoords.corePaneTriangles)(pane_points);
+  (0, _fenceCoords.fenceMesh)(vertical_pane, two_pane_triangles, _colorConsts.BARRIER_MIDDLE_COLOR, _colorConsts.BARRIER_EDGE_COLOR);
+  g_scene.add(vertical_pane);
+  object_meshes.set(mesh_index, vertical_pane);
+  let [x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, x5, y5, z5, x6, y6, z6] = two_pane_triangles;
+  let point_1 = [x1 + x_center, y1, z1 + z_center];
+  let point_2 = [x2 + x_center, y2, z2 + z_center];
+  let point_3 = [x3 + x_center, y3, z3 + z_center];
+  let point_4 = [x4 + x_center, y4, z4 + z_center];
+  let point_5 = [x5 + x_center, y5, z5 + z_center];
+  let point_6 = [x6 + x_center, y6, z6 + z_center];
+  let shifted_xz_triangles = [...point_1, ...point_2, ...point_3, ...point_4, ...point_5, ...point_6];
+  return shifted_xz_triangles;
+}
+function edgePanes(g_scene, core_a, core_b) {
+  const edge_panes = new THREE.Group();
+  let a_top_rite = [core_a[0], core_a[1], core_a[2]];
+  let a_bot_rite = [core_a[3], core_a[4], core_a[5]];
+  let a_bot_left = [core_a[6], core_a[7], core_a[8]];
+  let _______a_4 = [core_a[9], core_a[10], core_a[11]];
+  let _______a_5 = [core_a[12], core_a[13], core_a[14]];
+  let a_top_left = [core_a[15], core_a[16], core_a[17]];
+  let is_NN_or_SS = core_a[2] == core_a[17];
+  if (is_NN_or_SS) {
+    let temp_a_top_rite = a_top_rite;
+    let temp_a_bot_rite = a_bot_rite;
+    let temp_a_top_left = a_top_left;
+    let temp_a_bot_left = a_bot_left;
+    a_top_rite = temp_a_top_left;
+    a_bot_rite = temp_a_bot_left;
+    a_bot_left = temp_a_bot_rite;
+    a_top_left = temp_a_top_rite;
   }
-  return [object_meshes, o_fence_walls, fence_columns];
+
+  // a_top_rite = [core_a[0], core_a[1], core_a[2]];
+  // a_bot_rite = [core_a[3], core_a[4], core_a[5]];
+  // a_bot_left = [core_a[6], core_a[7], core_a[8]];
+  // _______a_4 = [core_a[9], core_a[10], core_a[11]];
+  // _______a_5 = [core_a[12], core_a[13], core_a[14]];
+  // a_top_left = [core_a[15], core_a[16], core_a[17]];
+
+  // let is_NN_or_SS =core_a[2] == core_a[17];
+  // if (core_a[2] == core_a[17]) {
+  //     console.log("a_top_rite", a_top_rite);
+  //     console.log("a_top_left", a_top_left);
+  // }
+  // if (a_top_rite[2] == a_top_left[2]) {
+  //     console.log("a_top_rite", a_top_rite);
+  //     console.log("a_top_left", a_top_left);
+  // }
+  let b_top_rite = [core_b[0], core_b[1], core_b[2]];
+  let b_bot_rite = [core_b[3], core_b[4], core_b[5]];
+  let b_bot_left = [core_b[6], core_b[7], core_b[8]];
+  let _______b_4 = [core_b[9], core_b[10], core_b[11]];
+  let _______b_5 = [core_b[12], core_b[13], core_b[14]];
+  let b_top_left = [core_b[15], core_b[16], core_b[17]];
+  let right_bottom = [...a_top_rite, ...b_bot_left, ...a_bot_rite];
+  let right_top = [...a_top_rite, ...b_top_left, ...b_bot_left];
+  let left_bottom = [...a_top_left, ...b_bot_rite, ...a_bot_left];
+  let left_top = [...a_top_left, ...b_top_rite, ...b_bot_rite];
+  let the_sides = [...right_bottom, ...right_top, ...left_bottom, ...left_top];
+  (0, _fenceCoords.fenceMesh)(edge_panes, the_sides, _colorConsts.BARRIER_EDGE_COLOR, _colorConsts.BARRIER_MIDDLE_COLOR);
+  g_scene.add(edge_panes);
 }
 
-},{"../misc/console-short.js":17,"../values/the-constants.js":52,"./fence-coords.js":9}],12:[function(require,module,exports){
+},{"../misc/console-short.js":28,"../misc/hex-maths.js":30,"../values/color-consts.js":59,"../values/the-constants.js":62,"./fence-coords.js":19,"three":3}],21:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -22324,84 +22766,129 @@ function translateFigure(a_figure, x_shift, y_shift, z_shift) {
   return translated_figure;
 }
 
-},{"../misc/console-short.js":17}],13:[function(require,module,exports){
+},{"../misc/console-short.js":28}],22:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.TRIE_FIGURE = void 0;
+exports.FLOWER_FIGURE = void 0;
 var _theConstants = require("../values/the-constants.js");
-var _trampolineConst = require("../vertical-movement/trampoline-const.js");
-const TRIE_WALKWAY = [["1", _theConstants.HEIGHT_Y___11, "-1"], ["1", _theConstants.HEIGHT_Y___11, "0"], ["2", _theConstants.HEIGHT_Y___11, "0"], ["3", _theConstants.HEIGHT_Y___11, "0"], ["0", _theConstants.HEIGHT_Y___11, "0"], ["001", _theConstants.HEIGHT_Y___11, "-2"], ["001", _theConstants.HEIGHT_Y___11, "-3"], ["001", _theConstants.HEIGHT_Y___11, "-4"],
-//    ["000", HEIGHT_Y___11, "-1"],
-["000", _theConstants.HEIGHT_Y____9, "-1"], ["-01", _theConstants.HEIGHT_Y___11, "2"], ["-01", _theConstants.HEIGHT_Y___11, "1"], ["-01", _theConstants.HEIGHT_Y___11, "0"], ["-02", _theConstants.HEIGHT_Y___11, "0"], ["-03", _theConstants.HEIGHT_Y___11, "0"]];
-
-//const fence_1 = { hex_a: ["0", HEIGHT_Y___11, "0"], hex_b: ["0", HEIGHT_Y___11, "-1"], fence_height: HEIGHT_Y____5 }; //     NN
-const fence_1 = {
-  hex_a: ["0", _theConstants.HEIGHT_Y___11, "-1"],
-  hex_b: ["0", _theConstants.HEIGHT_Y___11, "0"],
-  fence_height: _theConstants.HEIGHT_Y____5
-}; //   SS       NORTH OF 0,0
-
-//const fence_2 = { hex_a: ["0", HEIGHT_Y___11, "0"], hex_b: ["0", HEIGHT_Y___11, "1"], fence_height: HEIGHT_Y____5 }; // SS
-const fence_2 = {
-  hex_a: ["0", _theConstants.HEIGHT_Y___11, "1"],
-  hex_b: ["0", _theConstants.HEIGHT_Y___11, "0"],
-  fence_height: _theConstants.HEIGHT_Y____5
-}; //  NN             SOUTH of 0,0
-
-//const fence_4 = { hex_a: ["0", HEIGHT_Y___11, "0"], hex_b: ["1", HEIGHT_Y___11, "-1"], fence_height: HEIGHT_Y____5 }; // NE
-const fence_4 = {
-  hex_a: ["1", _theConstants.HEIGHT_Y___11, "-1"],
-  hex_b: ["0", _theConstants.HEIGHT_Y___11, "0"],
-  fence_height: _theConstants.HEIGHT_Y____5
-}; //  SW       NORTH EAST OF 0,0
-
-//const fence_6 = { hex_a: ["0", HEIGHT_Y___11, "0"], hex_b: ["-1", HEIGHT_Y___11, "1"], fence_height: HEIGHT_Y____5 }; //  SW
-const fence_6 = {
-  hex_a: ["-1", _theConstants.HEIGHT_Y___11, "1"],
-  hex_b: ["0", _theConstants.HEIGHT_Y___11, "0"],
-  fence_height: _theConstants.HEIGHT_Y____5
-}; //   NE     south west of 0,0
-
-//const TRIE_FENCES = [fence_1, fence_2, fence_3, fence_4, fence_5, fence_6];  // 3 5
-
-////////////////////
-const fence_3 = {
-  hex_a: ["0", _theConstants.HEIGHT_Y___11, "0"],
-  hex_b: ["-1", _theConstants.HEIGHT_Y___11, "0"],
-  fence_height: _theConstants.HEIGHT_Y____5
-}; // SE   ????????????  fence_3
-//const fence_3 = { hex_a: ["-1", HEIGHT_Y___11, "0"], hex_b: ["0", HEIGHT_Y___11, "0"], fence_height: HEIGHT_Y____5 }; //  NW         NORTH WEST of 0,0
-
-const fence_5 = {
-  hex_a: ["0", _theConstants.HEIGHT_Y___11, "0"],
-  hex_b: ["1", _theConstants.HEIGHT_Y___11, "0"],
-  fence_height: _theConstants.HEIGHT_Y____5
-}; //  NW        SOUTH EAST OF 0,0
-//const fence_5 = { hex_a: ["1", HEIGHT_Y___11, "0"], hex_b: ["0", HEIGHT_Y___11, "0"], fence_height: HEIGHT_Y____5 }; // SE  ???????????
-
-const TRIE_FENCES = [fence_3];
-
-//const TRIE_TRAMPOLINES = [["0", HEIGHT_Y____9, "1", BOUNCE_SPEED___4, BOUNCE_COUNT___25, TILT_SW, INCLINE___1]];
-const TRIE_TRAMPOLINES = [
-//   ["000", HEIGHT_Y___10, "-1", BOUNCE_SPEED___4, BOUNCE_COUNT___25, TILT_NONE, INCLINE___0],
-
-["0", _theConstants.HEIGHT_Y___11, "1", _trampolineConst.BOUNCE_SPEED___4, _trampolineConst.BOUNCE_COUNT___25, _theConstants.TILT_NONE, _theConstants.INCLINE___0]];
-const TRIE_FIGURE = exports.TRIE_FIGURE = {
-  walkway_locs: TRIE_WALKWAY,
-  fence_locs: TRIE_FENCES,
-  trampoline_locs: TRIE_TRAMPOLINES,
+const HAT_WALKWAY = [
+// [START_X_NDX, START_Y_NDX, START_Z_NDX, TILT_NONE, INCLINE___0, IS_TRANSPARENT];
+["001", _theConstants.HEIGHT_Y___11, "000", _theConstants.TILT_SE, _theConstants.INCLINE___1], ["000", _theConstants.HEIGHT_Y___11, "001", _theConstants.TILT_SS, _theConstants.INCLINE___1], ["-01", _theConstants.HEIGHT_Y___11, "001", _theConstants.TILT_SW, _theConstants.INCLINE___1], ["-01", _theConstants.HEIGHT_Y___11, "000", _theConstants.TILT_NW, _theConstants.INCLINE___1], ["000", _theConstants.HEIGHT_Y___11, "-01", _theConstants.TILT_NN, _theConstants.INCLINE___1], ["001", _theConstants.HEIGHT_Y___11, "-01", _theConstants.TILT_NE, _theConstants.INCLINE___1]];
+const FLOWER_FIGURE = exports.FLOWER_FIGURE = {
+  walkway_locs: HAT_WALKWAY,
+  fence_locs: [],
+  trampoline_locs: [],
   pentagon_locs: []
 };
 
-},{"../values/the-constants.js":52,"../vertical-movement/trampoline-const.js":55}],14:[function(require,module,exports){
+},{"../values/the-constants.js":62}],23:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.HAT_FIGURE = void 0;
+var _theConstants = require("../values/the-constants.js");
+const HAT_WALKWAY = [["001", _theConstants.HEIGHT_Y___11, "000", _theConstants.TILT_NW, _theConstants.INCLINE___1], ["000", _theConstants.HEIGHT_Y___11, "001", _theConstants.TILT_NN, _theConstants.INCLINE___1], ["-01", _theConstants.HEIGHT_Y___11, "001", _theConstants.TILT_NE, _theConstants.INCLINE___1], ["-01", _theConstants.HEIGHT_Y___11, "000", _theConstants.TILT_SE, _theConstants.INCLINE___1], ["000", _theConstants.HEIGHT_Y___11, "-01", _theConstants.TILT_SS, _theConstants.INCLINE___1], ["001", _theConstants.HEIGHT_Y___11, "-01", _theConstants.TILT_SW, _theConstants.INCLINE___1]];
+const HAT_FIGURE = exports.HAT_FIGURE = {
+  walkway_locs: HAT_WALKWAY,
+  fence_locs: [],
+  trampoline_locs: [],
+  pentagon_locs: []
+};
+
+},{"../values/the-constants.js":62}],24:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.TEST_5_17_FIGURE = void 0;
+var _theConstants = require("../values/the-constants.js");
+var _trampolineConst = require("../trampolines/trampoline-const.js");
+const TEST_WALKWAY = [
+// absolute start 0,1100,0                  A
+["1", 1100, "-1"],
+//                        B A+B=NN_5_FLAT__FLAT
+["2", 1100, "-2", _theConstants.TILT_NE, _theConstants.INCLINE___1],
+// C B+C=NN_6_FLAT__UP
+["3", 1200, "-3"],
+//                       D C+D=NN_7_UP__FLAT
+["4", 1100, "-4", _theConstants.TILT_SW, _theConstants.INCLINE___1],
+// E D+E=NN_9_FLAT__DOWN
+["5", 1100, "-5"],
+//                       F E+F=NN_8_DOWN__FLAT
+["6", 1100, "-6", _theConstants.TILT_NE, _theConstants.INCLINE___1],
+// G
+["7", 1200, "-7", _theConstants.TILT_NE, _theConstants.INCLINE___1],
+// H G+H=NN_10_UP__UP
+["8", 1200, "-8", _theConstants.TILT_SW, _theConstants.INCLINE___1],
+// I H+I=NN_12_UP__DOWN
+["9", 1100, "-9", _theConstants.TILT_SW, _theConstants.INCLINE___1],
+// J I+J=NN_11_DOWN__DOWN
+["10", 1100, "-10", _theConstants.TILT_NE, _theConstants.INCLINE___1],
+// K J+K=NN_13_DOWN__UP
+
+["11", 1200, "-11"], ["12", 1200, "-12"], ["13", 1200, "-13"], ["14", 1200, "-14"], ["15", 1200, "-15"], ["16", 1200, "-16"], ["17", 1200, "-17"], ["18", 1200, "-18"], ["19", 1200, "-19"], ["20", 1200, "-20"], ["21", 1200, "-21"], ["22", 1200, "-22"], ["23", 1200, "-23"], ["24", 1200, "-24"], ["1", 1100, "-2"] // for the fence
+
+// NN_14_BLOCKED
+// NE_15_TRAMPOLINE
+// NE_16_STROLL_INTO_AIR    NE_STROLL_INTO_AIR
+// NE_17_DESCEND_ONE_STEP    NE_17_DESCEND_ONE_STEP
+];
+const fence_NW = {
+  hex_a: ["1", _theConstants.HEIGHT_Y___11, "-2"],
+  hex_b: ["0", _theConstants.HEIGHT_Y___11, "-2"],
+  fence_height: _theConstants.HEIGHT_Y____3
+};
+const fence_NN = {
+  hex_a: ["1", _theConstants.HEIGHT_Y___11, "-2"],
+  hex_b: ["1", _theConstants.HEIGHT_Y___11, "-3"],
+  fence_height: _theConstants.HEIGHT_Y____4
+};
+const fence_NE = {
+  hex_a: ["1", _theConstants.HEIGHT_Y___11, "-2"],
+  hex_b: ["2", _theConstants.HEIGHT_Y___11, "-3"],
+  fence_height: _theConstants.HEIGHT_Y____5
+};
+const fence_SE = {
+  hex_a: ["1", _theConstants.HEIGHT_Y___11, "-2"],
+  hex_b: ["2", _theConstants.HEIGHT_Y___11, "-2"],
+  fence_height: _theConstants.HEIGHT_Y____6
+};
+const fence_SS = {
+  hex_a: ["1", _theConstants.HEIGHT_Y___11, "-2"],
+  hex_b: ["1", _theConstants.HEIGHT_Y___11, "-1"],
+  fence_height: _theConstants.HEIGHT_Y____7
+};
+const fence_SW = {
+  hex_a: ["1", _theConstants.HEIGHT_Y___11, "-2"],
+  hex_b: ["0", _theConstants.HEIGHT_Y___11, "-1"],
+  fence_height: _theConstants.HEIGHT_Y____8
+};
+const TEST_FENCES = [fence_NW, fence_NN, fence_NE, fence_SE, fence_SS, fence_SW];
+//const TEST_FENCES = [fence_NW];
+
+const TEST_TRAMPOLINES = [
+  //   ["000", HEIGHT_Y___10, "-1", BOUNCE_SPEED___4, BOUNCE_COUNT___25, TILT_NONE, INCLINE___0],
+  // ["0", HEIGHT_Y___11, "1", BOUNCE_SPEED___4, 100, TILT_NONE, INCLINE___0]
+];
+const TEST_5_17_FIGURE = exports.TEST_5_17_FIGURE = {
+  walkway_locs: TEST_WALKWAY,
+  fence_locs: TEST_FENCES,
+  trampoline_locs: TEST_TRAMPOLINES,
+  pentagon_locs: []
+};
+
+},{"../trampolines/trampoline-const.js":55,"../values/the-constants.js":62}],25:[function(require,module,exports){
 "use strict";
 
 var _theGlobals = require("./values/the-globals.js");
 var _perspectiveCamera = require("./controls/perspective-camera.js");
-var _playerMoves = require("./vertical-movement/player-moves.js");
+var _playerMoves = require("./trampolines/player-moves.js");
 var _minorRoutines = require("./misc/minor-routines.js");
 var _hexRoutines = require("./tiles/hex-routines.js");
 var _startUp = require("./values/start-up.js");
@@ -22423,8 +22910,13 @@ let {
   f_jump_z_step,
   f_move_result
 } = _startUp.frame_vars;
+
+//g_camera.position.x = 0;
+//g_camera.position.y = 11.999864555812998;
+//g_camera.position.z = -0.8662599999979148; // exactly on angled piece
+
 const frameTick = () => {
-  [f_cam_vect, f_this_coords] = (0, _theGlobals.camVectCoords)(g_camera, f_y100_height);
+  [f_cam_vect, f_this_coords] = (0, _perspectiveCamera.camVectCoords)(g_camera, f_y100_height);
   let frame_vars = {
     f_step_iterations,
     // 20
@@ -22478,7 +22970,7 @@ const frameTick = () => {
     f_cam_vect
   };
   [f_prev_coords, f_this_coords, f_y100_height] = (0, _hexRoutines.currentHexIdxs)(hex_data);
-  g_camera = (0, _theGlobals.moveCamera)(_startUp.the_globals, _startUp.the_objects, f_this_coords, f_y100_height, f_move_result);
+  g_camera = (0, _perspectiveCamera.moveCamera)(_startUp.the_globals, _startUp.the_objects, f_this_coords, f_y100_height, f_move_result);
   const bounce_data = {
     f_step_iterations,
     f_move_result,
@@ -22491,7 +22983,7 @@ const frameTick = () => {
 };
 frameTick();
 
-},{"./controls/perspective-camera.js":8,"./misc/minor-routines.js":20,"./tiles/hex-routines.js":30,"./values/start-up.js":51,"./values/the-globals.js":53,"./vertical-movement/player-moves.js":54}],15:[function(require,module,exports){
+},{"./controls/perspective-camera.js":17,"./misc/minor-routines.js":31,"./tiles/hex-routines.js":38,"./trampolines/player-moves.js":54,"./values/start-up.js":61,"./values/the-globals.js":63}],26:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -22499,43 +22991,47 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.doMap1 = doMap1;
 var _consoleShort = require("../misc/console-short.js");
-var _trieShape = require("../figures/trie-shape.js");
 var _figurePath = require("../figures/figure-path.js");
 var _mergeFigures = require("./merge-figures.js");
 var _hexTile = require("../tiles/hex-tile.js");
 var _theConstants = require("../values/the-constants.js");
-var _trampolineConst = require("../vertical-movement/trampoline-const.js");
-// const start_x_ndx = -3;
-// const start_y_ndx = 2300;
-// const start_z_ndx = -3;
+var _trampolineConst = require("../trampolines/trampoline-const.js");
+var _test517Figure = require("../figures/test-5-17-figure.js");
+var _hatFigure = require("../figures/hat-figure.js");
+var _flowerFigure = require("../figures/flower-figure.js");
+// const START_X_NDX = 2;  // 2,1000,-5 is ok? on trans green
+// const START_Y_NDX = 1000;
+// const START_Z_NDX = -5;
 
-const start_x_ndx = -4;
-const start_y_ndx = 1100;
-const start_z_ndx = -0;
-const start_tile = [start_x_ndx, start_y_ndx, start_z_ndx, _theConstants.TILT_NONE, _theConstants.INCLINE___0, _theConstants.IS_TRANSPARENT];
-const look_x_ndx = -1;
-const look_y_ndx = 1210;
-const look_z_ndx = 0;
+// {x: 3, y: 12, z: -6.928203230275509}
+
+const START_X_NDX = 0;
+const START_Y_NDX = _theConstants.HEIGHT_Y___11; // start on -1,1100,0 ????? waht
+const START_Z_NDX = 0;
+const start_tile = [START_X_NDX, START_Y_NDX, START_Z_NDX, _theConstants.TILT_NONE, _theConstants.INCLINE___0, _theConstants.IS_TRANSPARENT];
+const LOOK_X_NDX = 0;
+const LOOK_Y_NDX = 500;
+const LOOK_Z_NDX = -2;
 function makeMap1() {
   const start_figure = (0, _figurePath.createStartFigure)("start-bobo", start_tile);
-  const fig_1 = (0, _figurePath.translateFigure)(_trieShape.TRIE_FIGURE, 0, 0, 0);
-  // const fig_2 = translateFigure(TRIE_FIGURE, 10, -500, 0);
-
+  const fig_5_to_17 = (0, _figurePath.translateFigure)(_test517Figure.TEST_5_17_FIGURE, 0, 0, 0);
+  const fig_hat = (0, _figurePath.translateFigure)(_hatFigure.HAT_FIGURE, -2, 0, 0);
+  const fig_flower = (0, _figurePath.translateFigure)(_flowerFigure.FLOWER_FIGURE, 0, -100, 2);
   const trampoline_fig = {
-    trampoline_locs: [["0", _theConstants.HEIGHT_Y___11, "3", _trampolineConst.BOUNCE_SPEED___4, _trampolineConst.BOUNCE_COUNT___25, _theConstants.TILT_SS, _theConstants.INCLINE___1]]
+    trampoline_locs: [["01", _theConstants.HEIGHT_Y___10, "00", _trampolineConst.BOUNCE_SPEED__50, _trampolineConst.BOUNCE_COUNT___25, _theConstants.TILT_NONE, _theConstants.INCLINE___0], ["00", _theConstants.HEIGHT_Y___11, "-1", _trampolineConst.BOUNCE_SPEED__50, _trampolineConst.BOUNCE_COUNT__250, _theConstants.TILT_NONE, _theConstants.INCLINE___0], ["-1", _theConstants.HEIGHT_Y___10, "01", _trampolineConst.BOUNCE_SPEED___4, _trampolineConst.BOUNCE_COUNT___50, _theConstants.TILT_SW, _theConstants.INCLINE___1]]
   };
+  //fig_5_to_17
+  const maps_figures = [start_figure, fig_hat, fig_flower, fig_5_to_17, trampoline_fig];
+  //const maps_figures = [start_figure, fig_1];
 
-  // const fig_3 = translateFigure(TRIE_FIGURE, 0, -1000, 10);
-  //    const maps_figures = [start_figure, fig_1, fig_2, fig_3];
-  const maps_figures = [start_figure, fig_1, trampoline_fig];
   const trie_map = (0, _mergeFigures.translateAllFigures)(maps_figures);
   return trie_map;
 }
 function startMap1() {
-  let [start_coord_x, start_coord_z] = (0, _hexTile.tileCenterCoord)(start_x_ndx, start_z_ndx);
-  let start_location = [start_coord_x, start_y_ndx, start_coord_z];
-  let [look_coord_x, look_coord_z] = (0, _hexTile.tileCenterCoord)(look_x_ndx, look_z_ndx);
-  let start_look_at = [look_coord_x, look_y_ndx, look_coord_z];
+  let [start_coord_x, start_coord_z] = (0, _hexTile.tileCenterCoord)(START_X_NDX, START_Z_NDX);
+  let start_location = [start_coord_x, START_Y_NDX, start_coord_z];
+  let [look_coord_x, look_coord_z] = (0, _hexTile.tileCenterCoord)(LOOK_X_NDX, LOOK_Z_NDX);
+  let start_look_at = [look_coord_x, LOOK_Y_NDX, look_coord_z];
   return [start_location, start_look_at];
 }
 function doMap1() {
@@ -22544,7 +23040,7 @@ function doMap1() {
   return [the_map, start_location, start_look_at];
 }
 
-},{"../figures/figure-path.js":12,"../figures/trie-shape.js":13,"../misc/console-short.js":17,"../tiles/hex-tile.js":31,"../values/the-constants.js":52,"../vertical-movement/trampoline-const.js":55,"./merge-figures.js":16}],16:[function(require,module,exports){
+},{"../figures/figure-path.js":21,"../figures/flower-figure.js":22,"../figures/hat-figure.js":23,"../figures/test-5-17-figure.js":24,"../misc/console-short.js":28,"../tiles/hex-tile.js":39,"../trampolines/trampoline-const.js":55,"../values/the-constants.js":62,"./merge-figures.js":27}],27:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -22582,13 +23078,13 @@ function translateAllFigures(maps_figures) {
   return trie_map;
 }
 
-},{"../misc/console-short.js":17}],17:[function(require,module,exports){
+},{"../misc/console-short.js":28}],28:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.tt = exports.ee = exports.TT = exports.EE = void 0;
+exports.tt = exports.ee = exports.dd = exports.TT = exports.EE = exports.DD = void 0;
 /*
 cons ole.log("hexPoints unknown  up_direction==", up_direction);
  ee("hexPoints unknown  up_direction==", up_direction);
@@ -22605,10 +23101,25 @@ const ee = (...args) => {
 };
 
 /*
+cons ole.log("hexPoints unknown  up_direction==", up_direction);
+ dd("hexPoints unknown  up_direction==", up_direction);
+ */
+exports.ee = ee;
+const dd = (...args) => {
+  const prefix = `DEBUG :`;
+  if (typeof args[0] === "string") {
+    args[0] = `${prefix}  ${args[0]}`;
+  } else {
+    args.unshift(prefix);
+  }
+  window["con" + "sole"].log(...args);
+};
+
+/*
 cons ole.log(`TEST allowed NW :: ${RUN_OR_TEST} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
 t t(`allowed NW :: ${RUN_OR_TEST} :: ${mess_1} :: ${prev_tilt_up}, ${new_tilt_up}`);
 */
-exports.ee = ee;
+exports.dd = dd;
 const tt = (...args) => {
   let max_prints = 100;
   if (window.HEX_VARS == undefined) {
@@ -22632,8 +23143,9 @@ const tt = (...args) => {
 exports.tt = tt;
 const TT = exports.TT = tt;
 const EE = exports.EE = ee;
+const DD = exports.DD = dd;
 
-},{}],18:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23922,7 +24434,7 @@ const type_face = exports.type_face = {
   underlineThickness: 50
 };
 
-},{}],19:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23973,7 +24485,7 @@ function tileCenterCoord(x_tile, z_tile) {
   return [x_coord, z_coord];
 }
 
-},{"../values/the-constants.js":52,"./console-short.js":17}],20:[function(require,module,exports){
+},{"../values/the-constants.js":62,"./console-short.js":28}],31:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -23982,7 +24494,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.drawFps = drawFps;
 exports.minorTicks = minorTicks;
 var _theGlobals = require("../values/the-globals.js");
-var _pentagonCoords = require("../pentagon/pentagon-coords.js");
+var _pentagonCoords = require("../pentagons/pentagon-coords.js");
 var _consoleShort = require("./console-short.js");
 var _theConstants = require("../values/the-constants.js");
 const e_environment = _theConstants.PROD_ENVIRONMENT;
@@ -24005,22 +24517,7 @@ function drawFps(g_bench, now_time) {
   g_bench.nextFrame(now_time);
 }
 
-},{"../pentagon/pentagon-coords.js":25,"../values/the-constants.js":52,"../values/the-globals.js":53,"./console-short.js":17}],21:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.seaColor = seaColor;
-var _consoleShort = require("./console-short.js");
-function seaColor(x_y_z, three_colors) {
-  const [x_index, _y_height, z_index] = x_y_z;
-  const c3 = ((x_index - z_index) % 3 + 3) % 3;
-  const start_color = three_colors[c3];
-  return start_color;
-}
-
-},{"./console-short.js":17}],22:[function(require,module,exports){
+},{"../pentagons/pentagon-coords.js":35,"../values/the-constants.js":62,"../values/the-globals.js":63,"./console-short.js":28}],32:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24053,7 +24550,7 @@ function XyzDot(g_scene, x, y, z, the_color) {
   g_scene.add(dot);
 }
 
-},{"../misc/console-short.js":17,"three":3}],23:[function(require,module,exports){
+},{"../misc/console-short.js":28,"three":3}],33:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24071,7 +24568,7 @@ function AScene(background_color) {
   return a_scene;
 }
 
-},{"../misc/console-short.js":17,"three":3}],24:[function(require,module,exports){
+},{"../misc/console-short.js":28,"three":3}],34:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24083,10 +24580,10 @@ exports.buildRenderer = buildRenderer;
 exports.buildScene = buildScene;
 var _consoleShort = require("../misc/console-short.js");
 var _colorConsts = require("../values/color-consts.js");
-var _walkwayCoords = require("../tiles/walkway-coords.js");
+var _walkwayCoords = require("../walkways/walkway-coords.js");
 var _makeFences = require("../fences/make-fences.js");
-var _trampolineCoords = require("../vertical-movement/trampoline-coords.js");
-var _pentagonCoords = require("../pentagon/pentagon-coords.js");
+var _trampolineCoords = require("../trampolines/trampoline-coords.js");
+var _pentagonCoords = require("../pentagons/pentagon-coords.js");
 var _groundTiles = require("../tiles/ground-tiles.js");
 var THREE = _interopRequireWildcard(require("three"));
 var _glBench = _interopRequireDefault(require("gl-bench/dist/gl-bench.module"));
@@ -24101,7 +24598,7 @@ function buildObjects(g_scene, o_fence_ndxs, o_walkway_ndxs, o_trampolines, o_pe
   var o_walkway_columns = new Map([]);
   var o_fence_walls = new Map([]);
   var o_fence_columns = new Map([]);
-  [o_object_meshes, o_walkway_tiles, o_walkway_columns] = (0, _walkwayCoords.makeWalkway)(g_scene, o_object_meshes, o_walkway_ndxs, o_walkway_tiles, o_walkway_columns, _colorConsts.WALK_BEFORE_COLORS, _colorConsts.WALK_EDGE);
+  [o_object_meshes, o_walkway_tiles, o_walkway_columns] = (0, _walkwayCoords.makeWalkway)(g_scene, o_object_meshes, o_walkway_ndxs, o_walkway_tiles, o_walkway_columns);
   [o_object_meshes, o_fence_walls, o_fence_columns] = (0, _makeFences.makeFences)(g_scene, o_object_meshes, o_fence_ndxs, o_fence_walls, o_fence_columns);
   [o_object_meshes, o_ground_tiles] = (0, _groundTiles.ground_field)(g_scene, o_object_meshes, o_ground_tiles, -10, 10, _colorConsts.SEA_COLORS, _colorConsts.SEA_EDGE);
   let o_trampoline_meshes;
@@ -24170,7 +24667,7 @@ function buildListener(g_camera, g_renderer) {
   });
 }
 
-},{"../controls/perspective-camera.js":8,"../fences/make-fences.js":11,"../misc/console-short.js":17,"../objects/a-scene.js":23,"../pentagon/pentagon-coords.js":25,"../tiles/ground-tiles.js":29,"../tiles/walkway-coords.js":47,"../values/color-consts.js":49,"../vertical-movement/trampoline-coords.js":56,"gl-bench/dist/gl-bench.module":1,"three":3}],25:[function(require,module,exports){
+},{"../controls/perspective-camera.js":17,"../fences/make-fences.js":20,"../misc/console-short.js":28,"../objects/a-scene.js":33,"../pentagons/pentagon-coords.js":35,"../tiles/ground-tiles.js":37,"../trampolines/trampoline-coords.js":56,"../values/color-consts.js":59,"../walkways/walkway-coords.js":64,"gl-bench/dist/gl-bench.module":1,"three":3}],35:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24259,7 +24756,7 @@ function doSpin(the_objects) {
   }
 }
 
-},{"../misc/console-short.js":17,"../misc/hex-maths.js":19,"../values/the-constants.js":52,"three":3}],26:[function(require,module,exports){
+},{"../misc/console-short.js":28,"../misc/hex-maths.js":30,"../values/the-constants.js":62,"three":3}],36:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24300,304 +24797,7 @@ function staticTests() {
   //ee("the tests:", s_tests);
 }
 
-},{"../misc/console-short.js":17,"../values/the-constants.js":52}],27:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.transition2NewTile = transition2NewTile;
-var _consoleShort = require("../../misc/console-short.js");
-var _theConstants = require("../../values/the-constants.js");
-var _hexTile = require("../hex-tile.js");
-var _hexRoutines = require("../hex-routines.js");
-var _nnMove = require("../nn/nn-move.js");
-var _neMove = require("../ne/ne-move.js");
-var _nwMove = require("../nw/nw-move.js");
-var _ssMove = require("../ss/ss-move.js");
-var _swMove = require("../sw/sw-move.js");
-var _seMove = require("../se/se-move.js");
-//import { DIRECTION_NN, DIRECTION_SS, DIRECTION_NW, DIRECTION_NE, DIRECTION_SE, DIRECTION_SW, DIRECTION_NONE } from "../../values/the-constants.js";
-
-function verticallyNearNN(the_objects, x_ind, ndx_y100, z_ind, prev_hex, is_a_trampoline) {
-  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, ndx_y100, z_ind);
-  const c_move_result = (0, _nnMove.moveToNn)(the_objects, prev_hex, tile_index, is_a_trampoline);
-  return c_move_result;
-}
-function nearTestNN(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 100, ndx_z)) {
-    return verticallyNearNN(the_objects, ndx_x, ndx_y100 + 100, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 50, ndx_z)) {
-    return verticallyNearNN(the_objects, ndx_x, ndx_y100 + 50, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 50, ndx_z)) {
-    return verticallyNearNN(the_objects, ndx_x, ndx_y100 - 50, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 100, ndx_z)) {
-    return verticallyNearNN(the_objects, ndx_x, ndx_y100 - 100, ndx_z, prev_hex, is_a_trampoline);
-  }
-  return verticallyNearNN(the_objects, ndx_x, ndx_y100 + 0, ndx_z, prev_hex, is_a_trampoline);
-}
-function transition2NewTile(the_objects, f_prev_coords, f_this_coords, is_a_trampoline) {
-  let ndx_y100 = f_this_coords.y;
-  let y_index = ndx_y100 / 100;
-  let y_frac = y_index % 1;
-  let on_meetins_hinge_height = y_frac == 5 || y_frac == 0;
-  if (!on_meetins_hinge_height) {
-    const c_move_result = _theConstants.MV_FALL_STEP_OFF;
-    return c_move_result;
-  }
-  let [prev_x_ind, prev_z_ind] = (0, _hexTile.coords2Indexes)(f_prev_coords.x, f_prev_coords.z);
-  let [ndx_x, ndx_z] = (0, _hexTile.coords2Indexes)(f_this_coords.x, f_this_coords.z);
-  let move_dir = moveDirectionCoords2(f_prev_coords.x, f_prev_coords.z, f_this_coords.x, f_this_coords.z);
-  let prev_hex = (0, _hexRoutines.hexIndex)(prev_x_ind, f_prev_coords.y, prev_z_ind);
-  let no_old_new_tile;
-  if (move_dir == _theConstants.DIRECTION_NN) {
-    return nearTestNN(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
-  } else if (move_dir == _theConstants.DIRECTION_NE) {
-    const is_hit_ne = nearTestNE(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
-    return is_hit_ne;
-  } else if (move_dir == _theConstants.DIRECTION_SS) {
-    return nearTestSS(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
-  } else if (move_dir == _theConstants.DIRECTION_SW) {
-    const is_hit_sw = nearTestSW(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
-    return is_hit_sw;
-  } else if (move_dir == _theConstants.DIRECTION_NW) {
-    return nearTestNW(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
-  } else if (move_dir == _theConstants.DIRECTION_SE) {
-    return nearTestSE(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
-  } else {
-    if (is_a_trampoline) {
-      no_old_new_tile = MV_START_TRAMPOLINE;
-    } else {
-      no_old_new_tile = _theConstants.MV_TILE_SAME;
-    }
-    return no_old_new_tile;
-  }
-}
-function isVerticallyNear(the_objects, x_ind, ndx_y100, z_ind) {
-  const o_walkway_tiles = the_objects.o_walkway_tiles;
-  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, ndx_y100, z_ind);
-  if (o_walkway_tiles.has(tile_index)) {
-    return true;
-  }
-  return false;
-}
-function verticallyNearSS(the_objects, x_ind, ndx_y100, z_ind, prev_hex, is_a_trampoline) {
-  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, ndx_y100, z_ind);
-  const c_move_result = (0, _ssMove.moveToSs)(the_objects, prev_hex, tile_index, is_a_trampoline);
-  return c_move_result;
-}
-function verticallyNearNE(the_objects, x_ind, ndx_y100, z_ind, prev_hex, is_a_trampoline) {
-  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, ndx_y100, z_ind);
-  const c_move_result = (0, _neMove.moveToNe)(the_objects, prev_hex, tile_index, is_a_trampoline);
-  return c_move_result;
-}
-function verticallyNearSE(the_objects, x_ind, ndx_y100, z_ind, prev_hex, is_a_trampoline) {
-  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, ndx_y100, z_ind);
-  const c_move_result = (0, _seMove.moveToSe)(the_objects, prev_hex, tile_index, is_a_trampoline);
-  return c_move_result;
-}
-function verticallyNearSW(the_objects, x_ind, ndx_y100, z_ind, prev_hex, is_a_trampoline) {
-  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, ndx_y100, z_ind);
-  const c_move_result = (0, _swMove.moveToSw)(the_objects, prev_hex, tile_index, is_a_trampoline);
-  return c_move_result;
-}
-function verticallyNearNW(the_objects, x_ind, ndx_y100, z_ind, prev_hex, is_a_trampoline) {
-  let tile_index = (0, _hexRoutines.hexIndex)(x_ind, ndx_y100, z_ind);
-  const c_move_result = (0, _nwMove.moveToNw)(the_objects, prev_hex, tile_index, is_a_trampoline);
-  return c_move_result;
-}
-function nearTestSS(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 100, ndx_z)) {
-    return verticallyNearSS(the_objects, ndx_x, ndx_y100 + 100, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 50, ndx_z)) {
-    return verticallyNearSS(the_objects, ndx_x, ndx_y100 + 50, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 50, ndx_z)) {
-    return verticallyNearSS(the_objects, ndx_x, ndx_y100 - 50, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 100, ndx_z)) {
-    return verticallyNearSS(the_objects, ndx_x, ndx_y100 - 100, ndx_z, prev_hex, is_a_trampoline);
-  }
-  return verticallyNearSS(the_objects, ndx_x, ndx_y100 + 0, ndx_z, prev_hex, is_a_trampoline);
-}
-function nearTestNE(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 100, ndx_z)) {
-    return verticallyNearNE(the_objects, ndx_x, ndx_y100 + 100, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 50, ndx_z)) {
-    return verticallyNearNE(the_objects, ndx_x, ndx_y100 + 50, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 50, ndx_z)) {
-    return verticallyNearNE(the_objects, ndx_x, ndx_y100 - 50, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 100, ndx_z)) {
-    return verticallyNearNE(the_objects, ndx_x, ndx_y100 - 100, ndx_z, prev_hex, is_a_trampoline);
-  }
-  return verticallyNearNE(the_objects, ndx_x, ndx_y100 + 0, ndx_z, prev_hex, is_a_trampoline);
-}
-function nearTestSW(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 100, ndx_z)) {
-    return verticallyNearSW(the_objects, ndx_x, ndx_y100 + 100, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 50, ndx_z)) {
-    return verticallyNearSW(the_objects, ndx_x, ndx_y100 + 50, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 50, ndx_z)) {
-    return verticallyNearSW(the_objects, ndx_x, ndx_y100 - 50, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 100, ndx_z)) {
-    return verticallyNearSW(the_objects, ndx_x, ndx_y100 - 100, ndx_z, prev_hex, is_a_trampoline);
-  }
-  return verticallyNearSW(the_objects, ndx_x, ndx_y100 + 0, ndx_z, prev_hex, is_a_trampoline);
-}
-function nearTestNW(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 100, ndx_z)) {
-    return verticallyNearNW(the_objects, ndx_x, ndx_y100 + 100, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 50, ndx_z)) {
-    return verticallyNearNW(the_objects, ndx_x, ndx_y100 + 50, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 50, ndx_z)) {
-    return verticallyNearNW(the_objects, ndx_x, ndx_y100 - 50, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 100, ndx_z)) {
-    return verticallyNearNW(the_objects, ndx_x, ndx_y100 - 100, ndx_z, prev_hex, is_a_trampoline);
-  }
-  return verticallyNearNW(the_objects, ndx_x, ndx_y100 + 0, ndx_z, prev_hex, is_a_trampoline);
-}
-function nearTestSE(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline) {
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 100, ndx_z)) {
-    return verticallyNearSE(the_objects, ndx_x, ndx_y100 + 100, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 + 50, ndx_z)) {
-    return verticallyNearSE(the_objects, ndx_x, ndx_y100 + 50, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 50, ndx_z)) {
-    return verticallyNearSE(the_objects, ndx_x, ndx_y100 - 50, ndx_z, prev_hex, is_a_trampoline);
-  }
-  if (isVerticallyNear(the_objects, ndx_x, ndx_y100 - 100, ndx_z)) {
-    return verticallyNearSE(the_objects, ndx_x, ndx_y100 - 100, ndx_z, prev_hex, is_a_trampoline);
-  }
-  return verticallyNearSE(the_objects, ndx_x, ndx_y100 + 0, ndx_z, prev_hex, is_a_trampoline);
-}
-
-/*
- z
-----------------------------------x
- |
- |
- https://www.quora.com/How-would-you-find-the-angle-of-a-line-given-two-points-on-a-coordinate-plan
-Compute the vector components:
-dx = x2 − x1
-dy = y2 − y1
-Compute the angle in radians:
-θ = atan2(dy, dx)
-
-
-*/
-
-const NE_START_0D = 0;
-const NE_END_60D = Math.PI / 3;
-const NN_START_60D = Math.PI / 3;
-const NN_END_120D = 2 * Math.PI / 3;
-const NW_START_120D = 2 * Math.PI / 3;
-const NW_END_180D = 3 * Math.PI / 3;
-const SW_START_180D = -2 * Math.PI / 3;
-const SW_END_240D = -3 * Math.PI / 3;
-const SS_START_240D = -1 * Math.PI / 3;
-const SS_END_300D = -2 * Math.PI / 3;
-const SE_START_300D = 0 * Math.PI / 3;
-const SE_END_0D = -1 * Math.PI / 3;
-function moveDirectionCoords2(prev_x_coord, prev_z_coord, new_x_coord, new_z_coord) {
-  const dx = new_x_coord - prev_x_coord;
-  const dz = prev_z_coord - new_z_coord;
-  const theta = Math.atan2(dz, dx);
-  let move_direction;
-  if (new_x_coord == prev_x_coord && new_z_coord == prev_z_coord) {
-    move_direction = _theConstants.DIRECTION_NONE;
-  } else {
-    if (theta >= NE_START_0D && theta < NE_END_60D) {
-      //    ee("*** NE");
-      move_direction = _theConstants.DIRECTION_NE;
-    } else if (theta >= NN_START_60D && theta < NN_END_120D) {
-      //  ee("*** NN");
-      move_direction = _theConstants.DIRECTION_NN;
-    } else if (theta >= NW_START_120D && theta <= NW_END_180D) {
-      //   ee("*** NW");
-      move_direction = _theConstants.DIRECTION_NW;
-    } else if (theta <= SW_START_180D && theta >= SW_END_240D) {
-      //   ee("*** SW");
-      move_direction = _theConstants.DIRECTION_SW;
-    } else if (theta <= SS_START_240D && theta > SS_END_300D) {
-      //   ee("*** SS");
-      move_direction = _theConstants.DIRECTION_SS;
-    } else if (theta <= SE_START_300D && theta > SE_END_0D) {
-      //    ee("*** SE");
-      move_direction = _theConstants.DIRECTION_SE;
-    } else {
-      (0, _consoleShort.ee)("*** NOT SURE  THETA--=", theta);
-      move_direction = _theConstants.DIRECTION_NONE;
-    }
-  }
-  return move_direction;
-}
-
-},{"../../misc/console-short.js":17,"../../values/the-constants.js":52,"../hex-routines.js":30,"../hex-tile.js":31,"../ne/ne-move.js":34,"../nn/nn-move.js":36,"../nw/nw-move.js":38,"../se/se-move.js":40,"../ss/ss-move.js":42,"../sw/sw-move.js":45}],28:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.colorRight = exports.colorLeft = void 0;
-exports.flipTileColorG = flipTileColorG;
-var _consoleShort = require("../misc/console-short.js");
-var _theConstants = require("../values/the-constants.js");
-var _colorConsts = require("../values/color-consts.js");
-var _tileColors = require("../misc/tile-colors.js");
-const colorLeft = hex => {
-  const r = hex & 0xff0000;
-  const g = hex & 0x00ff00;
-  const b = hex & 0x0000ff;
-  const r2 = r >> 16;
-  const g2 = g << 8;
-  const b2 = b << 8;
-  const color_left = r2 | g2 | b2;
-  return color_left;
-};
-exports.colorLeft = colorLeft;
-const colorRight = hex => {
-  const r = hex & 0xff0000;
-  const g = hex & 0x00ff00;
-  const b = hex & 0x0000ff;
-  const r2 = r >> 8;
-  const g2 = g >> 8;
-  const b2 = b << 16;
-  const color_right = r2 | g2 | b2;
-  return color_right;
-};
-exports.colorRight = colorRight;
-function flipTileColorG(the_objects, f_this_hex) {
-  const [x_index, y_ind, z_index] = f_this_hex.split(",");
-  let sea_color = (0, _tileColors.seaColor)([x_index, y_ind, z_index], _colorConsts.WALK_AFTER_COLORS);
-  let {
-    o_object_meshes
-  } = the_objects;
-  let possible_tile = o_object_meshes.get(f_this_hex);
-  if (possible_tile) {
-    const tile_mesh = possible_tile.getObjectByName(_theConstants.HEXAGON_PART);
-    tile_mesh.material.color.setHex(sea_color);
-  }
-  const unvisited_tiles = the_objects.o_unvisited_tiles;
-  if (unvisited_tiles.has(f_this_hex)) {
-    unvisited_tiles.delete(f_this_hex);
-  }
-}
-
-},{"../misc/console-short.js":17,"../misc/tile-colors.js":21,"../values/color-consts.js":49,"../values/the-constants.js":52}],29:[function(require,module,exports){
+},{"../misc/console-short.js":28,"../values/the-constants.js":62}],37:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24606,20 +24806,22 @@ Object.defineProperty(exports, "__esModule", {
 exports.groundRow = groundRow;
 exports.groundTile = groundTile;
 exports.ground_field = ground_field;
-exports.moveAllow = moveAllow;
 exports.moveBlock = moveBlock;
 exports.moveDescendOneStep = moveDescendOneStep;
 exports.moveIntoAir = moveIntoAir;
+exports.moveNew = moveNew;
 exports.moveOntoTrampoline = moveOntoTrampoline;
+exports.moveSame = moveSame;
 exports.undefTileDebugInfo = undefTileDebugInfo;
 var _consoleShort = require("../misc/console-short.js");
 var THREE = _interopRequireWildcard(require("three"));
 var _theConstants = require("../values/the-constants.js");
 var _hexTile = require("./hex-tile.js");
-var _meshTiles = require("./mesh-tiles.js");
+var _textTiles = require("./text-tiles.js");
 var _tileMesh = require("./tile-mesh.js");
-var _tileColors = require("../misc/tile-colors.js");
+var _tileColors = require("../colors/tile-colors.js");
 function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
+// this has no use anymore !!!!!!!!
 function undefTileDebugInfo(prev_tilt_up) {
   const prev_new_data = {
     prev_tilt_up: prev_tilt_up,
@@ -24643,74 +24845,42 @@ function undefTileDebugInfo(prev_tilt_up) {
     data
   };
 }
-function moveAllow(local_data, mess_1) {
+function moveSame(move_name, prev_hex, this_hex) {
   if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
-    let {
-      prev_tilt_up,
-      new_tilt_up,
-      prev_hex,
-      this_hex
-    } = local_data;
-    (0, _consoleShort.ee)(`${mess_1} Allowed :: ${prev_hex},${prev_tilt_up} :: ${this_hex},${new_tilt_up}`);
+    (0, _consoleShort.dd)(`      Same ${move_name} :: ${prev_hex} :: ${this_hex}`);
   }
-  if (local_data.prev_hex == local_data.this_hex) {
-    return _theConstants.MV_TILE_SAME;
+  return _theConstants.MV_TILE_SAME;
+}
+function moveNew(debug_data) {
+  if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
+    (0, _consoleShort.dd)(`       New ${debug_data}`);
   }
   return _theConstants.MV_TILE_NEW;
 }
-function moveBlock(local_data, mess_1) {
+function moveBlock(debug_data) {
   if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
-    let {
-      prev_tilt_up,
-      new_tilt_up,
-      prev_hex,
-      this_hex
-    } = local_data;
-    (0, _consoleShort.ee)(`${mess_1} Blocked :: ${prev_hex},${prev_tilt_up} :: ${this_hex},${new_tilt_up}`);
+    (0, _consoleShort.dd)(`   Blocked ${debug_data}`);
   }
   return _theConstants.MV_FENCE_BLOCKED;
 }
-function moveDescendOneStep(local_data, mess_1) {
+function moveOntoTrampoline(debug_data) {
   if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
-    let {
-      prev_tilt_up,
-      new_tilt_up,
-      prev_hex,
-      this_hex
-    } = local_data;
-    (0, _consoleShort.ee)(`${mess_1} DescendOneStep :: ${prev_hex},${prev_tilt_up} :: ${this_hex},${new_tilt_up}`);
+    (0, _consoleShort.dd)(`Trampoline ${debug_data}`);
   }
-  let c_move_result = _theConstants.MV_FALL_STEP_OFF;
-  return c_move_result;
+  return _theConstants.MV_START_TRAMPOLINE;
 }
-function moveOntoTrampoline(local_data, mess_1) {
+function moveIntoAir(debug_data) {
   if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
-    let {
-      prev_tilt_up,
-      new_tilt_up,
-      prev_hex,
-      this_hex
-    } = local_data;
-    (0, _consoleShort.ee)(`${mess_1} Trampoline :: ${prev_hex},${prev_tilt_up} :: ${this_hex},${new_tilt_up}`);
+    (0, _consoleShort.dd)(`   IntoAir ${debug_data}`);
   }
-  let c_move_result = _theConstants.MV_START_TRAMPOLINE;
-  return c_move_result;
+  return _theConstants.MV_FALL_STEP_OFF;
 }
-function moveIntoAir(local_data, mess_1) {
+function moveDescendOneStep(debug_data) {
   if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
-    let {
-      prev_tilt_up,
-      new_tilt_up,
-      prev_hex,
-      this_hex
-    } = local_data;
-    (0, _consoleShort.ee)(`${mess_1} Airborne :: ${prev_hex},${prev_tilt_up} :: ${this_hex},${new_tilt_up}`);
+    (0, _consoleShort.dd)(`   OneStep ${debug_data}`);
   }
-  let c_move_result = _theConstants.MV_FALL_STEP_OFF;
-  return c_move_result;
+  return _theConstants.MV_FALL_STEP_OFF;
 }
-
-////////////////////
 function ground_field(g_scene, hex_tiles, ground_tiles, start_x, end_x, sea_colors, sea_edge) {
   for (let x = start_x; x < end_x; x++) {
     [hex_tiles, ground_tiles] = groundRow(hex_tiles, ground_tiles, g_scene, x, -10, 10, sea_colors, sea_edge);
@@ -24735,13 +24905,13 @@ function groundTile(hex_tiles, g_scene, x_y_z, sea_colors, sea_edge) {
   const top_triangles = (0, _hexTile.tileTriangles)(stair_tiles);
   (0, _tileMesh.tileMesh)(a_tile, top_triangles, sea_color, sea_edge);
   g_scene.add(a_tile);
-  (0, _meshTiles.addCoords)(a_tile, x_y_z, _theConstants.TILT_NONE, 0);
+  (0, _textTiles.addTextLoc)(a_tile, x_y_z, _theConstants.TILT_NONE, 0);
   const xyz_index = `${x_index},${y_height},${z_index}`;
   hex_tiles.set(xyz_index, a_tile);
   return hex_tiles;
 }
 
-},{"../misc/console-short.js":17,"../misc/tile-colors.js":21,"../values/the-constants.js":52,"./hex-tile.js":31,"./mesh-tiles.js":32,"./tile-mesh.js":46,"three":3}],30:[function(require,module,exports){
+},{"../colors/tile-colors.js":8,"../misc/console-short.js":28,"../values/the-constants.js":62,"./hex-tile.js":39,"./text-tiles.js":52,"./tile-mesh.js":53,"three":3}],38:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24757,18 +24927,14 @@ var _consoleShort = require("../misc/console-short.js");
 var _theConstants = require("../values/the-constants.js");
 var _groundTiles = require("./ground-tiles.js");
 var _hexTile = require("./hex-tile.js");
-function hitFence(o_fence_walls, o_fence_columns, prev_hex, this_hex) {
+function hitFence(o_fence_walls, prev_hex, this_hex) {
   const xyz_1_2_index = `${prev_hex}${_theConstants.HEX_PAIR_DIVIDER}${this_hex}`;
-  let current_xz_index = stripYindex(this_hex);
   let cur_xz_fence_column = o_fence_walls.get(xyz_1_2_index);
   if (cur_xz_fence_column) {
     return true;
   }
   return false;
 }
-
-// ####### this should figure out prev, next only
-//                      f_prev_coords
 function currentHexIdxs(hex_data) {
   let {
     f_prev_coords,
@@ -24815,10 +24981,6 @@ function offWalkway(walkway_columns, this_hex) {
 }
 function tileData(o_walkway_tiles, prev_hex, this_hex) {
   let current_walkway_tile = o_walkway_tiles.get(this_hex);
-  if (current_walkway_tile == undefined) {
-    const undef_printable_info = (0, _groundTiles.undefTileDebugInfo)(_theConstants.TILT_NONE);
-    return undef_printable_info;
-  }
   const {
     tilt_up: new_tilt_up,
     low_y: new_low_y,
@@ -24848,7 +25010,7 @@ function tileData(o_walkway_tiles, prev_hex, this_hex) {
     new_low_y,
     new_high_y
   };
-  const data = {
+  const tile_data = {
     low_to_low,
     high_to_high,
     lows_and_highs,
@@ -24857,11 +25019,11 @@ function tileData(o_walkway_tiles, prev_hex, this_hex) {
   };
   return {
     prev_new_data,
-    data
+    tile_data
   };
 }
 
-},{"../misc/console-short.js":17,"../values/the-constants.js":52,"./ground-tiles.js":29,"./hex-tile.js":31}],31:[function(require,module,exports){
+},{"../misc/console-short.js":28,"../values/the-constants.js":62,"./ground-tiles.js":37,"./hex-tile.js":39}],39:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -24885,8 +25047,8 @@ Object.defineProperty(exports, "tileCenterCoord", {
 exports.tileTriangles = tileTriangles;
 var _consoleShort = require("../misc/console-short.js");
 var THREE = _interopRequireWildcard(require("three"));
-var _tileColors = require("../misc/tile-colors.js");
-var _meshTiles = require("./mesh-tiles.js");
+var _tileColors = require("../colors/tile-colors.js");
+var _textTiles = require("./text-tiles.js");
 var _tileMesh = require("./tile-mesh.js");
 var _hexMaths = require("../misc/hex-maths.js");
 var _theConstants = require("../values/the-constants.js");
@@ -24940,8 +25102,56 @@ function tileTriangles(hex_points) {
   ];
   return hexagon_triangles;
 }
+const NORMAL_HEX_RADIUS = 1;
+/*
+  tileSlopedTransparent
+  tileFlatTranspaent  22222222222222222
+  tileSloped
+  tileFlat
+
+
+
+*/
+function HexTileSloped(g_scene, walkway_meshes, walkway_tiles, x_y_z, is_transparent, slope_tilt, incline_amount) {
+  // qbert
+  const [x_index, y_100_index, z_index] = x_y_z;
+  const xyz_index = `${x_index},${y_100_index},${z_index}`;
+  if (slope_tilt == undefined) {
+    slope_tilt = _theConstants.TILT_NONE;
+    incline_amount = 0;
+  }
+  let [x_center, z_center] = (0, _hexMaths.tileCenterCoord)(x_index, z_index);
+  const a_tile = new THREE.Group();
+  a_tile.position.set(x_center, 0, z_center);
+  const tile_points = hexPoints(NORMAL_HEX_RADIUS, y_100_index, slope_tilt, incline_amount);
+  walkway_tiles = offsetTilePoints(walkway_tiles, x_y_z, slope_tilt, incline_amount, tile_points, WALK_BEFORE_COLORS);
+  const top_triangles = tileTriangles(tile_points);
+  let walk_colors = (0, _tileColors.seaColor)(x_y_z, WALK_BEFORE_COLORS);
+  (0, _tileMesh.tileMesh)(a_tile, top_triangles, walk_colors, WALK_EDGE, is_transparent);
+  g_scene.add(a_tile);
+  (0, _textTiles.addTextLoc)(a_tile, x_y_z, slope_tilt, incline_amount);
+  walkway_meshes.set(xyz_index, a_tile);
+  return [walkway_meshes, walkway_tiles];
+}
+function HexTileFlat(g_scene, walkway_meshes, walkway_tiles, x_y_z) {
+  // qbert
+  const [x_index, y_100_index, z_index] = x_y_z;
+  const xyz_index = `${x_index},${y_100_index},${z_index}`;
+  let [x_center, z_center] = (0, _hexMaths.tileCenterCoord)(x_index, z_index);
+  const a_tile = new THREE.Group();
+  a_tile.position.set(x_center, 0, z_center);
+  const tile_points = hexPoints(NORMAL_HEX_RADIUS, y_100_index, _theConstants.TILT_NONE, _theConstants.SLOPE_NONE);
+  walkway_tiles = offsetTilePoints(walkway_tiles, x_y_z, slope_tilt, incline_amount, tile_points, WALK_BEFORE_COLORS);
+  const top_triangles = tileTriangles(tile_points);
+  let walk_colors = (0, _tileColors.seaColor)(x_y_z, WALK_BEFORE_COLORS);
+  (0, _tileMesh.tileMesh)(a_tile, top_triangles, walk_colors, WALK_EDGE);
+  tileMeshTransparent(a_tile, top_triangles, walk_colors, WALK_EDGE, _theConstants.NOT_TRANSPARENT);
+  g_scene.add(a_tile);
+  (0, _textTiles.addTextLoc)(a_tile, x_y_z, slope_tilt, incline_amount);
+  walkway_meshes.set(xyz_index, a_tile);
+  return [walkway_meshes, walkway_tiles];
+}
 function HexTile(g_scene, walkway_meshes, walkway_tiles, x_y_z, WALK_COLORS, WALK_EDGE, slope_tilt, incline_amount, is_transparent) {
-  //let { start_color, light_color, dark_color, edge_color } = d_tile_3colors;
   const [x_index, y_100_index, z_index] = x_y_z;
   const xyz_index = `${x_index},${y_100_index},${z_index}`;
   if (slope_tilt == undefined) {
@@ -24959,7 +25169,7 @@ function HexTile(g_scene, walkway_meshes, walkway_tiles, x_y_z, WALK_COLORS, WAL
   walk_colors = (0, _tileColors.seaColor)(x_y_z, WALK_COLORS);
   (0, _tileMesh.tileMesh)(a_tile, top_triangles, walk_colors, WALK_EDGE, is_transparent);
   g_scene.add(a_tile);
-  (0, _meshTiles.addCoords)(a_tile, x_y_z, slope_tilt, incline_amount);
+  (0, _textTiles.addTextLoc)(a_tile, x_y_z, slope_tilt, incline_amount);
   walkway_meshes.set(xyz_index, a_tile);
   return [walkway_meshes, walkway_tiles];
 }
@@ -25127,102 +25337,21 @@ function hexPoints(tile_radius, y_100_height, up_direction, angled_height) {
   return stair_tiles;
 }
 
-},{"../misc/console-short.js":17,"../misc/hex-maths.js":19,"../misc/tile-colors.js":21,"../values/the-constants.js":52,"./mesh-tiles.js":32,"./tile-mesh.js":46,"three":3}],32:[function(require,module,exports){
+},{"../colors/tile-colors.js":8,"../misc/console-short.js":28,"../misc/hex-maths.js":30,"../values/the-constants.js":62,"./text-tiles.js":52,"./tile-mesh.js":53,"three":3}],40:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.addCoords = addCoords;
-var _consoleShort = require("../misc/console-short.js");
-var THREE = _interopRequireWildcard(require("three"));
-var _theConstants = require("../values/the-constants.js");
-var _FontLoader = require("three/examples/jsm/loaders/FontLoader.js");
-var _helvetiker_regularTypeface = require("../misc/helvetiker_regular.typeface.js");
-var _TextGeometry = require("three/examples/jsm/geometries/TextGeometry.js");
-function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-var loader2 = new _FontLoader.FontLoader();
-const WHITE_LABELS = 0xffffff;
-var the_font = loader2.parse(_helvetiker_regularTypeface.type_face);
-
-//const Y_TO_ACTUAL_HEIGHT = 10;
-function addCoords(a_tile, x_y_z, slope_tilt, incline_amount) {
-  // const [up_direction, angled_height] = incline_and_dir;
-  let [x_index, y_100_index, z_index] = x_y_z;
-  let y_index = y_100_index / 100;
-  var textMaterial = new THREE.MeshLambertMaterial({
-    emissive: 0xffffff,
-    color: WHITE_LABELS
-  });
-  var textGeometry = new _TextGeometry.TextGeometry(`${x_index},${y_100_index},${z_index}`, {
-    font: the_font,
-    size: 0.2,
-    depth: 0,
-    curveSegments: 12
-  });
-  var text_mesh = new THREE.Mesh(textGeometry, textMaterial);
-  if (y_index < 0) {
-    text_mesh.position.y = -0.999;
-  } else if (slope_tilt == _theConstants.TILT_NONE) {
-    //        text_mesh.position.y = y_index / Y_TO_ACTUAL_HEIGHT + 0.001;
-    text_mesh.position.y = y_index + 0.001;
-    //text_mesh.position.y = y_index + 0.05;
-  } else {
-    //        text_mesh.position.y = y_index / Y_TO_ACTUAL_HEIGHT + incline_amount;
-    text_mesh.position.y = y_index + incline_amount + 0.05;
-  }
-  text_mesh.rotation.x = -Math.PI / 2;
-  if (slope_tilt != _theConstants.TILT_NONE) {
-    text_mesh.rotation.y = -Math.PI / 2;
-    text_mesh.rotation.z = -Math.PI / 2;
-  }
-  let x, z;
-  if (slope_tilt == _theConstants.TILT_NONE) {
-    x = -0.5; // -0.15;
-    z = 0.1;
-  } else if (slope_tilt == _theConstants.TILT_NN) {
-    x = +0.15;
-    z = -0.5; //-0.55;
-    //  text_mesh.position.y += 1.1;
-    // text_mesh.rotation.x = Math.PI / 2;
-  } else if (slope_tilt == _theConstants.TILT_NE) {
-    x = 0.3;
-    z = -0.25;
-  } else if (slope_tilt == _theConstants.TILT_SE) {
-    x = 0.3;
-    z = 0.4;
-    //text_mesh.position.y -= 0.1;
-  } else if (slope_tilt == _theConstants.TILT_SS) {
-    x = +0.515;
-    z = -0.4;
-  } else if (slope_tilt == _theConstants.TILT_SW) {
-    x = -0.7;
-    z = 0.4;
-  } else if (slope_tilt == _theConstants.TILT_NW) {
-    x = -0.7;
-    z = -0.25;
-  } else {
-    (0, _consoleShort.ee)(" addCoords() unknown slope_tilt", slope_tilt);
-  }
-  text_mesh.position.x = x;
-  text_mesh.position.z = z;
-  a_tile.add(text_mesh);
-}
-
-},{"../misc/console-short.js":17,"../misc/helvetiker_regular.typeface.js":18,"../values/the-constants.js":52,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}],33:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.NE_START_FINISHES = exports.NE_INTO_AIR = exports.NE_AIRBORNE = exports.NE_9_FLAT__DOWN = exports.NE_8_DOWN__FLAT = exports.NE_7_UP__FLAT = exports.NE_6_FLAT__UP = exports.NE_5_FLAT__FLAT = exports.NE_4_DOWN_DOWN_COUNTER = exports.NE_3_DOWN_DOWN_CLOCK = exports.NE_2_UP_UP_COUNTER = exports.NE_1_UP_UP_CLOCK = exports.NE_14_BLOCKED = exports.NE_13_DOWN__UP = exports.NE_12_UP__DOWN = exports.NE_11_DOWN__DOWN = exports.NE_10_UP__UP = void 0;
+exports.NE_WALK_AIR = exports.NE_TRAMPOLINE_AIR = exports.NE_START_FINISHES = exports.NE_9_FLAT__DOWN = exports.NE_8_DOWN__FLAT = exports.NE_7_UP__FLAT = exports.NE_6_FLAT__UP = exports.NE_5_FLAT__FLAT = exports.NE_4_DOWN_DOWN_COUNTER = exports.NE_3_DOWN_DOWN_CLOCK = exports.NE_2_UP_UP_COUNTER = exports.NE_1_UP_UP_CLOCK = exports.NE_17_DESCEND_ONE_STEP = exports.NE_16_STROLL_INTO_AIR = exports.NE_15_TRAMPOLINE = exports.NE_14_BLOCKED = exports.NE_13_DOWN__UP = exports.NE_12_UP__DOWN = exports.NE_11_DOWN__DOWN = exports.NE_10_UP__UP = exports.NE_0_SAME = void 0;
 var _theConstants = require("../../values/the-constants.js");
 const x_start = 0;
 const z_start = 0;
 const x_finish = 1;
 const z_finish = -1;
-const NE_INTO_AIR = exports.NE_INTO_AIR = "NE_INTO_AIR";
-const NE_AIRBORNE = exports.NE_AIRBORNE = "NE_AIRBORNE";
+const NE_WALK_AIR = exports.NE_WALK_AIR = "NE_WALK_AIR";
+const NE_TRAMPOLINE_AIR = exports.NE_TRAMPOLINE_AIR = "NE_TRAMPOLINE_AIR";
+const NE_0_SAME = exports.NE_0_SAME = "NE_0_SAME";
 const NE_1_UP_UP_CLOCK = exports.NE_1_UP_UP_CLOCK = "NE_1_UP_UP_CLOCK";
 const NE_2_UP_UP_COUNTER = exports.NE_2_UP_UP_COUNTER = "NE_2_UP_UP_COUNTER";
 const NE_3_DOWN_DOWN_CLOCK = exports.NE_3_DOWN_DOWN_CLOCK = "NE_3_DOWN_DOWN_CLOCK";
@@ -25237,6 +25366,9 @@ const NE_11_DOWN__DOWN = exports.NE_11_DOWN__DOWN = "NE_11_DOWN__DOWN";
 const NE_12_UP__DOWN = exports.NE_12_UP__DOWN = "NE_12_UP__DOWN";
 const NE_13_DOWN__UP = exports.NE_13_DOWN__UP = "NE_13_DOWN__UP";
 const NE_14_BLOCKED = exports.NE_14_BLOCKED = "NE_14_BLOCKED";
+const NE_15_TRAMPOLINE = exports.NE_15_TRAMPOLINE = "NE_15_TRAMPOLINE";
+const NE_16_STROLL_INTO_AIR = exports.NE_16_STROLL_INTO_AIR = "NE_16_STROLL_INTO_AIR";
+const NE_17_DESCEND_ONE_STEP = exports.NE_17_DESCEND_ONE_STEP = "NE_17_DESCEND_ONE_STEP";
 const NE_1_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NN, 1], NE_1_UP_UP_CLOCK];
 const NE_222_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NN, 1], NE_2_UP_UP_COUNTER];
 const NE_3_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SS, 1], NE_3_DOWN_DOWN_CLOCK];
@@ -25266,91 +25398,93 @@ const NE_START_FINISHES = exports.NE_START_FINISHES = {
   13: NE_13_TEST
 };
 
-},{"../../values/the-constants.js":52}],34:[function(require,module,exports){
+},{"../../values/the-constants.js":62}],41:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.moveToNe = moveToNe;
+exports.leaveTileNE = leaveTileNE;
 var _consoleShort = require("../../misc/console-short.js");
 var _groundTiles = require("../ground-tiles.js");
 var _theConstants = require("../../values/the-constants.js");
 var _hexRoutines = require("../hex-routines.js");
 var _neConstants = require("./ne-constants.js");
-function moveToNe(the_objects, prev_hex, this_hex, is_a_trampoline) {
-  let {
-    o_walkway_tiles,
-    o_walkway_columns,
-    o_fence_walls,
-    o_fence_columns
-  } = the_objects;
+function tile2TileNE(o_walkway_tiles, this_hex, prev_hex) {
   const {
     prev_new_data,
-    data
+    tile_data
   } = (0, _hexRoutines.tileData)(o_walkway_tiles, prev_hex, this_hex);
   const {
     prev_tilt_up,
     new_tilt_up
   } = prev_new_data;
-  const local_data = {
-    prev_tilt_up,
-    new_tilt_up,
-    prev_hex,
-    this_hex
-  };
-  if ((0, _hexRoutines.hitFence)(o_fence_walls, o_fence_columns, prev_hex, this_hex)) {
-    const is_blocked = (0, _groundTiles.moveBlock)(local_data, _neConstants.NE_14_BLOCKED);
-    return is_blocked;
-  }
-  if ((0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex)) {
-    if (is_a_trampoline) {
-      return (0, _groundTiles.moveOntoTrampoline)(local_data, _neConstants.NE_AIRBORNE);
-    } else {
-      return (0, _groundTiles.moveIntoAir)(local_data, _neConstants.NE_AIRBORNE);
-    }
-  }
   const {
     low_to_low,
     high_to_high,
     lows_and_highs,
     high_to_low,
     low_to_high
-  } = data;
-  if (neCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_1_UP_UP_CLOCK); //      ⭮
-  } else if (neCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_2_UP_UP_COUNTER); //      ⭯
-  } else if (neCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_3_DOWN_DOWN_CLOCK); //  ⭮
-  } else if (neCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_4_DOWN_DOWN_COUNTER); //  ⭯
+  } = tile_data;
+  let move_result = _theConstants.MV_TILE_SAME;
+  if (neCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_neConstants.NE_1_UP_UP_CLOCK, prev_hex, this_hex); //      ⭮
+  } else if (neCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_neConstants.NE_2_UP_UP_COUNTER, prev_hex, this_hex); //      ⭯
+  } else if (neCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_neConstants.NE_3_DOWN_DOWN_CLOCK, prev_hex, this_hex); //  ⭮
+  } else if (neCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_neConstants.NE_4_DOWN_DOWN_COUNTER, prev_hex, this_hex); //  ⭯              http://xahlee.info/comp/unicode_arrows.html
   } else if (neFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_5_FLAT__FLAT); // - -
+    move_result = (0, _groundTiles.moveNew)(_neConstants.NE_5_FLAT__FLAT, prev_hex, this_hex); // - -
   } else if (neFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_6_FLAT__UP); //   _⭜
+    move_result = (0, _groundTiles.moveNew)(_neConstants.NE_6_FLAT__UP, prev_hex, this_hex); //   _⭜
   } else if (neUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_7_UP__FLAT); //   ↗¯¯
-  } else if (neDownToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_8_DOWN__FLAT); // ↘__
+    move_result = (0, _groundTiles.moveNew)(_neConstants.NE_7_UP__FLAT, prev_hex, this_hex); //   ↗¯¯
+  } else if (neDownToFlat(prev_tilt_up, new_tilt_up, low_to_high)) {
+    move_result = (0, _groundTiles.moveNew)(_neConstants.NE_8_DOWN__FLAT, prev_hex, this_hex); // ↘__
   } else if (neFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_9_FLAT__DOWN); // ¯⭝
+    move_result = (0, _groundTiles.moveNew)(_neConstants.NE_9_FLAT__DOWN, prev_hex, this_hex); // ¯⭝
   } else if (neUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_10_UP__UP); //     ↗↗
+    move_result = (0, _groundTiles.moveNew)(_neConstants.NE_10_UP__UP, prev_hex, this_hex); //     ↗↗
   } else if (neDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_11_DOWN__DOWN); // ↘↘
+    move_result = (0, _groundTiles.moveNew)(_neConstants.NE_11_DOWN__DOWN, prev_hex, this_hex); // ↘↘
   } else if (neUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_12_UP__DOWN); //  ↗↘
+    move_result = (0, _groundTiles.moveNew)(_neConstants.NE_12_UP__DOWN, prev_hex, this_hex); //  ↗↘
   } else if (neDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _neConstants.NE_13_DOWN__UP); //  ↘↗
-  } else if (prev_hex == this_hex) {
-    return _theConstants.MV_TILE_SAME;
+    move_result = (0, _groundTiles.moveNew)(_neConstants.NE_13_DOWN__UP, prev_hex, this_hex); //  ↘↗
+  } else if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
+    move_result = (0, _groundTiles.moveDescendOneStep)(_neConstants.NE_17_DESCEND_ONE_STEP, prev_hex, this_hex); // ⬎_   ??????? does this ever get gotton to ?   MV_FALL_STEP_OFF
+  } else {
+    // NE Incline adjustment move from flat to declining
+    // [2,1100,2] to [2,1000,2] occurs when flat(1100y) tile moves to declining(1000y) tile
+    // 100 in height was immediately lost because second declining tile is at height 1000
+    // because a tile's height is its lowest point.
+    // tt("no-error", move_result, prev_hex, this_hex);
   }
-  // this only steps down from HEIGHT_Y___11 to HEIGHT_Y___10
-  if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
-    return (0, _groundTiles.moveDescendOneStep)(local_data, _neConstants.NE_AIRBORNE);
+  return move_result;
+}
+function leaveTileNE(the_objects, this_hex, prev_hex, is_a_trampoline) {
+  let {
+    o_walkway_tiles,
+    o_walkway_columns,
+    o_fence_walls
+  } = the_objects;
+  const is_off_walkway = (0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex);
+  let move_result;
+  if (prev_hex == this_hex) {
+    move_result = (0, _groundTiles.moveSame)(_neConstants.NE_0_SAME, prev_hex, this_hex);
+  } else if ((0, _hexRoutines.hitFence)(o_fence_walls, prev_hex, this_hex)) {
+    move_result = (0, _groundTiles.moveBlock)(_neConstants.NE_14_BLOCKED, prev_hex, this_hex);
+    console.log("NE Block");
+  } else if (is_off_walkway && is_a_trampoline) {
+    move_result = (0, _groundTiles.moveOntoTrampoline)(_neConstants.NE_15_TRAMPOLINE, prev_hex, this_hex);
+  } else if (is_off_walkway) {
+    move_result = (0, _groundTiles.moveIntoAir)(_neConstants.NE_16_STROLL_INTO_AIR, prev_hex, this_hex);
+  } else {
+    move_result = tile2TileNE(o_walkway_tiles, this_hex, prev_hex);
   }
-  return (0, _groundTiles.moveBlock)(local_data, _neConstants.NE_14_BLOCKED); // ¯¯↗
+  return move_result;
 }
 
 /*  curve_up__curve_up.png   like a flower */
@@ -25452,20 +25586,21 @@ function neDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
   return false;
 }
 
-},{"../../misc/console-short.js":17,"../../values/the-constants.js":52,"../ground-tiles.js":29,"../hex-routines.js":30,"./ne-constants.js":33}],35:[function(require,module,exports){
+},{"../../misc/console-short.js":28,"../../values/the-constants.js":62,"../ground-tiles.js":37,"../hex-routines.js":38,"./ne-constants.js":40}],42:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.NN_START_FINISHES = exports.NN_INTO_AIR = exports.NN_AIRBORNE = exports.NN_9_FLAT__DOWN = exports.NN_8_DOWN__FLAT = exports.NN_7_UP__FLAT = exports.NN_6_FLAT__UP = exports.NN_5_FLAT__FLAT = exports.NN_4_DOWN_DOWN_COUNTER = exports.NN_3_DOWN_DOWN_CLOCK = exports.NN_2_UP_UP_COUNTER = exports.NN_1_UP_UP_CLOCK = exports.NN_14_BLOCKED = exports.NN_13_DOWN__UP = exports.NN_12_UP__DOWN = exports.NN_11_DOWN__DOWN = exports.NN_10_UP__UP = void 0;
+exports.NN_WALK_AIR = exports.NN_TRAMPOLINE_AIR = exports.NN_9_FLAT__DOWN = exports.NN_8_DOWN__FLAT = exports.NN_7_UP__FLAT = exports.NN_6_FLAT__UP = exports.NN_5_FLAT__FLAT = exports.NN_4_DOWN_DOWN_COUNTER = exports.NN_3_DOWN_DOWN_CLOCK = exports.NN_2_UP_UP_COUNTER = exports.NN_1_UP_UP_CLOCK = exports.NN_17_DESCEND_ONE_STEP = exports.NN_16_STROLL_INTO_AIR = exports.NN_15_TRAMPOLINE = exports.NN_14_BLOCKED = exports.NN_13_DOWN__UP = exports.NN_12_UP__DOWN = exports.NN_11_DOWN__DOWN = exports.NN_10_UP__UP = exports.NN_0_SAME = void 0;
 var _theConstants = require("../../values/the-constants.js");
 const x_start = 0;
 const z_start = 0;
 const x_finish = 0;
 const z_finish = -1;
-const NN_INTO_AIR = exports.NN_INTO_AIR = "NN_INTO_AIR";
-const NN_AIRBORNE = exports.NN_AIRBORNE = "NN_AIRBORNE";
+const NN_WALK_AIR = exports.NN_WALK_AIR = "NN_WALK_AIR";
+const NN_TRAMPOLINE_AIR = exports.NN_TRAMPOLINE_AIR = "NN_TRAMPOLINE_AIR";
+const NN_0_SAME = exports.NN_0_SAME = "NN_0_SAME";
 const NN_1_UP_UP_CLOCK = exports.NN_1_UP_UP_CLOCK = "NN_1_UP_UP_CLOCK";
 const NN_2_UP_UP_COUNTER = exports.NN_2_UP_UP_COUNTER = "NN_2_UP_UP_COUNTER";
 const NN_3_DOWN_DOWN_CLOCK = exports.NN_3_DOWN_DOWN_CLOCK = "NN_3_DOWN_DOWN_CLOCK";
@@ -25480,6 +25615,9 @@ const NN_11_DOWN__DOWN = exports.NN_11_DOWN__DOWN = "NN_11_DOWN__DOWN";
 const NN_12_UP__DOWN = exports.NN_12_UP__DOWN = "NN_12_UP__DOWN";
 const NN_13_DOWN__UP = exports.NN_13_DOWN__UP = "NN_13_DOWN__UP";
 const NN_14_BLOCKED = exports.NN_14_BLOCKED = "NN_14_BLOCKED";
+const NN_15_TRAMPOLINE = exports.NN_15_TRAMPOLINE = "NN_15_TRAMPOLINE";
+const NN_16_STROLL_INTO_AIR = exports.NN_16_STROLL_INTO_AIR = "NN_16_STROLL_INTO_AIR";
+const NN_17_DESCEND_ONE_STEP = exports.NN_17_DESCEND_ONE_STEP = "NN_17_DESCEND_ONE_STEP";
 const NN_1_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], NN_1_UP_UP_CLOCK];
 const NN_2_2_2_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], NN_2_UP_UP_COUNTER];
 const NN_3_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SE, 1], NN_3_DOWN_DOWN_CLOCK];
@@ -25493,7 +25631,7 @@ const NN_10_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TIL
 const NN_11_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TILT_SS, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SS, 1], NN_11_DOWN__DOWN];
 const NN_12_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NN, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SS, 1], NN_12_UP__DOWN];
 const NN_13_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SS, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NN, 1], NN_13_DOWN__UP];
-const NN_START_FINISHES = exports.NN_START_FINISHES = {
+const NN_START_FINISHES = {
   1: NN_1_TEST,
   2: NN_2_2_2_TEST,
   3: NN_3_TEST,
@@ -25509,89 +25647,103 @@ const NN_START_FINISHES = exports.NN_START_FINISHES = {
   13: NN_13_TEST
 };
 
-},{"../../values/the-constants.js":52}],36:[function(require,module,exports){
+},{"../../values/the-constants.js":62}],43:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.moveToNn = moveToNn;
+exports.leaveTileNN = leaveTileNN;
 var _consoleShort = require("../../misc/console-short.js");
 var _groundTiles = require("../ground-tiles.js");
 var _theConstants = require("../../values/the-constants.js");
 var _hexRoutines = require("../hex-routines.js");
 var _nnConstants = require("./nn-constants.js");
-function moveToNn(the_objects, prev_hex, this_hex, is_a_trampoline) {
-  let {
-    o_walkway_tiles,
-    o_walkway_columns,
-    o_fence_walls,
-    o_fence_columns
-  } = the_objects;
+function nnFlatToUp(prev_tilt_up, new_tilt_up, low_to_low) {
+  const NONE_to_NN = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_NN;
+  if (NONE_to_NN && low_to_low) {
+    return true;
+  }
+  return false;
+}
+function nnFlatToDown(prev_tilt_up, new_tilt_up, high_to_high) {
+  const NONE_to_SS = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_SS;
+  if (NONE_to_SS && high_to_high) {
+    return true;
+  }
+  return false;
+}
+function tile2TileNN(o_walkway_tiles, this_hex, prev_hex) {
   const {
     prev_new_data,
-    data
+    tile_data
   } = (0, _hexRoutines.tileData)(o_walkway_tiles, prev_hex, this_hex);
   const {
     prev_tilt_up,
     new_tilt_up
   } = prev_new_data;
-  const local_data = {
-    prev_tilt_up,
-    new_tilt_up,
-    prev_hex,
-    this_hex
-  };
-  if ((0, _hexRoutines.hitFence)(o_fence_walls, o_fence_columns, prev_hex, this_hex)) {
-    return (0, _groundTiles.moveBlock)(local_data, _nnConstants.NN_14_BLOCKED);
-  }
-  if ((0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex)) {
-    if (is_a_trampoline) {
-      return (0, _groundTiles.moveOntoTrampoline)(local_data, _nnConstants.NN_AIRBORNE);
-    } else {
-      return (0, _groundTiles.moveIntoAir)(local_data, _nnConstants.NN_AIRBORNE);
-    }
-  }
   const {
     low_to_low,
     high_to_high,
     lows_and_highs,
     high_to_low,
     low_to_high
-  } = data;
-  if (nnCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_1_UP_UP_CLOCK); //      ⭮
-  } else if (nnCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_2_UP_UP_COUNTER); //      ⭯
-  } else if (nnCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_3_DOWN_DOWN_CLOCK); //  ⭮
-  } else if (nnCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_4_DOWN_DOWN_COUNTER); //  ⭯
+  } = tile_data;
+  let move_result;
+  if (nnCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_nnConstants.NN_1_UP_UP_CLOCK, prev_hex, this_hex); //      ⭮
+  } else if (nnCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_nnConstants.NN_2_UP_UP_COUNTER, prev_hex, this_hex); //      ⭯
+  } else if (nnCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_nnConstants.NN_3_DOWN_DOWN_CLOCK, prev_hex, this_hex); //  ⭮
+  } else if (nnCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_nnConstants.NN_4_DOWN_DOWN_COUNTER, prev_hex, this_hex); //  ⭯              http://xahlee.info/comp/unicode_arrows.html
   } else if (nnFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_5_FLAT__FLAT); // - -
+    move_result = (0, _groundTiles.moveNew)(_nnConstants.NN_5_FLAT__FLAT, prev_hex, this_hex); // - -
   } else if (nnFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_6_FLAT__UP); //   _⭜
+    move_result = (0, _groundTiles.moveNew)(_nnConstants.NN_6_FLAT__UP, prev_hex, this_hex); //   _⭜
   } else if (nnUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_7_UP__FLAT); //   ↗¯¯
+    move_result = (0, _groundTiles.moveNew)(_nnConstants.NN_7_UP__FLAT, prev_hex, this_hex); //   ↗¯¯
   } else if (nnDownToFlat(prev_tilt_up, new_tilt_up, low_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_8_DOWN__FLAT); // ↘__
+    move_result = (0, _groundTiles.moveNew)(_nnConstants.NN_8_DOWN__FLAT, prev_hex, this_hex); // ↘__
   } else if (nnFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_9_FLAT__DOWN); // ¯⭝
+    move_result = (0, _groundTiles.moveNew)(_nnConstants.NN_9_FLAT__DOWN, prev_hex, this_hex); // ¯⭝
   } else if (nnUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_10_UP__UP); //     ↗↗
+    move_result = (0, _groundTiles.moveNew)(_nnConstants.NN_10_UP__UP, prev_hex, this_hex); //     ↗↗
   } else if (nnDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_11_DOWN__DOWN); // ↘↘
+    move_result = (0, _groundTiles.moveNew)(_nnConstants.NN_11_DOWN__DOWN, prev_hex, this_hex); // ↘↘
   } else if (nnUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_12_UP__DOWN); //  ↗↘
+    move_result = (0, _groundTiles.moveNew)(_nnConstants.NN_12_UP__DOWN, prev_hex, this_hex); //  ↗↘
   } else if (nnDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nnConstants.NN_13_DOWN__UP); //  ↘↗
-  } else if (prev_hex == this_hex) {
-    return _theConstants.MV_TILE_SAME;
+    move_result = (0, _groundTiles.moveNew)(_nnConstants.NN_13_DOWN__UP, prev_hex, this_hex); //  ↘↗
+  } else if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
+    move_result = (0, _groundTiles.moveDescendOneStep)(_nnConstants.NN_17_DESCEND_ONE_STEP, prev_hex, this_hex); // ⬎_   ??????? does this ever get gotton to ?
+  } else {
+    (0, _consoleShort.ee)("should never happen NN, move_result", tile_data);
   }
-  if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
-    return (0, _groundTiles.moveDescendOneStep)(local_data, _nnConstants.NN_AIRBORNE);
+  return move_result;
+}
+function leaveTileNN(the_objects, this_hex, prev_hex, is_a_trampoline) {
+  let {
+    o_walkway_tiles,
+    o_walkway_columns,
+    o_fence_walls
+  } = the_objects;
+  const is_off_walkway = (0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex);
+  let move_result;
+  if (prev_hex == this_hex) {
+    move_result = (0, _groundTiles.moveSame)(_nnConstants.NN_0_SAME, prev_hex, this_hex);
+  } else if ((0, _hexRoutines.hitFence)(o_fence_walls, prev_hex, this_hex)) {
+    move_result = (0, _groundTiles.moveBlock)(_nnConstants.NN_14_BLOCKED, prev_hex, this_hex);
+    console.log("NN Block");
+  } else if (is_off_walkway && is_a_trampoline) {
+    move_result = (0, _groundTiles.moveOntoTrampoline)(_nnConstants.NN_15_TRAMPOLINE, prev_hex, this_hex); //??
+  } else if (is_off_walkway) {
+    move_result = (0, _groundTiles.moveIntoAir)(_nnConstants.NN_16_STROLL_INTO_AIR, prev_hex, this_hex); //???
+  } else {
+    move_result = tile2TileNN(o_walkway_tiles, this_hex, prev_hex);
   }
-  return (0, _groundTiles.moveBlock)(local_data, _nnConstants.NN_14_BLOCKED);
+  return move_result;
 }
 function nnFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
   const NONE_to_NONE = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_NONE;
@@ -25632,13 +25784,6 @@ function nnCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data) {
   }
   return false;
 }
-function nnFlatToUp(prev_tilt_up, new_tilt_up, low_to_low) {
-  const NONE_to_NN = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_NN;
-  if (NONE_to_NN && low_to_low) {
-    return true;
-  }
-  return false;
-}
 function nnUpToFlat(prev_tilt_up, new_tilt_up, high_to_high) {
   const NN_to_NONE = prev_tilt_up == _theConstants.TILT_NN && new_tilt_up == _theConstants.TILT_NONE;
   if (NN_to_NONE && high_to_high) {
@@ -25649,13 +25794,6 @@ function nnUpToFlat(prev_tilt_up, new_tilt_up, high_to_high) {
 function nnDownToFlat(prev_tilt_up, new_tilt_up, low_to_low) {
   const SS_to_NONE = prev_tilt_up == _theConstants.TILT_SS && new_tilt_up == _theConstants.TILT_NONE;
   if (SS_to_NONE && low_to_low) {
-    return true;
-  }
-  return false;
-}
-function nnFlatToDown(prev_tilt_up, new_tilt_up, high_to_high) {
-  const NONE_to_SS = prev_tilt_up == _theConstants.TILT_NONE && new_tilt_up == _theConstants.TILT_SS;
-  if (NONE_to_SS && high_to_high) {
     return true;
   }
   return false;
@@ -25689,20 +25827,21 @@ function nnDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
   return false;
 }
 
-},{"../../misc/console-short.js":17,"../../values/the-constants.js":52,"../ground-tiles.js":29,"../hex-routines.js":30,"./nn-constants.js":35}],37:[function(require,module,exports){
+},{"../../misc/console-short.js":28,"../../values/the-constants.js":62,"../ground-tiles.js":37,"../hex-routines.js":38,"./nn-constants.js":42}],44:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.NW_START_FINISHES = exports.NW_INTO_AIR = exports.NW_AIRBORNE = exports.NW_9_FLAT__DOWN = exports.NW_8_DOWN__FLAT = exports.NW_7_UP__FLAT = exports.NW_6_FLAT__UP = exports.NW_5_FLAT__FLAT = exports.NW_4_DOWN_DOWN_COUNTER = exports.NW_3_DOWN_DOWN_CLOCK = exports.NW_2_UP_UP_COUNTER = exports.NW_1_UP_UP_CLOCK = exports.NW_14_BLOCKED = exports.NW_13_DOWN__UP = exports.NW_12_UP__DOWN = exports.NW_11_DOWN__DOWN = exports.NW_10_UP__UP = void 0;
+exports.NW_WALK_AIR = exports.NW_TRAMPOLINE_AIR = exports.NW_START_FINISHES = exports.NW_9_FLAT__DOWN = exports.NW_8_DOWN__FLAT = exports.NW_7_UP__FLAT = exports.NW_6_FLAT__UP = exports.NW_5_FLAT__FLAT = exports.NW_4_DOWN_DOWN_COUNTER = exports.NW_3_DOWN_DOWN_CLOCK = exports.NW_2_UP_UP_COUNTER = exports.NW_1_UP_UP_CLOCK = exports.NW_17_DESCEND_ONE_STEP = exports.NW_16_STROLL_INTO_AIR = exports.NW_15_TRAMPOLINE = exports.NW_14_BLOCKED = exports.NW_13_DOWN__UP = exports.NW_12_UP__DOWN = exports.NW_11_DOWN__DOWN = exports.NW_10_UP__UP = exports.NW_0_SAME = void 0;
 var _theConstants = require("../../values/the-constants.js");
 const x_start = 0;
 const z_start = 0;
 const x_finish = -1;
 const z_finish = 0;
-const NW_INTO_AIR = exports.NW_INTO_AIR = "NW_INTO_AIR";
-const NW_AIRBORNE = exports.NW_AIRBORNE = "NW_AIRBORNE";
+const NW_WALK_AIR = exports.NW_WALK_AIR = "NW_WALK_AIR";
+const NW_TRAMPOLINE_AIR = exports.NW_TRAMPOLINE_AIR = "NW_TRAMPOLINE_AIR";
+const NW_0_SAME = exports.NW_0_SAME = "NW_0_SAME";
 const NW_1_UP_UP_CLOCK = exports.NW_1_UP_UP_CLOCK = "NW_1_UP_UP_CLOCK";
 const NW_2_UP_UP_COUNTER = exports.NW_2_UP_UP_COUNTER = "NW_2_UP_UP_COUNTER";
 const NW_3_DOWN_DOWN_CLOCK = exports.NW_3_DOWN_DOWN_CLOCK = "NW_3_DOWN_DOWN_CLOCK";
@@ -25717,6 +25856,9 @@ const NW_11_DOWN__DOWN = exports.NW_11_DOWN__DOWN = "NW_11_DOWN__DOWN";
 const NW_12_UP__DOWN = exports.NW_12_UP__DOWN = "NW_12_UP__DOWN";
 const NW_13_DOWN__UP = exports.NW_13_DOWN__UP = "NW_13_DOWN__UP";
 const NW_14_BLOCKED = exports.NW_14_BLOCKED = "NW_14_BLOCKED";
+const NW_15_TRAMPOLINE = exports.NW_15_TRAMPOLINE = "NW_15_TRAMPOLINE";
+const NW_16_STROLL_INTO_AIR = exports.NW_16_STROLL_INTO_AIR = "NW_16_STROLL_INTO_AIR";
+const NW_17_DESCEND_ONE_STEP = exports.NW_17_DESCEND_ONE_STEP = "NW_17_DESCEND_ONE_STEP";
 const NW_1_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SS, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SW, 1], NW_1_UP_UP_CLOCK];
 const NW_222_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SS, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SW, 1], NW_2_UP_UP_COUNTER];
 const NW_3_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SS, 1], NW_3_DOWN_DOWN_CLOCK];
@@ -25746,89 +25888,89 @@ const NW_START_FINISHES = exports.NW_START_FINISHES = {
   13: NW_13_TEST
 };
 
-},{"../../values/the-constants.js":52}],38:[function(require,module,exports){
+},{"../../values/the-constants.js":62}],45:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.moveToNw = moveToNw;
+exports.leaveTileNW = leaveTileNW;
 var _consoleShort = require("../../misc/console-short.js");
 var _groundTiles = require("../ground-tiles.js");
 var _theConstants = require("../../values/the-constants.js");
 var _hexRoutines = require("../hex-routines.js");
 var _nwConstants = require("./nw-constants.js");
-function moveToNw(the_objects, prev_hex, this_hex, is_a_trampoline) {
-  let {
-    o_walkway_tiles,
-    o_walkway_columns,
-    o_fence_walls,
-    o_fence_columns
-  } = the_objects;
+function tile2TileNW(o_walkway_tiles, this_hex, prev_hex) {
   const {
     prev_new_data,
-    data
+    tile_data
   } = (0, _hexRoutines.tileData)(o_walkway_tiles, prev_hex, this_hex);
   const {
     prev_tilt_up,
     new_tilt_up
   } = prev_new_data;
-  const local_data = {
-    prev_tilt_up,
-    new_tilt_up,
-    prev_hex,
-    this_hex
-  };
-  if ((0, _hexRoutines.hitFence)(o_fence_walls, o_fence_columns, prev_hex, this_hex)) {
-    return (0, _groundTiles.moveBlock)(local_data, _nwConstants.NW_14_BLOCKED);
-  }
-  if ((0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex)) {
-    if (is_a_trampoline) {
-      return (0, _groundTiles.moveOntoTrampoline)(local_data, _nwConstants.NW_AIRBORNE);
-    } else {
-      return (0, _groundTiles.moveIntoAir)(local_data, _nwConstants.NW_AIRBORNE);
-    }
-  }
   const {
     low_to_low,
     high_to_high,
     lows_and_highs,
     high_to_low,
     low_to_high
-  } = data;
-  if (nwCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_1_UP_UP_CLOCK); //      ⭮
-  } else if (nwCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_2_UP_UP_COUNTER); //      ⭯
-  } else if (nwCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_3_DOWN_DOWN_CLOCK); //  ⭮
-  } else if (nwCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_4_DOWN_DOWN_COUNTER); //  ⭯
+  } = tile_data;
+  let move_result;
+  if (nwCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_nwConstants.NW_1_UP_UP_CLOCK, prev_hex, this_hex); //      ⭮
+  } else if (nwCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_nwConstants.NW_2_UP_UP_COUNTER, prev_hex, this_hex); //      ⭯
+  } else if (nwCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_nwConstants.NW_3_DOWN_DOWN_CLOCK, prev_hex, this_hex); //  ⭮
+  } else if (nwCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_nwConstants.NW_4_DOWN_DOWN_COUNTER, prev_hex, this_hex); //  ⭯              http://xahlee.info/comp/unicode_arrows.html
   } else if (nwFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_5_FLAT__FLAT); // - -
+    move_result = (0, _groundTiles.moveNew)(_nwConstants.NW_5_FLAT__FLAT, prev_hex, this_hex); // - -
   } else if (nwFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_6_FLAT__UP); //   _⭜
+    move_result = (0, _groundTiles.moveNew)(_nwConstants.NW_6_FLAT__UP, prev_hex, this_hex); //   _⭜
   } else if (nwUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_7_UP__FLAT); //   ↗¯¯
-  } else if (nwDownToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_8_DOWN__FLAT); // ↘__
+    move_result = (0, _groundTiles.moveNew)(_nwConstants.NW_7_UP__FLAT, prev_hex, this_hex); //   ↗¯¯
+  } else if (nwDownToFlat(prev_tilt_up, new_tilt_up, low_to_high)) {
+    move_result = (0, _groundTiles.moveNew)(_nwConstants.NW_8_DOWN__FLAT, prev_hex, this_hex); // ↘__
   } else if (nwFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_9_FLAT__DOWN); // ¯⭝
+    move_result = (0, _groundTiles.moveNew)(_nwConstants.NW_9_FLAT__DOWN, prev_hex, this_hex); // ¯⭝
   } else if (nwUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_10_UP__UP); //     ↗↗
+    move_result = (0, _groundTiles.moveNew)(_nwConstants.NW_10_UP__UP, prev_hex, this_hex); //     ↗↗
   } else if (nwDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_11_DOWN__DOWN); // ↘↘
+    move_result = (0, _groundTiles.moveNew)(_nwConstants.NW_11_DOWN__DOWN, prev_hex, this_hex); // ↘↘
   } else if (nwUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_12_UP__DOWN); //  ↗↘
+    move_result = (0, _groundTiles.moveNew)(_nwConstants.NW_12_UP__DOWN, prev_hex, this_hex); //  ↗↘
   } else if (nwDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _nwConstants.NW_13_DOWN__UP); //  ↘↗
-  } else if (prev_hex == this_hex) {
-    return _theConstants.MV_TILE_SAME;
+    move_result = (0, _groundTiles.moveNew)(_nwConstants.NW_13_DOWN__UP, prev_hex, this_hex); //  ↘↗
+  } else if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
+    move_result = (0, _groundTiles.moveDescendOneStep)(_nwConstants.NW_17_DESCEND_ONE_STEP, prev_hex, this_hex); // ⬎_   ??????? does this ever get gotton to ?   MV_FALL_STEP_OFF
+  } else {
+    (0, _consoleShort.ee)("should never happen NW, move_result", move_result);
   }
-  if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
-    return (0, _groundTiles.moveDescendOneStep)(local_data, _nwConstants.NW_AIRBORNE);
+  return move_result;
+}
+function leaveTileNW(the_objects, this_hex, prev_hex, is_a_trampoline) {
+  let {
+    o_walkway_tiles,
+    o_walkway_columns,
+    o_fence_walls
+  } = the_objects;
+  const is_off_walkway = (0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex);
+  let move_result;
+  if (prev_hex == this_hex) {
+    move_result = (0, _groundTiles.moveSame)(_nwConstants.NW_0_SAME, prev_hex, this_hex);
+  } else if ((0, _hexRoutines.hitFence)(o_fence_walls, prev_hex, this_hex)) {
+    move_result = (0, _groundTiles.moveBlock)(_nwConstants.NW_14_BLOCKED, prev_hex, this_hex);
+    console.log("NW Block");
+  } else if (is_off_walkway && is_a_trampoline) {
+    move_result = (0, _groundTiles.moveOntoTrampoline)(_nwConstants.NW_15_TRAMPOLINE, prev_hex, this_hex);
+  } else if (is_off_walkway) {
+    move_result = (0, _groundTiles.moveIntoAir)(_nwConstants.NW_16_STROLL_INTO_AIR, prev_hex, this_hex);
+  } else {
+    move_result = tile2TileNW(o_walkway_tiles, this_hex, prev_hex);
   }
-  return (0, _groundTiles.moveBlock)(local_data, _nwConstants.NW_14_BLOCKED); //  ↘↗
+  return move_result;
 }
 
 /*  curve_up__curve_up.png   like a flower */
@@ -25929,20 +26071,21 @@ function nwDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
   return false;
 }
 
-},{"../../misc/console-short.js":17,"../../values/the-constants.js":52,"../ground-tiles.js":29,"../hex-routines.js":30,"./nw-constants.js":37}],39:[function(require,module,exports){
+},{"../../misc/console-short.js":28,"../../values/the-constants.js":62,"../ground-tiles.js":37,"../hex-routines.js":38,"./nw-constants.js":44}],46:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.SE_START_FINISHES = exports.SE_INTO_AIR = exports.SE_AIRBORNE = exports.SE_9_FLAT__DOWN = exports.SE_8_DOWN__FLAT = exports.SE_7_UP__FLAT = exports.SE_6_FLAT__UP = exports.SE_5_FLAT__FLAT = exports.SE_4_DOWN_DOWN_COUNTER = exports.SE_3_DOWN_DOWN_CLOCK = exports.SE_2_UP_UP_COUNTER = exports.SE_1_UP_UP_CLOCK = exports.SE_14_BLOCKED = exports.SE_13_DOWN__UP = exports.SE_12_UP__DOWN = exports.SE_11_DOWN__DOWN = exports.SE_10_UP__UP = void 0;
+exports.SE_WALK_AIR = exports.SE_TRAMPOLINE_AIR = exports.SE_START_FINISHES = exports.SE_9_FLAT__DOWN = exports.SE_8_DOWN__FLAT = exports.SE_7_UP__FLAT = exports.SE_6_FLAT__UP = exports.SE_5_FLAT__FLAT = exports.SE_4_DOWN_DOWN_COUNTER = exports.SE_3_DOWN_DOWN_CLOCK = exports.SE_2_UP_UP_COUNTER = exports.SE_1_UP_UP_CLOCK = exports.SE_17_DESCEND_ONE_STEP = exports.SE_16_STROLL_INTO_AIR = exports.SE_15_TRAMPOLINE = exports.SE_14_BLOCKED = exports.SE_13_DOWN__UP = exports.SE_12_UP__DOWN = exports.SE_11_DOWN__DOWN = exports.SE_10_UP__UP = exports.SE_0_SAME = void 0;
 var _theConstants = require("../../values/the-constants.js");
 const x_start = 0;
 const z_start = 0;
 const x_finish = 1;
 const z_finish = 0;
-const SE_INTO_AIR = exports.SE_INTO_AIR = "SE_INTO_AIR";
-const SE_AIRBORNE = exports.SE_AIRBORNE = "SE_AIRBORNE";
+const SE_WALK_AIR = exports.SE_WALK_AIR = "SE_WALK_AIR";
+const SE_TRAMPOLINE_AIR = exports.SE_TRAMPOLINE_AIR = "SE_TRAMPOLINE_AIR";
+const SE_0_SAME = exports.SE_0_SAME = "SE_0_SAME";
 const SE_1_UP_UP_CLOCK = exports.SE_1_UP_UP_CLOCK = "SE_1_UP_UP_CLOCK";
 const SE_2_UP_UP_COUNTER = exports.SE_2_UP_UP_COUNTER = "SE_2_UP_UP_COUNTER";
 const SE_3_DOWN_DOWN_CLOCK = exports.SE_3_DOWN_DOWN_CLOCK = "SE_3_DOWN_DOWN_CLOCK";
@@ -25957,6 +26100,9 @@ const SE_11_DOWN__DOWN = exports.SE_11_DOWN__DOWN = "SE_11_DOWN__DOWN";
 const SE_12_UP__DOWN = exports.SE_12_UP__DOWN = "SE_12_UP__DOWN";
 const SE_13_DOWN__UP = exports.SE_13_DOWN__UP = "SE_13_DOWN__UP";
 const SE_14_BLOCKED = exports.SE_14_BLOCKED = "SE_14_BLOCKED";
+const SE_15_TRAMPOLINE = exports.SE_15_TRAMPOLINE = "SE_15_TRAMPOLINE";
+const SE_16_STROLL_INTO_AIR = exports.SE_16_STROLL_INTO_AIR = "SE_16_STROLL_INTO_AIR";
+const SE_17_DESCEND_ONE_STEP = exports.SE_17_DESCEND_ONE_STEP = "SE_17_DESCEND_ONE_STEP";
 const SE_1_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NN, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], SE_1_UP_UP_CLOCK];
 const SE_2222_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NN, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], SE_2_UP_UP_COUNTER];
 const SE_3_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NN, 1], SE_3_DOWN_DOWN_CLOCK];
@@ -25986,89 +26132,89 @@ const SE_START_FINISHES = exports.SE_START_FINISHES = {
   13: SE_13_TEST
 };
 
-},{"../../values/the-constants.js":52}],40:[function(require,module,exports){
+},{"../../values/the-constants.js":62}],47:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.moveToSe = moveToSe;
+exports.leaveTileSE = leaveTileSE;
 var _consoleShort = require("../../misc/console-short.js");
 var _groundTiles = require("../ground-tiles.js");
 var _theConstants = require("../../values/the-constants.js");
 var _hexRoutines = require("../hex-routines.js");
 var _seConstants = require("./se-constants.js");
-function moveToSe(the_objects, prev_hex, this_hex, is_a_trampoline) {
-  let {
-    o_walkway_tiles,
-    o_walkway_columns,
-    o_fence_walls,
-    o_fence_columns
-  } = the_objects;
+function tile2TileSE(o_walkway_tiles, this_hex, prev_hex) {
   const {
     prev_new_data,
-    data
+    tile_data
   } = (0, _hexRoutines.tileData)(o_walkway_tiles, prev_hex, this_hex);
   const {
     prev_tilt_up,
     new_tilt_up
   } = prev_new_data;
-  const local_data = {
-    prev_tilt_up,
-    new_tilt_up,
-    prev_hex,
-    this_hex
-  };
-  if ((0, _hexRoutines.hitFence)(o_fence_walls, o_fence_columns, prev_hex, this_hex)) {
-    return (0, _groundTiles.moveBlock)(local_data, _seConstants.SE_14_BLOCKED);
-  }
-  if ((0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex)) {
-    if (is_a_trampoline) {
-      return (0, _groundTiles.moveOntoTrampoline)(local_data, _seConstants.SE_AIRBORNE);
-    } else {
-      return (0, _groundTiles.moveIntoAir)(local_data, _seConstants.SE_AIRBORNE);
-    }
-  }
   const {
     low_to_low,
     high_to_high,
     lows_and_highs,
     high_to_low,
     low_to_high
-  } = data;
-  if (seCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_1_UP_UP_CLOCK); //      ⭮
-  } else if (seCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_2_UP_UP_COUNTER); //      ⭯
-  } else if (seCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_3_DOWN_DOWN_CLOCK); //  ⭮
-  } else if (seCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_4_DOWN_DOWN_COUNTER); //  ⭯
+  } = tile_data;
+  let move_result;
+  if (seCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_seConstants.SE_1_UP_UP_CLOCK, prev_hex, this_hex); //      ⭮
+  } else if (seCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_seConstants.SE_2_UP_UP_COUNTER, prev_hex, this_hex); //      ⭯
+  } else if (seCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_seConstants.SE_3_DOWN_DOWN_CLOCK, prev_hex, this_hex); //  ⭮
+  } else if (seCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_seConstants.SE_4_DOWN_DOWN_COUNTER, prev_hex, this_hex); //  ⭯              http://xahlee.info/comp/unicode_arrows.html
   } else if (seFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_5_FLAT__FLAT); // - -
+    move_result = (0, _groundTiles.moveNew)(_seConstants.SE_5_FLAT__FLAT, prev_hex, this_hex); // - -
   } else if (seFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_6_FLAT__UP); //   _⭜
+    move_result = (0, _groundTiles.moveNew)(_seConstants.SE_6_FLAT__UP, prev_hex, this_hex); //   _⭜
   } else if (seUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_7_UP__FLAT); //   ↗¯¯
-  } else if (seDownToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_8_DOWN__FLAT); // ↘__
+    move_result = (0, _groundTiles.moveNew)(_seConstants.SE_7_UP__FLAT, prev_hex, this_hex); //   ↗¯¯
+  } else if (seDownToFlat(prev_tilt_up, new_tilt_up, low_to_high)) {
+    move_result = (0, _groundTiles.moveNew)(_seConstants.SE_8_DOWN__FLAT, prev_hex, this_hex); // ↘__
   } else if (seFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_9_FLAT__DOWN); // ¯⭝
+    move_result = (0, _groundTiles.moveNew)(_seConstants.SE_9_FLAT__DOWN, prev_hex, this_hex); // ¯⭝
   } else if (seUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_10_UP__UP); //     ↗↗
+    move_result = (0, _groundTiles.moveNew)(_seConstants.SE_10_UP__UP, prev_hex, this_hex); //     ↗↗
   } else if (seDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_11_DOWN__DOWN); // ↘↘
+    move_result = (0, _groundTiles.moveNew)(_seConstants.SE_11_DOWN__DOWN, prev_hex, this_hex); // ↘↘
   } else if (seUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_12_UP__DOWN); //  ↗↘
+    move_result = (0, _groundTiles.moveNew)(_seConstants.SE_12_UP__DOWN, prev_hex, this_hex); //  ↗↘
   } else if (seDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _seConstants.SE_13_DOWN__UP); //  ↘↗
-  } else if (prev_hex == this_hex) {
-    return _theConstants.MV_TILE_SAME;
+    move_result = (0, _groundTiles.moveNew)(_seConstants.SE_13_DOWN__UP, prev_hex, this_hex); //  ↘↗
+  } else if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
+    move_result = (0, _groundTiles.moveDescendOneStep)(_seConstants.SE_17_DESCEND_ONE_STEP, prev_hex, this_hex); // ⬎_   ??????? does this ever get gotton to ?   MV_FALL_STEP_OFF
+  } else {
+    (0, _consoleShort.ee)("should never happen SE, move_result", move_result);
   }
-  if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
-    return (0, _groundTiles.moveDescendOneStep)(local_data, _seConstants.SE_AIRBORNE);
+  return move_result;
+}
+function leaveTileSE(the_objects, this_hex, prev_hex, is_a_trampoline) {
+  let {
+    o_walkway_tiles,
+    o_walkway_columns,
+    o_fence_walls
+  } = the_objects;
+  const is_off_walkway = (0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex);
+  let move_result;
+  if (prev_hex == this_hex) {
+    move_result = (0, _groundTiles.moveSame)(_seConstants.SE_0_SAME, prev_hex, this_hex);
+  } else if ((0, _hexRoutines.hitFence)(o_fence_walls, prev_hex, this_hex)) {
+    move_result = (0, _groundTiles.moveBlock)(_seConstants.SE_14_BLOCKED, prev_hex, this_hex);
+    console.log("SE Block");
+  } else if (is_off_walkway && is_a_trampoline) {
+    move_result = (0, _groundTiles.moveOntoTrampoline)(_seConstants.SE_15_TRAMPOLINE, prev_hex, this_hex);
+  } else if (is_off_walkway) {
+    move_result = (0, _groundTiles.moveIntoAir)(_seConstants.SE_16_STROLL_INTO_AIR, prev_hex, this_hex);
+  } else {
+    move_result = tile2TileSE(o_walkway_tiles, this_hex, prev_hex);
   }
-  return (0, _groundTiles.moveBlock)(local_data, _seConstants.SE_14_BLOCKED); //  ↘↗
+  return move_result;
 }
 
 /*  curve_up__curve_up.png   like a flower */
@@ -26166,20 +26312,21 @@ function seDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
   return false;
 }
 
-},{"../../misc/console-short.js":17,"../../values/the-constants.js":52,"../ground-tiles.js":29,"../hex-routines.js":30,"./se-constants.js":39}],41:[function(require,module,exports){
+},{"../../misc/console-short.js":28,"../../values/the-constants.js":62,"../ground-tiles.js":37,"../hex-routines.js":38,"./se-constants.js":46}],48:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.SS_START_FINISHES = exports.SS_INTO_AIR = exports.SS_AIRBORNE = exports.SS_9_FLAT__DOWN = exports.SS_8_DOWN__FLAT = exports.SS_7_UP__FLAT = exports.SS_6_FLAT__UP = exports.SS_5_FLAT__FLAT = exports.SS_4_DOWN_DOWN_COUNTER = exports.SS_3_DOWN_DOWN_CLOCK = exports.SS_2_UP_UP_COUNTER = exports.SS_1_UP_UP_CLOCK = exports.SS_14_BLOCKED = exports.SS_13_DOWN__UP = exports.SS_12_UP__DOWN = exports.SS_11_DOWN__DOWN = exports.SS_10_UP__UP = void 0;
+exports.SS_WALK_AIR = exports.SS_TRAMPOLINE_AIR = exports.SS_START_FINISHES = exports.SS_9_FLAT__DOWN = exports.SS_8_DOWN__FLAT = exports.SS_7_UP__FLAT = exports.SS_6_FLAT__UP = exports.SS_5_FLAT__FLAT = exports.SS_4_DOWN_DOWN_COUNTER = exports.SS_3_DOWN_DOWN_CLOCK = exports.SS_2_UP_UP_COUNTER = exports.SS_1_UP_UP_CLOCK = exports.SS_17_DESCEND_ONE_STEP = exports.SS_16_STROLL_INTO_AIR = exports.SS_15_TRAMPOLINE = exports.SS_14_BLOCKED = exports.SS_13_DOWN__UP = exports.SS_12_UP__DOWN = exports.SS_11_DOWN__DOWN = exports.SS_10_UP__UP = exports.SS_0_SAME = void 0;
 var _theConstants = require("../../values/the-constants.js");
 const x_start = 0;
 const z_start = 0;
 const x_finish = 0;
 const z_finish = 1;
-const SS_INTO_AIR = exports.SS_INTO_AIR = "SS_INTO_AIR";
-const SS_AIRBORNE = exports.SS_AIRBORNE = "SS_AIRBORNE";
+const SS_WALK_AIR = exports.SS_WALK_AIR = "SS_WALK_AIR";
+const SS_TRAMPOLINE_AIR = exports.SS_TRAMPOLINE_AIR = "SS_TRAMPOLINE_AIR";
+const SS_0_SAME = exports.SS_0_SAME = "SS_0_SAME";
 const SS_1_UP_UP_CLOCK = exports.SS_1_UP_UP_CLOCK = "SS_1_UP_UP_CLOCK";
 const SS_2_UP_UP_COUNTER = exports.SS_2_UP_UP_COUNTER = "SS_2_UP_UP_COUNTER";
 const SS_3_DOWN_DOWN_CLOCK = exports.SS_3_DOWN_DOWN_CLOCK = "SS_3_DOWN_DOWN_CLOCK";
@@ -26194,6 +26341,9 @@ const SS_11_DOWN__DOWN = exports.SS_11_DOWN__DOWN = "SS_11_DOWN__DOWN";
 const SS_12_UP__DOWN = exports.SS_12_UP__DOWN = "SS_12_UP__DOWN";
 const SS_13_DOWN__UP = exports.SS_13_DOWN__UP = "SS_13_DOWN__UP";
 const SS_14_BLOCKED = exports.SS_14_BLOCKED = "SS_14_BLOCKED";
+const SS_15_TRAMPOLINE = exports.SS_15_TRAMPOLINE = "SS_15_TRAMPOLINE";
+const SS_16_STROLL_INTO_AIR = exports.SS_16_STROLL_INTO_AIR = "SS_16_STROLL_INTO_AIR";
+const SS_17_DESCEND_ONE_STEP = exports.SS_17_DESCEND_ONE_STEP = "SS_17_DESCEND_ONE_STEP";
 const SS_1_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SW, 1], SS_1_UP_UP_CLOCK];
 const SS_222_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SW, 1], SS_2_UP_UP_COUNTER];
 const SS_3_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NW, 1], SS_3_DOWN_DOWN_CLOCK];
@@ -26223,90 +26373,89 @@ const SS_START_FINISHES = exports.SS_START_FINISHES = {
   13: SS_13_TEST
 };
 
-},{"../../values/the-constants.js":52}],42:[function(require,module,exports){
+},{"../../values/the-constants.js":62}],49:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.moveToSs = moveToSs;
+exports.leaveTileSS = leaveTileSS;
 var _consoleShort = require("../../misc/console-short.js");
 var _groundTiles = require("../ground-tiles.js");
 var _theConstants = require("../../values/the-constants.js");
 var _hexRoutines = require("../hex-routines.js");
 var _ssConstants = require("./ss-constants.js");
-function moveToSs(the_objects, prev_hex, this_hex, is_a_trampoline) {
-  let {
-    o_walkway_tiles,
-    o_walkway_columns,
-    o_fence_walls,
-    o_fence_columns
-  } = the_objects;
+function tile2TileSS(o_walkway_tiles, this_hex, prev_hex) {
   const {
     prev_new_data,
-    data
-  } = (0, _hexRoutines.tileData)(o_walkway_tiles, prev_hex, this_hex); // we assume there is a tile
-
+    tile_data
+  } = (0, _hexRoutines.tileData)(o_walkway_tiles, prev_hex, this_hex);
   const {
     prev_tilt_up,
     new_tilt_up
   } = prev_new_data;
-  const local_data = {
-    prev_tilt_up,
-    new_tilt_up,
-    prev_hex,
-    this_hex
-  };
-  if ((0, _hexRoutines.hitFence)(o_fence_walls, o_fence_columns, prev_hex, this_hex)) {
-    return (0, _groundTiles.moveBlock)(local_data, _ssConstants.SS_14_BLOCKED);
-  }
-  if ((0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex)) {
-    if (is_a_trampoline) {
-      return (0, _groundTiles.moveOntoTrampoline)(local_data, _ssConstants.SS_AIRBORNE);
-    } else {
-      return (0, _groundTiles.moveIntoAir)(local_data, _ssConstants.SS_AIRBORNE);
-    }
-  }
   const {
     low_to_low,
     high_to_high,
     lows_and_highs,
     high_to_low,
     low_to_high
-  } = data;
-  if (prev_hex == this_hex) {
-    return _theConstants.MV_TILE_SAME;
-  } else if (ssCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_1_UP_UP_CLOCK); //      ⭮
-  } else if (ssCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_2_UP_UP_COUNTER); //      ⭯
-  } else if (ssCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_3_DOWN_DOWN_CLOCK); //  ⭮
-  } else if (ssCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_4_DOWN_DOWN_COUNTER); //  ⭯
+  } = tile_data;
+  let move_result;
+  if (ssCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_ssConstants.SS_1_UP_UP_CLOCK, prev_hex, this_hex); //      ⭮
+  } else if (ssCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_ssConstants.SS_2_UP_UP_COUNTER, prev_hex, this_hex); //      ⭯
+  } else if (ssCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_ssConstants.SS_3_DOWN_DOWN_CLOCK, prev_hex, this_hex); //  ⭮
+  } else if (ssCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_ssConstants.SS_4_DOWN_DOWN_COUNTER, prev_hex, this_hex); //  ⭯              http://xahlee.info/comp/unicode_arrows.html
   } else if (ssFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_5_FLAT__FLAT); // - -
+    move_result = (0, _groundTiles.moveNew)(_ssConstants.SS_5_FLAT__FLAT, prev_hex, this_hex); // - -
   } else if (ssFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_6_FLAT__UP); //   _⭜
+    move_result = (0, _groundTiles.moveNew)(_ssConstants.SS_6_FLAT__UP, prev_hex, this_hex); //   _⭜
   } else if (ssUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_7_UP__FLAT); //   ↗¯¯
-  } else if (ssDownToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_8_DOWN__FLAT); // ↘__
+    move_result = (0, _groundTiles.moveNew)(_ssConstants.SS_7_UP__FLAT, prev_hex, this_hex); //   ↗¯¯
+  } else if (ssDownToFlat(prev_tilt_up, new_tilt_up, low_to_high)) {
+    move_result = (0, _groundTiles.moveNew)(_ssConstants.SS_8_DOWN__FLAT, prev_hex, this_hex); // ↘__
   } else if (ssFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_9_FLAT__DOWN); // ¯⭝
+    move_result = (0, _groundTiles.moveNew)(_ssConstants.SS_9_FLAT__DOWN, prev_hex, this_hex); // ¯⭝
   } else if (ssUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_10_UP__UP); //     ↗↗
+    move_result = (0, _groundTiles.moveNew)(_ssConstants.SS_10_UP__UP, prev_hex, this_hex); //     ↗↗
   } else if (ssDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_11_DOWN__DOWN); // ↘↘
+    move_result = (0, _groundTiles.moveNew)(_ssConstants.SS_11_DOWN__DOWN, prev_hex, this_hex); // ↘↘
   } else if (ssUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_12_UP__DOWN); //  ↗↘
+    move_result = (0, _groundTiles.moveNew)(_ssConstants.SS_12_UP__DOWN, prev_hex, this_hex); //  ↗↘
   } else if (ssDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _ssConstants.SS_13_DOWN__UP); //  ↘↗
+    move_result = (0, _groundTiles.moveNew)(_ssConstants.SS_13_DOWN__UP, prev_hex, this_hex); //  ↘↗
+  } else if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
+    move_result = (0, _groundTiles.moveDescendOneStep)(_ssConstants.SS_17_DESCEND_ONE_STEP, prev_hex, this_hex); // ⬎_   ??????? does this ever get gotton to ?   MV_FALL_STEP_OFF
+  } else {
+    (0, _consoleShort.ee)("should never happen SS, move_result", move_result);
   }
-  if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
-    return (0, _groundTiles.moveDescendOneStep)(local_data, _ssConstants.SS_AIRBORNE);
+  return move_result;
+}
+function leaveTileSS(the_objects, this_hex, prev_hex, is_a_trampoline) {
+  let {
+    o_walkway_tiles,
+    o_walkway_columns,
+    o_fence_walls
+  } = the_objects;
+  const is_off_walkway = (0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex);
+  let move_result;
+  if (prev_hex == this_hex) {
+    move_result = (0, _groundTiles.moveSame)(_ssConstants.SS_0_SAME, prev_hex, this_hex);
+  } else if ((0, _hexRoutines.hitFence)(o_fence_walls, prev_hex, this_hex)) {
+    move_result = (0, _groundTiles.moveBlock)(_ssConstants.SS_14_BLOCKED, prev_hex, this_hex);
+    console.log("SS Block");
+  } else if (is_off_walkway && is_a_trampoline) {
+    move_result = (0, _groundTiles.moveOntoTrampoline)(_ssConstants.SS_15_TRAMPOLINE, prev_hex, this_hex);
+  } else if (is_off_walkway) {
+    move_result = (0, _groundTiles.moveIntoAir)(_ssConstants.SS_16_STROLL_INTO_AIR, prev_hex, this_hex);
+  } else {
+    move_result = tile2TileSS(o_walkway_tiles, this_hex, prev_hex);
   }
-  return (0, _groundTiles.moveBlock)(local_data, _ssConstants.SS_14_BLOCKED); // ¯¯↗
+  return move_result;
 }
 
 /*  curve_up__curve_up.png   like a flower */
@@ -26404,77 +26553,21 @@ function ssDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
   return false;
 }
 
-},{"../../misc/console-short.js":17,"../../values/the-constants.js":52,"../ground-tiles.js":29,"../hex-routines.js":30,"./ss-constants.js":41}],43:[function(require,module,exports){
+},{"../../misc/console-short.js":28,"../../values/the-constants.js":62,"../ground-tiles.js":37,"../hex-routines.js":38,"./ss-constants.js":48}],50:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.startGameTiles = startGameTiles;
-var _consoleShort = require("../misc/console-short.js");
-var _theConstants = require("../values/the-constants.js");
-function startGameTiles(the_map) {
-  const o_trampolines = the_map.trampoline_locs;
-  const o_pentagons = the_map.pentagon_locs;
-  const o_walkway_ndxs = the_map.walkway_locs;
-  var o_unvisited_tiles = new Map([]);
-  for (const a_tile of o_walkway_ndxs) {
-    const [x_index, y_100_index, z_index] = a_tile;
-    const xyz_index = `${x_index},${y_100_index},${z_index}`;
-    o_unvisited_tiles.set(xyz_index, xyz_index);
-  }
-  const o_fence_ndxs = the_map.fence_locs;
-  return {
-    o_pentagons,
-    o_trampolines,
-    o_fence_ndxs,
-    o_walkway_ndxs,
-    o_unvisited_tiles
-  };
-}
-function startTestTiles(test_direction) {
-  if (TEST_DIRECTION == _theConstants.TEST_SS) {
-    [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = ss_load_test(TEST_NUMBER_1_TO_11);
-    // the_coords.pop(); // get rid of name
-    (0, _consoleShort.ee)("main start test coord ss", the_coords);
-  } else if (TEST_DIRECTION == _theConstants.TEST_NN) {
-    [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = nn_load_test(TEST_NUMBER_1_TO_11);
-    // the_coords.pop(); // get rid of name
-    (0, _consoleShort.ee)("main start test coord nn", the_coords);
-  } else if (TEST_DIRECTION == _theConstants.TEST_NE) {
-    [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = ne_load_test(TEST_NUMBER_1_TO_11);
-    // the_coords.pop(); // get rid of name
-    (0, _consoleShort.ee)("main start test coord ne", the_coords);
-  } else if (TEST_DIRECTION == _theConstants.TEST_SW) {
-    [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = sw_load_test(TEST_NUMBER_1_TO_11);
-    // the_coords.pop(); // get rid of name
-  } else if (TEST_DIRECTION == _theConstants.TEST_NW) {
-    [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = nw_load_test(TEST_NUMBER_1_TO_11);
-    // the_coords.pop(); // get rid of name
-    (0, _consoleShort.ee)("main start test coord nw", the_coords);
-  } else if (TEST_DIRECTION == _theConstants.TEST_SE) {
-    [the_coords, test_xyz_camera, test_xyz_lookat, test_name] = se_load_test(TEST_NUMBER_1_TO_11);
-    // the_coords.pop(); // get rid of name
-  }
-  if (test_name !== "") {
-    (0, _consoleShort.ee)(`Physical mouse moving TEST NAME :: ${test_name} :: move forward to cause test`);
-  }
-}
-
-},{"../misc/console-short.js":17,"../values/the-constants.js":52}],44:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.SW_START_FINISHES = exports.SW_INTO_AIR = exports.SW_AIRBORNE = exports.SW_9_FLAT__DOWN = exports.SW_8_DOWN__FLAT = exports.SW_7_UP__FLAT = exports.SW_6_FLAT__UP = exports.SW_5_FLAT__FLAT = exports.SW_4_DOWN_DOWN_COUNTER = exports.SW_3_DOWN_DOWN_CLOCK = exports.SW_2_UP_UP_COUNTER = exports.SW_1_UP_UP_CLOCK = exports.SW_14_BLOCKED = exports.SW_13_DOWN__UP = exports.SW_11_UP__DOWN = exports.SW_10_UP__UP = exports.SW_10_DOWN__DOWN = void 0;
+exports.SW_WALK_AIR = exports.SW_TRAMPOLINE_AIR = exports.SW_START_FINISHES = exports.SW_9_FLAT__DOWN = exports.SW_8_DOWN__FLAT = exports.SW_7_UP__FLAT = exports.SW_6_FLAT__UP = exports.SW_5_FLAT__FLAT = exports.SW_4_DOWN_DOWN_COUNTER = exports.SW_3_DOWN_DOWN_CLOCK = exports.SW_2_UP_UP_COUNTER = exports.SW_1_UP_UP_CLOCK = exports.SW_17_DESCEND_ONE_STEP = exports.SW_16_STROLL_INTO_AIR = exports.SW_15_TRAMPOLINE = exports.SW_14_BLOCKED = exports.SW_13_DOWN__UP = exports.SW_12_UP__DOWN = exports.SW_11_DOWN__DOWN = exports.SW_10_UP__UP = exports.SW_0_SAME = void 0;
 var _theConstants = require("../../values/the-constants.js");
 const x_start = 0;
 const z_start = 0;
 const x_finish = -1;
 const z_finish = 1;
-const SW_INTO_AIR = exports.SW_INTO_AIR = "SW_INTO_AIR";
-const SW_AIRBORNE = exports.SW_AIRBORNE = "SW_AIRBORNE";
+const SW_WALK_AIR = exports.SW_WALK_AIR = "SW_WALK_AIR";
+const SW_TRAMPOLINE_AIR = exports.SW_TRAMPOLINE_AIR = "SW_TRAMPOLINE_AIR";
+const SW_0_SAME = exports.SW_0_SAME = "SW_0_SAME";
 const SW_1_UP_UP_CLOCK = exports.SW_1_UP_UP_CLOCK = "SW_1_UP_UP_CLOCK";
 const SW_2_UP_UP_COUNTER = exports.SW_2_UP_UP_COUNTER = "SW_2_UP_UP_COUNTER";
 const SW_3_DOWN_DOWN_CLOCK = exports.SW_3_DOWN_DOWN_CLOCK = "SW_3_DOWN_DOWN_CLOCK";
@@ -26485,10 +26578,13 @@ const SW_7_UP__FLAT = exports.SW_7_UP__FLAT = "SW_7_UP__FLAT";
 const SW_8_DOWN__FLAT = exports.SW_8_DOWN__FLAT = "SW_8_DOWN__FLAT";
 const SW_9_FLAT__DOWN = exports.SW_9_FLAT__DOWN = "SW_9_FLAT__DOWN";
 const SW_10_UP__UP = exports.SW_10_UP__UP = "SW_10_UP__UP";
-const SW_10_DOWN__DOWN = exports.SW_10_DOWN__DOWN = "SW_10_DOWN__DOWN";
-const SW_11_UP__DOWN = exports.SW_11_UP__DOWN = "SW_11_UP__DOWN";
+const SW_11_DOWN__DOWN = exports.SW_11_DOWN__DOWN = "SW_11_DOWN__DOWN";
+const SW_12_UP__DOWN = exports.SW_12_UP__DOWN = "SW_12_UP__DOWN";
 const SW_13_DOWN__UP = exports.SW_13_DOWN__UP = "SW_13_DOWN__UP";
 const SW_14_BLOCKED = exports.SW_14_BLOCKED = "SW_14_BLOCKED";
+const SW_15_TRAMPOLINE = exports.SW_15_TRAMPOLINE = "SW_15_TRAMPOLINE";
+const SW_16_STROLL_INTO_AIR = exports.SW_16_STROLL_INTO_AIR = "SW_16_STROLL_INTO_AIR";
+const SW_17_DESCEND_ONE_STEP = exports.SW_17_DESCEND_ONE_STEP = "SW_17_DESCEND_ONE_STEP";
 const SW_1_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NN, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NW, 1], SW_1_UP_UP_CLOCK];
 const SW_222_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NN, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NW, 1], SW_2_UP_UP_COUNTER];
 const SW_3_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SS, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SE, 1], SW_3_DOWN_DOWN_CLOCK];
@@ -26499,8 +26595,8 @@ const SW_7_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT
 const SW_8_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TILT_NE, 1], [x_finish, 2, z_finish, _theConstants.COL_2], SW_8_DOWN__FLAT];
 const SW_9_TEST = [[x_start, 2, z_start, _theConstants.COL_1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], SW_9_FLAT__DOWN];
 const SW_10_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SW, 1], [x_finish, 2, z_finish, _theConstants.COL_2, _theConstants.TILT_SW, 1], SW_10_UP__UP];
-const SW_11_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TILT_NE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], SW_10_DOWN__DOWN];
-const SW_12_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], SW_11_UP__DOWN];
+const SW_11_TEST = [[x_start, 2, z_start, _theConstants.COL_1, _theConstants.TILT_NE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], SW_11_DOWN__DOWN];
+const SW_12_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_SW, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_NE, 1], SW_12_UP__DOWN];
 const SW_13_TEST = [[x_start, 1, z_start, _theConstants.COL_1, _theConstants.TILT_NE, 1], [x_finish, 1, z_finish, _theConstants.COL_2, _theConstants.TILT_SW, 1], SW_13_DOWN__UP];
 const SW_START_FINISHES = exports.SW_START_FINISHES = {
   1: SW_1_TEST,
@@ -26518,92 +26614,89 @@ const SW_START_FINISHES = exports.SW_START_FINISHES = {
   13: SW_13_TEST
 };
 
-},{"../../values/the-constants.js":52}],45:[function(require,module,exports){
+},{"../../values/the-constants.js":62}],51:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.moveToSw = moveToSw;
+exports.leaveTileSW = leaveTileSW;
 var _consoleShort = require("../../misc/console-short.js");
 var _theConstants = require("../../values/the-constants.js");
 var _hexRoutines = require("../hex-routines.js");
 var _groundTiles = require("../ground-tiles.js");
 var _swConstants = require("./sw-constants.js");
-function moveToSw(the_objects, prev_hex, this_hex, is_a_trampoline) {
+function leaveTileSW(the_objects, this_hex, prev_hex, is_a_trampoline) {
   let {
     o_walkway_tiles,
     o_walkway_columns,
-    o_fence_walls,
-    o_fence_columns
+    o_fence_walls
   } = the_objects;
+  const is_off_walkway = (0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex);
+  let move_result;
+  if (prev_hex == this_hex) {
+    move_result = (0, _groundTiles.moveSame)(_swConstants.SW_0_SAME, prev_hex, this_hex);
+  } else if ((0, _hexRoutines.hitFence)(o_fence_walls, prev_hex, this_hex)) {
+    move_result = (0, _groundTiles.moveBlock)(_swConstants.SW_14_BLOCKED, prev_hex, this_hex);
+    console.log("SW Block");
+  } else if (is_off_walkway && is_a_trampoline) {
+    move_result = (0, _groundTiles.moveOntoTrampoline)(_swConstants.SW_15_TRAMPOLINE, prev_hex, this_hex);
+  } else if (is_off_walkway) {
+    move_result = (0, _groundTiles.moveIntoAir)(_swConstants.SW_16_STROLL_INTO_AIR, prev_hex, this_hex);
+  } else {
+    move_result = tile2TileSW(o_walkway_tiles, this_hex, prev_hex);
+  }
+  return move_result;
+}
+function tile2TileSW(o_walkway_tiles, this_hex, prev_hex) {
   const {
     prev_new_data,
-    data
+    tile_data
   } = (0, _hexRoutines.tileData)(o_walkway_tiles, prev_hex, this_hex);
   const {
     prev_tilt_up,
     new_tilt_up
   } = prev_new_data;
-  const local_data = {
-    prev_tilt_up,
-    new_tilt_up,
-    prev_hex,
-    this_hex
-  };
-  if ((0, _hexRoutines.hitFence)(o_fence_walls, o_fence_columns, prev_hex, this_hex)) {
-    const is_blocked = (0, _groundTiles.moveBlock)(local_data, _swConstants.SW_14_BLOCKED);
-    return is_blocked;
-  }
-  if ((0, _hexRoutines.offWalkway)(o_walkway_columns, this_hex)) {
-    if (is_a_trampoline) {
-      return (0, _groundTiles.moveOntoTrampoline)(local_data, _swConstants.SW_AIRBORNE);
-    } else {
-      return (0, _groundTiles.moveIntoAir)(local_data, _swConstants.SW_AIRBORNE);
-    }
-  }
   const {
     low_to_low,
     high_to_high,
     lows_and_highs,
     high_to_low,
     low_to_high
-  } = data;
-  if (prev_hex == this_hex) {
-    return _theConstants.MV_TILE_SAME;
-  } else if (swCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_1_UP_UP_CLOCK); //      ⭮
-  } else if (swCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_2_UP_UP_COUNTER); //      ⭯
-  } else if (swCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_3_DOWN_DOWN_CLOCK); //  ⭮
-  } else if (swCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_4_DOWN_DOWN_COUNTER); //  ⭯
+  } = tile_data;
+  let move_result;
+  if (swCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_swConstants.SW_1_UP_UP_CLOCK, prev_hex, this_hex); //      ⭮
+  } else if (swCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_swConstants.SW_2_UP_UP_COUNTER, prev_hex, this_hex); //      ⭯
+  } else if (swCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_swConstants.SW_3_DOWN_DOWN_CLOCK, prev_hex, this_hex); //  ⭮
+  } else if (swCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+    move_result = (0, _groundTiles.moveNew)(_swConstants.SW_4_DOWN_DOWN_COUNTER, prev_hex, this_hex); //  ⭯              http://xahlee.info/comp/unicode_arrows.html
   } else if (swFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_5_FLAT__FLAT); // - -
+    move_result = (0, _groundTiles.moveNew)(_swConstants.SW_5_FLAT__FLAT, prev_hex, this_hex); // - -
   } else if (swFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_6_FLAT__UP); //   _⭜
+    move_result = (0, _groundTiles.moveNew)(_swConstants.SW_6_FLAT__UP, prev_hex, this_hex); //   _⭜
   } else if (swUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_7_UP__FLAT); //   ↗¯¯
-  } else if (swDownToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-    ///////////
-    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_8_DOWN__FLAT); // ↘__
-    ////////////
+    move_result = (0, _groundTiles.moveNew)(_swConstants.SW_7_UP__FLAT, prev_hex, this_hex); //   ↗¯¯
+  } else if (swDownToFlat(prev_tilt_up, new_tilt_up, low_to_high)) {
+    move_result = (0, _groundTiles.moveNew)(_swConstants.SW_8_DOWN__FLAT, prev_hex, this_hex); // ↘__
   } else if (swFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_9_FLAT__DOWN); // ¯⭝
+    move_result = (0, _groundTiles.moveNew)(_swConstants.SW_9_FLAT__DOWN, prev_hex, this_hex); // ¯⭝
   } else if (swUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_10_UP__UP); //     ↗↗
+    move_result = (0, _groundTiles.moveNew)(_swConstants.SW_10_UP__UP, prev_hex, this_hex); //     ↗↗
   } else if (swDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_10_DOWN__DOWN); // ↘↘
+    move_result = (0, _groundTiles.moveNew)(_swConstants.SW_11_DOWN__DOWN, prev_hex, this_hex); // ↘↘
   } else if (swUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_11_UP__DOWN); //  ↗↘
+    move_result = (0, _groundTiles.moveNew)(_swConstants.SW_12_UP__DOWN, prev_hex, this_hex); //  ↗↘
   } else if (swDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-    return (0, _groundTiles.moveAllow)(local_data, _swConstants.SW_13_DOWN__UP); //  ↘↗
+    move_result = (0, _groundTiles.moveNew)(_swConstants.SW_13_DOWN__UP, prev_hex, this_hex); //  ↘↗
+  } else if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
+    move_result = (0, _groundTiles.moveDescendOneStep)(_swConstants.SW_17_DESCEND_ONE_STEP, prev_hex, this_hex); // ⬎_   ??????? does this ever get gotton to ?   MV_FALL_STEP_OFF
+  } else {
+    (0, _consoleShort.ee)("should never happen SW, move_result", move_result);
   }
-  if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
-    return (0, _groundTiles.moveDescendOneStep)(local_data, _swConstants.SW_AIRBORNE);
-  }
-  return (0, _groundTiles.moveBlock)(local_data, _swConstants.SW_14_BLOCKED); //  ↘↗
+  return move_result;
 }
 
 /*  curve_up__curve_up.png   like a flower */
@@ -26705,7 +26798,100 @@ function swDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
   return false;
 }
 
-},{"../../misc/console-short.js":17,"../../values/the-constants.js":52,"../ground-tiles.js":29,"../hex-routines.js":30,"./sw-constants.js":44}],46:[function(require,module,exports){
+},{"../../misc/console-short.js":28,"../../values/the-constants.js":62,"../ground-tiles.js":37,"../hex-routines.js":38,"./sw-constants.js":50}],52:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.addTextLoc = addTextLoc;
+var _consoleShort = require("../misc/console-short.js");
+var THREE = _interopRequireWildcard(require("three"));
+var _theConstants = require("../values/the-constants.js");
+var _FontLoader = require("three/examples/jsm/loaders/FontLoader.js");
+var _helvetiker_regularTypeface = require("../misc/helvetiker_regular.typeface.js");
+var _TextGeometry = require("three/examples/jsm/geometries/TextGeometry.js");
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
+var loader2 = new _FontLoader.FontLoader();
+const WHITE_LABELS = 0xffffff;
+var the_font = loader2.parse(_helvetiker_regularTypeface.type_face);
+
+//const Y_TO_ACTUAL_HEIGHT = 10;
+function addTextLoc(a_tile, x_y_z, slope_tilt, incline_amount) {
+  // const [up_direction, angled_height] = incline_and_dir;
+  let [x_index, y_100_index, z_index] = x_y_z;
+  let y_index = y_100_index / 100;
+  var textMaterial = new THREE.MeshLambertMaterial({
+    emissive: 0xffffff,
+    color: WHITE_LABELS
+  });
+  var textGeometry = new _TextGeometry.TextGeometry(`${x_index},${y_100_index},${z_index}`, {
+    font: the_font,
+    size: 0.2,
+    depth: 0,
+    curveSegments: 12
+  });
+  var text_mesh = new THREE.Mesh(textGeometry, textMaterial);
+  if (y_index < 0) {
+    text_mesh.position.y = -0.999;
+  } else if (slope_tilt == _theConstants.TILT_NONE) {
+    //        text_mesh.position.y = y_index / Y_TO_ACTUAL_HEIGHT + 0.001;
+    text_mesh.position.y = y_index + 0.001;
+    //text_mesh.position.y = y_index + 0.05;
+  } else {
+    //        text_mesh.position.y = y_index / Y_TO_ACTUAL_HEIGHT + incline_amount;
+    text_mesh.position.y = y_index + incline_amount + 0.05;
+  }
+  text_mesh.rotation.x = -Math.PI / 2;
+
+  //text_mesh.side = THREE.DoubleSide;
+
+  if (slope_tilt != _theConstants.TILT_NONE) {
+    text_mesh.rotation.y = -Math.PI / 2;
+    text_mesh.rotation.z = -Math.PI / 2;
+  }
+  let x, z;
+  if (slope_tilt == _theConstants.TILT_NONE) {
+    x = -0.5; // -0.15;
+    z = 0.1;
+  } else if (slope_tilt == _theConstants.TILT_NN) {
+    x = +0.15;
+    z = -0.5; //-0.55;
+    //  text_mesh.position.y += 1.1;
+    // text_mesh.rotation.x = Math.PI / 2;
+  } else if (slope_tilt == _theConstants.TILT_NE) {
+    x = 0.3;
+    z = -0.25;
+  } else if (slope_tilt == _theConstants.TILT_SE) {
+    x = 0.3;
+    z = 0.4;
+    //text_mesh.position.y -= 0.1;
+  } else if (slope_tilt == _theConstants.TILT_SS) {
+    x = +0.515;
+    z = -0.4;
+  } else if (slope_tilt == _theConstants.TILT_SW) {
+    x = -0.7;
+    z = 0.4;
+  } else if (slope_tilt == _theConstants.TILT_NW) {
+    x = -0.7;
+    z = -0.25;
+  } else {
+    (0, _consoleShort.ee)(" addTextLoc() unknown slope_tilt", slope_tilt);
+  }
+  text_mesh.position.x = x;
+  text_mesh.position.z = z;
+  a_tile.add(text_mesh);
+
+  /////////////////////////
+  var text_underneath = new THREE.Mesh(textGeometry, textMaterial);
+  text_underneath.rotation.x = Math.PI / 2;
+  text_underneath.position.y = y_index - 0.1;
+  text_underneath.position.x = x - 0.2;
+  text_underneath.position.z = z + 0.3;
+  a_tile.add(text_underneath);
+}
+
+},{"../misc/console-short.js":28,"../misc/helvetiker_regular.typeface.js":29,"../values/the-constants.js":62,"three":3,"three/examples/jsm/geometries/TextGeometry.js":5,"three/examples/jsm/loaders/FontLoader.js":6}],53:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26723,6 +26909,63 @@ function intToHexBGR(intColor) {
   let b = (intColor & 0xff0000) >>> 16;
   let combined = r | g | b;
   return "#" + (combined >>> 0).toString(16).padStart(6, "0");
+}
+function tileMeshTransparent(group, vertices_set, start_color, outline_color) {
+  // qbert  111111
+  let side_material = new THREE.MeshLambertMaterial({
+    color: start_color,
+    opacity: 0.3,
+    transparent: true
+  });
+  tileMeshBase(group, vertices_set, side_material, outline_color);
+  // const side_geometry = geometricVertices(vertices_set);
+  // side_material.side = THREE.DoubleSide;
+  // const hexagon_side = new THREE.Mesh(side_geometry, side_material);
+  // hexagon_side.name = HEXAGON_PART;
+
+  // const edges = new THREE.EdgesGeometry(side_geometry);
+  // const lineMaterial = new THREE.LineBasicMaterial({ color: outline_color, linewidth: 8 });
+  // lineMaterial.side = THREE.DoubleSide;
+  // const edgeLines = new THREE.LineSegments(edges, lineMaterial);
+  // hexagon_side.add(edgeLines);
+  // group.add(hexagon_side);
+}
+function tileMeshBase(group, vertices_set, side_material, outline_color) {
+  // qbert    111111111111111
+  //let side_material = new THREE.MeshLambertMaterial({ color: start_color, opacity: 1 });
+
+  const side_geometry = geometricVertices(vertices_set);
+  side_material.side = THREE.DoubleSide;
+  const hexagon_side = new THREE.Mesh(side_geometry, side_material);
+  hexagon_side.name = _theConstants.HEXAGON_PART;
+  const edges = new THREE.EdgesGeometry(side_geometry);
+  const lineMaterial = new THREE.LineBasicMaterial({
+    color: outline_color,
+    linewidth: 8
+  });
+  lineMaterial.side = THREE.DoubleSide;
+  const edgeLines = new THREE.LineSegments(edges, lineMaterial);
+  hexagon_side.add(edgeLines);
+  group.add(hexagon_side);
+}
+function tileMeshOpaque(group, vertices_set, start_color, outline_color) {
+  // qbert 1111111111111
+  let side_material = new THREE.MeshLambertMaterial({
+    color: start_color,
+    opacity: 1
+  });
+  tileMeshBase(group, vertices_set, side_material, outline_color);
+  // const side_geometry = geometricVertices(vertices_set);
+  // side_material.side = THREE.DoubleSide;
+  // const hexagon_side = new THREE.Mesh(side_geometry, side_material);
+  // hexagon_side.name = HEXAGON_PART;
+
+  // const edges = new THREE.EdgesGeometry(side_geometry);
+  // const lineMaterial = new THREE.LineBasicMaterial({ color: outline_color, linewidth: 8 });
+  // lineMaterial.side = THREE.DoubleSide;
+  // const edgeLines = new THREE.LineSegments(edges, lineMaterial);
+  // hexagon_side.add(edgeLines);
+  // group.add(hexagon_side);
 }
 function tileMesh(group, vertices_set, start_color, outline_color, is_transparent) {
   const side_geometry = geometricVertices(vertices_set);
@@ -26759,7 +27002,841 @@ function geometricVertices(the_vertices) {
   return the_geometry;
 }
 
-},{"../misc/console-short.js":17,"../values/the-constants.js":52,"three":3}],47:[function(require,module,exports){
+},{"../misc/console-short.js":28,"../values/the-constants.js":62,"three":3}],54:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.bouncePlayer = bouncePlayer;
+exports.doFallJump = doFallJump;
+exports.doFallPlayer = doFallPlayer;
+exports.doRiseJump = doRiseJump;
+exports.jumpClick = jumpClick;
+var _consoleShort = require("../misc/console-short.js");
+var _trampolineConst = require("./trampoline-const.js");
+var _theConstants = require("../values/the-constants.js");
+var _moveConsts = require("../values/move-consts.js");
+/////////
+function doRiseJump(f_step_iterations, f_rise_step_size, f_y100_height) {
+  if (f_step_iterations == 0) {
+    let c_move_result = _theConstants.MV_FALL_JUMP_STRAIGHT;
+    return [c_move_result, f_y100_height];
+  }
+  const rise_y_100 = f_y100_height + f_rise_step_size;
+  let c_move_result = _theConstants.MV_RISE_JUMP_STRAIGHT;
+  return [c_move_result, rise_y_100];
+}
+function doFallJump(fall_data) {
+  let {
+    o_walkway_tiles,
+    o_trampolines,
+    f_this_hex,
+    f_y100_height,
+    f_fall_step_size
+  } = fall_data;
+  if (o_walkway_tiles.has(f_this_hex)) {
+    let c_move_result = _theConstants.MV_TILE_SAME;
+    return [c_move_result, f_y100_height];
+  } else if (o_trampolines.has(f_this_hex)) {
+    let c_move_result = _theConstants.MV_START_TRAMPOLINE;
+    return [c_move_result, f_y100_height];
+  } else {
+    const fall_y_100 = f_y100_height - f_fall_step_size;
+    let c_move_result = _theConstants.MV_FALL_JUMP_STRAIGHT;
+    return [c_move_result, fall_y_100];
+  }
+}
+function doFallPlayer(fall_data) {
+  let {
+    o_walkway_tiles,
+    o_trampolines,
+    f_this_hex,
+    f_y100_height,
+    f_fall_step_size
+  } = fall_data;
+  if (o_walkway_tiles.has(f_this_hex)) {
+    let c_move_result = _theConstants.MV_TILE_SAME;
+    return [c_move_result, f_y100_height];
+  } else if (o_trampolines.has(f_this_hex)) {
+    let c_move_result = _theConstants.MV_START_TRAMPOLINE;
+    return [c_move_result, f_y100_height];
+  } else {
+    const fall_y_100 = f_y100_height - f_fall_step_size;
+    let c_move_result = _theConstants.MV_FALL_STEP_OFF;
+    return [c_move_result, fall_y_100];
+  }
+}
+function playerDie(done_died, done_finished) {
+  window.location.reload();
+}
+function bouncePlayer(bounce_data, unvisited_tiles) {
+  let {
+    f_step_iterations,
+    f_move_result,
+    g_camera,
+    f_jump_x_step,
+    f_jump_z_step,
+    f_y100_height
+  } = bounce_data;
+  let done_died = f_y100_height == 0;
+  let done_finished = unvisited_tiles.size === 0;
+  if (done_died || done_finished) {
+    playerDie(done_died, done_finished);
+  }
+  if (f_move_result == _theConstants.MV_FALL_TRAMPOLINE || f_move_result == _theConstants.MV_RISE_TRAMPOLINE || f_move_result == _theConstants.MV_FALL_JUMP_STRAIGHT || f_move_result == _theConstants.MV_RISE_JUMP_STRAIGHT || f_move_result == _theConstants.MV_FALL_STEP_OFF) {
+    g_camera.position.z += f_jump_z_step;
+    g_camera.position.x += f_jump_x_step;
+    f_step_iterations--;
+  }
+  return [f_step_iterations, g_camera];
+}
+function jumpClick(f_prev_coords, f_this_coords) {
+  const x_dif = f_this_coords.x - f_prev_coords.x;
+  const z_dif = f_this_coords.z - f_prev_coords.z;
+  let f_jump_x_step = x_dif * _moveConsts.HOR_JUMP_MULTIPLIER;
+  let f_jump_z_step = z_dif * _moveConsts.HOR_JUMP_MULTIPLIER;
+  //
+  let f_bounce_speed = _trampolineConst.BOUNCE_SPEED___4;
+  let f_rise_step_size = _moveConsts.JUMP_RISE_STEP_SIZE;
+  let f_fall_step_size = _moveConsts.JUMP_FALL_STEP_SIZE;
+  let f_step_iterations = _moveConsts.JUMP_ITERATIONS;
+  let data_values = {
+    f_jump_x_step,
+    f_jump_z_step,
+    f_bounce_speed,
+    f_rise_step_size,
+    f_fall_step_size,
+    f_step_iterations
+  };
+  return data_values;
+}
+
+},{"../misc/console-short.js":28,"../values/move-consts.js":60,"../values/the-constants.js":62,"./trampoline-const.js":55}],55:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.BOUNCE_SPEED___4 = exports.BOUNCE_SPEED___3 = exports.BOUNCE_SPEED___2 = exports.BOUNCE_SPEED___1 = exports.BOUNCE_SPEED__50 = exports.BOUNCE_SPEED__10 = exports.BOUNCE_SPEED_3_5 = exports.BOUNCE_SPEED_2_5 = exports.BOUNCE_SPEED_1_5 = exports.BOUNCE_COUNT___50 = exports.BOUNCE_COUNT___25 = exports.BOUNCE_COUNT___10 = exports.BOUNCE_COUNT__250 = void 0;
+const BOUNCE_SPEED___1 = exports.BOUNCE_SPEED___1 = 1;
+const BOUNCE_SPEED_1_5 = exports.BOUNCE_SPEED_1_5 = 1.5;
+const BOUNCE_SPEED___2 = exports.BOUNCE_SPEED___2 = 2;
+const BOUNCE_SPEED_2_5 = exports.BOUNCE_SPEED_2_5 = 2.5;
+const BOUNCE_SPEED___3 = exports.BOUNCE_SPEED___3 = 3;
+const BOUNCE_SPEED_3_5 = exports.BOUNCE_SPEED_3_5 = 3.5;
+const BOUNCE_SPEED___4 = exports.BOUNCE_SPEED___4 = 4;
+const BOUNCE_SPEED__10 = exports.BOUNCE_SPEED__10 = 10;
+const BOUNCE_SPEED__50 = exports.BOUNCE_SPEED__50 = 50;
+const BOUNCE_COUNT___10 = exports.BOUNCE_COUNT___10 = 10;
+const BOUNCE_COUNT___25 = exports.BOUNCE_COUNT___25 = 25;
+const BOUNCE_COUNT___50 = exports.BOUNCE_COUNT___50 = 150;
+const BOUNCE_COUNT__250 = exports.BOUNCE_COUNT__250 = 250;
+
+},{}],56:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.makeTrampolines = makeTrampolines;
+var _consoleShort = require("../misc/console-short.js");
+var _theConstants = require("../values/the-constants.js");
+var THREE = _interopRequireWildcard(require("three"));
+var _hexTile = require("../tiles/hex-tile.js");
+var _trampolineMesh = require("./trampoline-mesh.js");
+var _textTiles = require("../tiles/text-tiles.js");
+var _hexMaths = require("../misc/hex-maths.js");
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
+function trampolineTriangles(hex_points) {
+  const [top_left, top_right, right_tip, bot_right, bot_left, left_tip, middle_point] = hex_points;
+  const t1 = [...middle_point, ...top_left, ...top_right];
+  const t2 = [...middle_point, ...bot_right, ...bot_left];
+  const t3 = [...middle_point, ...right_tip, ...bot_right];
+  const t4 = [...middle_point, ...top_right, ...right_tip];
+  const t5 = [...middle_point, ...bot_left, ...left_tip];
+  const t6 = [...middle_point, ...left_tip, ...top_left];
+  let hexagon_triangles = [t1, t2, t3, t4, t5, t6];
+  return hexagon_triangles;
+}
+function makeTrampolines(g_scene, o_trampolines) {
+  var trampoline_columns = new Map();
+  let o_trampoline_meshes = new Map();
+  for (var i = 0; i < o_trampolines.length; i++) {
+    const trampoline_data = o_trampolines[i];
+
+    // ["0", HEIGHT_Y____9, "1", BOUNCE_SPEED___4, BOUNCE_COUNT___25, TILT_SW, INCLINE___1]
+    let [x_str, y_str, z_str, f_bounce_speed, f_step_iterations, slope_tilt, incline_amount] = trampoline_data;
+    f_step_iterations = parseInt(f_step_iterations);
+    const x_index = parseInt(x_str);
+    const y_100_index = parseInt(y_str);
+    const z_index = parseInt(z_str);
+    const x_y_z = [x_index, y_100_index, z_index];
+    const xyz_index = `${x_index},${y_100_index},${z_index}`;
+    if (slope_tilt == undefined) {
+      slope_tilt = _theConstants.TILT_NONE;
+      incline_amount = 0;
+    }
+    if (incline_amount == undefined) {
+      incline_amount[_theConstants.TILT_NONE, 0];
+    }
+    let [x_center, z_center] = (0, _hexMaths.tileCenterCoord)(x_index, z_index);
+    const tile_radius = 1;
+    const a_tile = new THREE.Group();
+    a_tile.position.set(x_center, 0, z_center);
+    const tile_points = (0, _hexTile.hexPoints)(tile_radius, y_100_index, slope_tilt, incline_amount);
+    let d_tile_3colors = {
+      dark_color: "red",
+      light_color: "green",
+      edge_color: "blue"
+    };
+    trampoline_columns = trampolineObj(trampoline_columns, x_y_z, f_bounce_speed, f_step_iterations, slope_tilt, incline_amount, tile_points, d_tile_3colors);
+    const top_triangles = trampolineTriangles(tile_points);
+    (0, _trampolineMesh.trampolineMesh)(a_tile, top_triangles, f_bounce_speed);
+    g_scene.add(a_tile);
+    (0, _textTiles.addTextLoc)(a_tile, x_y_z, slope_tilt, incline_amount);
+    o_trampoline_meshes.set(xyz_index, a_tile);
+  }
+  return [o_trampoline_meshes, trampoline_columns];
+}
+function trampolineObj(stair_tiles, x_y_z, f_bounce_speed, f_step_iterations, slope_tilt, incline_amount, tile_points, d_tile_3colors) {
+  let {
+    light_color,
+    dark_color,
+    _edge_color
+  } = d_tile_3colors;
+  const [x_index, y_index, z_index] = x_y_z;
+  const xyz_index = `${x_index},${y_index},${z_index}`;
+  let [x_center, z_center] = (0, _hexMaths.tileCenterCoord)(x_index, z_index);
+  let tile_positions = [];
+  for (let i = 0; i < tile_points.length; i++) {
+    let tile_point = tile_points[i];
+    if (Array.isArray(tile_point)) {
+      let [x, y, z] = tile_point;
+      x = x + x_center;
+      z = z + z_center;
+      tile_positions.push([x, y, z]);
+    }
+  }
+  let accross_length = 0;
+  let top_point, bottom_point;
+  if (slope_tilt == _theConstants.TILT_NW) {
+    bottom_point = tile_positions[1];
+    top_point = tile_positions[5];
+    accross_length = (0, _hexMaths.distance2hexpoints)(bottom_point, top_point);
+  } else if (slope_tilt == _theConstants.TILT_NE) {
+    bottom_point = tile_positions[0];
+    top_point = tile_positions[2];
+    accross_length = (0, _hexMaths.distance2hexpoints)(bottom_point, top_point);
+  } else if (slope_tilt == _theConstants.TILT_SW) {
+    bottom_point = tile_positions[2];
+    top_point = tile_positions[0];
+    accross_length = (0, _hexMaths.distance2hexpoints)(bottom_point, top_point);
+  } else if (slope_tilt == _theConstants.TILT_SE) {
+    bottom_point = tile_positions[5];
+    top_point = tile_positions[2];
+    accross_length = (0, _hexMaths.distance2hexpoints)(bottom_point, top_point);
+  } else if (slope_tilt == _theConstants.TILT_NN) {
+    bottom_point = tile_positions[0];
+    top_point = tile_positions[3];
+  } else if (slope_tilt == _theConstants.TILT_SS) {
+    bottom_point = tile_positions[3];
+    top_point = tile_positions[0];
+  } else {
+    bottom_point = tile_positions[0];
+    top_point = bottom_point;
+  }
+  let top_point_y = top_point[1];
+  let bottom_point_y = bottom_point[1];
+  if (top_point_y === bottom_point_y) {
+    top_point_y = top_point_y; // * 10;
+    bottom_point_y = top_point_y;
+  } else {
+    top_point_y = top_point_y; // * 10; // - 0.0001;
+    bottom_point_y = bottom_point_y; // * 10; // + 0.0001;
+  }
+  var tile_obj = {
+    x_center: x_center,
+    y_position: y_index,
+    //
+    z_center: z_center,
+    tilt_up: slope_tilt,
+    angle_incline: incline_amount,
+    accross_length: accross_length,
+    tile_positions: tile_positions,
+    x_z: `${x_index},${z_index}`,
+    // a_c !!!
+    xyz_index: xyz_index,
+    f_bounce_speed: f_bounce_speed,
+    f_step_iterations: f_step_iterations,
+    light_color: light_color,
+    dark_color: dark_color,
+    high_y: top_point_y,
+    // high_y,
+    low_y: bottom_point_y // low_y
+  };
+  stair_tiles.set(xyz_index, tile_obj);
+  return stair_tiles;
+}
+
+},{"../misc/console-short.js":28,"../misc/hex-maths.js":30,"../tiles/hex-tile.js":39,"../tiles/text-tiles.js":52,"../values/the-constants.js":62,"./trampoline-mesh.js":57,"three":3}],57:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.trampolineMesh = trampolineMesh;
+var _consoleShort = require("../misc/console-short.js");
+var _trampolineConst = require("./trampoline-const.js");
+var _theConstants = require("../values/the-constants.js");
+var THREE = _interopRequireWildcard(require("three"));
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
+function hexToRGB(hex) {
+  let rr = hex >> 16;
+  let gg = hex >> 8 & 255;
+  let bb = hex & 255;
+  return {
+    r: rr,
+    g: gg,
+    b: bb
+  };
+}
+function geometricVertices(the_vertices) {
+  const float_vertices = new Float32Array(the_vertices);
+  const the_geometry = new THREE.BufferGeometry(1, 1, 1); //.toNonIndexed();
+  the_geometry.setAttribute("position", new THREE.Float32BufferAttribute(float_vertices, 3));
+  return the_geometry;
+}
+function trampolineMesh(group, vertices_set, f_bounce_speed) {
+  let pie_colors;
+  if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED___1) {
+    pie_colors = PIE_COLOR___1;
+  } else if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED_1_5) {
+    pie_colors = PIE_COLOR_1_5;
+  } else if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED___2) {
+    pie_colors = PIE_COLOR___2;
+  } else if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED_2_5) {
+    pie_colors = PIE_COLOR_2_5;
+  } else if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED___3) {
+    pie_colors = PIE_COLOR___3;
+  } else if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED_3_5) {
+    pie_colors = PIE_COLOR_3_5;
+  } else {
+    pie_colors = PIE_COLOR___4;
+  }
+  for (let i = 0; i < vertices_set.length; i += 1) {
+    let a_pie = vertices_set[i];
+    const side_geometry = geometricVertices(a_pie);
+    const side_material = new THREE.MeshLambertMaterial({
+      color: pie_colors[i],
+      opacity: 1
+    });
+    side_material.side = THREE.DoubleSide;
+    const hexagon_side = new THREE.Mesh(side_geometry, side_material);
+    hexagon_side.name = _theConstants.HEXAGON_PART;
+    group.add(hexagon_side);
+  }
+}
+
+// should be in color.js
+const p__white = 0xffffff;
+const p___grey = 0xcccccc;
+const p_violet = 0xff00ff;
+const p_yellow = 0xffff00;
+const p___cyan = 0x00ffff;
+const PIE_COLOR___1 = [p___grey, p_violet, p___grey, p_violet, p___grey, p_violet];
+const PIE_COLOR_1_5 = [p___grey, p___cyan, p___grey, p___cyan, p___grey, p___cyan];
+const PIE_COLOR___2 = [p___grey, p_yellow, p___grey, p_yellow, p___grey, p_yellow];
+const PIE_COLOR_2_5 = [p__white, p_violet, p__white, p_violet, p__white, p_violet];
+const PIE_COLOR___3 = [p__white, p___cyan, p__white, p___cyan, p__white, p___cyan];
+const PIE_COLOR_3_5 = [p__white, p_yellow, p__white, p_yellow, p__white, p_yellow];
+const PIE_COLOR___4 = [p_yellow, p_yellow, p_violet, p___cyan, p_violet, p___cyan];
+
+},{"../misc/console-short.js":28,"../values/the-constants.js":62,"./trampoline-const.js":55,"three":3}],58:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.doFallTrampoline = doFallTrampoline;
+exports.doRiseTrampoline = doRiseTrampoline;
+exports.trampolineLift = trampolineLift;
+var _consoleShort = require("../misc/console-short.js");
+var _theConstants = require("../values/the-constants.js");
+var _moveConsts = require("../values/move-consts.js");
+function doRiseTrampoline(f_step_iterations, f_rise_step_size, f_y100_height) {
+  if (f_step_iterations == 0) {
+    let c_move_result = _theConstants.MV_FALL_TRAMPOLINE;
+    return [c_move_result, f_y100_height];
+  }
+  const rise_y_100 = f_y100_height + f_rise_step_size;
+  let c_move_result = _theConstants.MV_RISE_TRAMPOLINE;
+  return [c_move_result, rise_y_100];
+}
+function doFallTrampoline(fall_data) {
+  let {
+    o_walkway_tiles,
+    o_trampolines,
+    f_this_hex,
+    f_y100_height,
+    f_fall_step_size
+  } = fall_data;
+  if (o_walkway_tiles.has(f_this_hex)) {
+    let c_move_result = _theConstants.MV_TILE_SAME;
+    return [c_move_result, f_y100_height];
+  } else if (o_trampolines.has(f_this_hex)) {
+    let c_move_result = _theConstants.MV_START_TRAMPOLINE;
+    return [c_move_result, f_y100_height];
+  } else {
+    const fall_y_100 = f_y100_height - f_fall_step_size;
+    let c_move_result = _theConstants.MV_FALL_TRAMPOLINE;
+    return [c_move_result, fall_y_100];
+  }
+}
+
+// https://www.dummies.com/article/academics-the-arts/math/pre-calculus/quick-guide-to-the-30-60-90-degree-triangle-168056/
+function trampolineLift(o_trampolines, tile_index) {
+  let the_trampo = o_trampolines.get(tile_index);
+  let f_jump_x_step, f_jump_z_step;
+  let f_bounce_speed = the_trampo.f_bounce_speed;
+  let f_rise_step_size = _moveConsts.TRAMPOLINE_RISE_SPEED;
+  let f_fall_step_size = _moveConsts.TRAMPOLINE_FALL_SPEED;
+  let f_step_iterations = the_trampo.f_step_iterations;
+  const tamp_tilt = the_trampo.tilt_up;
+  if (tamp_tilt == _theConstants.TILT_NONE) {
+    f_jump_x_step = 0;
+    f_jump_z_step = 0;
+  } else if (tamp_tilt == _theConstants.TILT_NN) {
+    f_jump_x_step = 0;
+    f_jump_z_step = _moveConsts.RISE_NN_Z_DIFF;
+  } else if (tamp_tilt == _theConstants.TILT_SS) {
+    f_jump_x_step = 0;
+    f_jump_z_step = _moveConsts.RISE_SS_Z_DIFF;
+  } else if (tamp_tilt == _theConstants.TILT_SW) {
+    f_jump_x_step = +(0.5 * _theConstants.SQRT_3) / _moveConsts.RISE_XZ_SPEED_SLOW;
+    f_jump_z_step = -0.5 / _moveConsts.RISE_XZ_SPEED_SLOW;
+  } else if (tamp_tilt == _theConstants.TILT_NE) {
+    f_jump_x_step = -(0.5 * _theConstants.SQRT_3) / _moveConsts.RISE_XZ_SPEED_SLOW;
+    f_jump_z_step = +0.5 / _moveConsts.RISE_XZ_SPEED_SLOW;
+  } else if (tamp_tilt == _theConstants.TILT_NW) {
+    f_jump_x_step = +(0.5 * _theConstants.SQRT_3) / _moveConsts.RISE_XZ_SPEED_SLOW;
+    f_jump_z_step = +0.5 / _moveConsts.RISE_XZ_SPEED_SLOW;
+  } else if (tamp_tilt == _theConstants.TILT_SE) {
+    f_jump_x_step = -(0.5 * _theConstants.SQRT_3) / _moveConsts.RISE_XZ_SPEED_SLOW;
+    f_jump_z_step = -0.5 / _moveConsts.RISE_XZ_SPEED_SLOW;
+  }
+  f_jump_z_step *= f_bounce_speed;
+  f_jump_x_step *= f_bounce_speed;
+  let data_values = {
+    f_jump_x_step,
+    f_jump_z_step,
+    f_bounce_speed,
+    f_rise_step_size,
+    f_fall_step_size,
+    f_step_iterations
+  };
+  return data_values;
+}
+
+},{"../misc/console-short.js":28,"../values/move-consts.js":60,"../values/the-constants.js":62}],59:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.WALK_EDGE = exports.WALK_BEFORE_COLORS = exports.WALK_AFTER_COLORS = exports.SEA_EDGE = exports.SEA_COLORS = exports.BARRIER_MIDDLE_COLOR = exports.BARRIER_EDGE_COLOR = void 0;
+const SEA_COLORS = exports.SEA_COLORS = [0x0000dd, 0x0000aa, 0x000077];
+const SEA_EDGE = exports.SEA_EDGE = 0x8888cc;
+const WALK_BEFORE_COLORS = exports.WALK_BEFORE_COLORS = [0xdd0000, 0xaa0000, 0x770000];
+const WALK_EDGE = exports.WALK_EDGE = 0xcccccc;
+const WALK_AFTER_COLORS = exports.WALK_AFTER_COLORS = [0x00dd00, 0x00aa00, 0x007700];
+const BARRIER_MIDDLE_COLOR = exports.BARRIER_MIDDLE_COLOR = 0x00cccc;
+const BARRIER_EDGE_COLOR = exports.BARRIER_EDGE_COLOR = 0x00ffff;
+
+},{}],60:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.X_Z_2D_INCREMENT = exports.TRAMPOLINE_RISE_SPEED = exports.TRAMPOLINE_ITERATIONS = exports.TRAMPOLINE_FALL_SPEED = exports.RISE_Y_ADD = exports.RISE_XZ_SPEED_SLOW = exports.RISE_SS_Z_DIFF = exports.RISE_NN_Z_DIFF = exports.JUMP_RISE_STEP_SIZE = exports.JUMP_ITERATIONS = exports.JUMP_FALL_STEP_SIZE = exports.HOR_JUMP_MULTIPLIER = exports.FALL_Y_SUB = void 0;
+var _consoleShort = require("../misc/console-short.js");
+const X_Z_2D_INCREMENT = exports.X_Z_2D_INCREMENT = 4; // 10 FAST, 2 SLOW
+//const X_Z_2D_INCREMENT = 0.1; // 10 FAST, 2 SLOW
+
+const JUMP_RISE_STEP_SIZE = exports.JUMP_RISE_STEP_SIZE = 25;
+const JUMP_FALL_STEP_SIZE = exports.JUMP_FALL_STEP_SIZE = 25;
+const JUMP_ITERATIONS = exports.JUMP_ITERATIONS = 21; /// must be in 10s
+
+const TRAMPOLINE_RISE_SPEED = exports.TRAMPOLINE_RISE_SPEED = 5;
+const TRAMPOLINE_FALL_SPEED = exports.TRAMPOLINE_FALL_SPEED = 5;
+const TRAMPOLINE_ITERATIONS = exports.TRAMPOLINE_ITERATIONS = 51;
+const VERTICAL_INCREMENT = 5; // Y_VERITCAL_INCREMENT
+
+const RISE_Y_ADD = exports.RISE_Y_ADD = VERTICAL_INCREMENT * 1;
+const FALL_Y_SUB = exports.FALL_Y_SUB = VERTICAL_INCREMENT * 1;
+const RISE_XZ_SPEED_SLOW = exports.RISE_XZ_SPEED_SLOW = 25;
+const RISE_NN_Z_DIFF = exports.RISE_NN_Z_DIFF = +1 / RISE_XZ_SPEED_SLOW; ///0.25;
+const RISE_SS_Z_DIFF = exports.RISE_SS_Z_DIFF = -1 / RISE_XZ_SPEED_SLOW; ///0.25;
+
+if (JUMP_RISE_STEP_SIZE % 5 != 0) {
+  (0, _consoleShort.ee)("JUMP RISE size must be in units of 5, not ", JUMP_RISE_STEP_SIZE);
+}
+if (JUMP_FALL_STEP_SIZE % 5 != 0) {
+  (0, _consoleShort.ee)("JUMP FALL size must be in units of 5, not ", JUMP_FALL_STEP_SIZE);
+}
+if (TRAMPOLINE_RISE_SPEED % 5 != 0) {
+  (0, _consoleShort.ee)("TRAMPOLINE RISE size must be in units of 5, not ", TRAMPOLINE_RISE_SPEED);
+}
+if (TRAMPOLINE_FALL_SPEED % 5 != 0) {
+  (0, _consoleShort.ee)("TRAMPOLINE FALL size must be in units of 5, not ", TRAMPOLINE_FALL_SPEED);
+}
+const HOR_JUMP_MULTIPLIER = exports.HOR_JUMP_MULTIPLIER = 2;
+
+},{"../misc/console-short.js":28}],61:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.the_objects = exports.the_globals = exports.g_renderer = exports.g_bench = exports.frame_vars = exports.e_do_click = void 0;
+var _consoleShort = require("../misc/console-short.js");
+var THREE = _interopRequireWildcard(require("three"));
+var _theGlobals = require("./the-globals.js");
+var _liveTest = require("../tests/live-test.js");
+var _map = require("../maps/map-1.js");
+var _minorRoutines = require("../misc/minor-routines.js");
+var _buildObjects = require("../objects/build-objects.js");
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
+//import { doMap2 } from "../maps/map-2.js";
+
+function startGameTiles(the_map) {
+  const o_trampolines = the_map.trampoline_locs;
+  const o_pentagons = the_map.pentagon_locs;
+  const o_walkway_ndxs = the_map.walkway_locs;
+  var o_unvisited_tiles = new Map([]);
+  for (const a_tile of o_walkway_ndxs) {
+    const [x_index, y_100_index, z_index] = a_tile;
+    const xyz_index = `${x_index},${y_100_index},${z_index}`;
+    o_unvisited_tiles.set(xyz_index, xyz_index);
+  }
+  const o_fence_ndxs = the_map.fence_locs;
+  return {
+    o_pentagons,
+    o_trampolines,
+    o_fence_ndxs,
+    o_walkway_ndxs,
+    o_unvisited_tiles
+  };
+}
+let e_do_click = exports.e_do_click = {
+  was_clicked: false
+};
+let e_enemy_points = {
+  copy_output: ""
+};
+let [the_map, start_location, start_look_at] = (0, _map.doMap1)();
+let {
+  o_pentagons,
+  o_trampolines,
+  o_fence_ndxs,
+  o_walkway_ndxs,
+  o_unvisited_tiles
+} = startGameTiles(the_map);
+let the_globals = exports.the_globals = (0, _theGlobals.buildGlobals)(e_enemy_points, e_do_click);
+let {
+  g_key_controls,
+  g_scene,
+  g_camera,
+  g_renderer,
+  g_bench
+} = the_globals;
+exports.g_bench = g_bench;
+exports.g_renderer = g_renderer;
+(0, _theGlobals.setCamera)(the_globals, start_location, start_look_at);
+let the_objects = exports.the_objects = (0, _buildObjects.buildObjects)(g_scene, o_fence_ndxs, o_walkway_ndxs, o_trampolines, o_pentagons, o_unvisited_tiles);
+(0, _liveTest.staticTests)();
+const [start_x, start_y, start_z] = start_location;
+let frame_vars = exports.frame_vars = {
+  g_camera: the_globals.g_camera,
+  f_step_iterations: 20,
+  f_bounce_speed: 4,
+  f_cam_vect: new THREE.Vector3(-1.36, 12, 0.58),
+  f_fall_step_size: 20,
+  f_rise_step_size: 21,
+  f_jump_x_step: 0.13,
+  f_jump_z_step: 0.31,
+  f_move_result: "MV_TILE_SAME",
+  f_prev_coords: {
+    x: start_x,
+    y: start_y,
+    z: start_z
+  },
+  f_this_coords: {
+    x: g_camera.position.x,
+    y: g_camera.position.y,
+    z: g_camera.position.z
+  },
+  f_this_hex: "-2,900,1",
+  f_y100_height: g_camera.position.y * 100
+};
+g_renderer.setAnimationLoop(now_time => (0, _minorRoutines.drawFps)(g_bench, now_time));
+
+},{"../maps/map-1.js":26,"../misc/console-short.js":28,"../misc/minor-routines.js":31,"../objects/build-objects.js":34,"../tests/live-test.js":36,"./the-globals.js":63,"three":3}],62:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.TEST_SW = exports.TEST_SS = exports.TEST_SE = exports.TEST_PASSED = exports.TEST_NW = exports.TEST_NN = exports.TEST_NE = exports.TEST_FAILED = exports.TEST_ENVIRONMENT = exports.TESTINs_PRINT = exports.START_Z_LOOK = exports.START_Z_HEX = exports.START_Y_LOOK = exports.START_Y_HEX = exports.START_X_LOOK = exports.START_X_HEX = exports.START_XYZ = exports.SQRT_3 = exports.SLOPE_NONE = exports.RUN_OR_TEST = exports.RUNNINs_NO_PRINT = exports.RECORD_ENEMY_POINTS = exports.PROD_ENVIRONMENT = exports.PRINT_ALLOWED = exports.PHYS_TILE_MOVE = exports.NOT_TRANSPARENT = exports.MV_TILE_SAME = exports.MV_TILE_NEW = exports.MV_START_TRAMPOLINE = exports.MV_RISE_TRAMPOLINE = exports.MV_RISE_JUMP_STRAIGHT = exports.MV_FENCE_BLOCKED = exports.MV_FALL_TRAMPOLINE = exports.MV_FALL_STEP_OFF = exports.MV_FALL_JUMP_STRAIGHT = exports.MOVE_STOP = exports.MOVE_GO = exports.LIGHT_COLOR = exports.IS_TRANSPARENT = exports.INCLINE___3 = exports.INCLINE___2 = exports.INCLINE___1 = exports.INCLINE___0 = exports.INCLINE_2_5 = exports.INCLINE_1_5 = exports.INCLINE_0_5 = exports.HEX_PAIR_DIVIDER = exports.HEXAGON_PART = exports.HEIGHT_Y____9 = exports.HEIGHT_Y____8 = exports.HEIGHT_Y____7 = exports.HEIGHT_Y____6 = exports.HEIGHT_Y____5 = exports.HEIGHT_Y____4 = exports.HEIGHT_Y____3 = exports.HEIGHT_Y____2 = exports.HEIGHT_Y____1 = exports.HEIGHT_Y____0 = exports.HEIGHT_Y___11 = exports.HEIGHT_Y___10 = exports.HEIGHT_Y__9_5 = exports.HEIGHT_Y__8_5 = exports.HEIGHT_Y__7_5 = exports.HEIGHT_Y__6_5 = exports.HEIGHT_Y__5_5 = exports.HEIGHT_Y__4_5 = exports.HEIGHT_Y__3_5 = exports.HEIGHT_Y__2_5 = exports.HEIGHT_Y__1_5 = exports.HEIGHT_Y__0_5 = exports.HEIGHT_Y_10_5 = exports.HEIGHT_ABOVE_WALKWAY = exports.GET_ABOVE_TILES = exports.FENCE_SW = exports.FENCE_SS = exports.FENCE_SE = exports.FENCE_PART = exports.FENCE_NW = exports.FENCE_NN = exports.FENCE_NE = exports.DROP_PER_TICK_FLOAT = exports.DIRECTION_SW = exports.DIRECTION_SS = exports.DIRECTION_SE = exports.DIRECTION_NW = exports.DIRECTION_NONE = exports.DIRECTION_NN = exports.DIRECTION_NE = exports.DARK_COLOR = exports.C______RED = exports.C_____BLUE = exports.C____GREEN = exports.C____BROWN = exports.C___YELLOW = exports.C___PURPLE = exports.C_NONE = exports.COL_2 = exports.COL_1 = exports.BREAD_CRUMBS_ON = exports.BREAD_CRUMBS_OFF = void 0;
+exports.Z_INDX = exports.Y_INDX = exports.X_INDX = exports.TILT_SW = exports.TILT_SS = exports.TILT_SE90 = exports.TILT_SE = exports.TILT_NW = exports.TILT_NONE = exports.TILT_NN90 = exports.TILT_NN = exports.TILT_NE = exports.TILT_GLASS = exports.TEST_TILE_MOVE = void 0;
+const HEX_PAIR_DIVIDER = exports.HEX_PAIR_DIVIDER = "::fence::";
+const HEIGHT_ABOVE_WALKWAY = exports.HEIGHT_ABOVE_WALKWAY = 0.0;
+const BREAD_CRUMBS_ON = exports.BREAD_CRUMBS_ON = "BREAD_CRUMBS_ON";
+const BREAD_CRUMBS_OFF = exports.BREAD_CRUMBS_OFF = "BREAD_CRUMBS_OFF";
+const RUN_OR_TEST = exports.RUN_OR_TEST = "RUN_OR_TEST";
+const PRINT_ALLOWED = exports.PRINT_ALLOWED = "PRINT_ALLOWED";
+const TESTINs_PRINT = exports.TESTINs_PRINT = "TESTINs_PRINT"; // print_moves
+const RUNNINs_NO_PRINT = exports.RUNNINs_NO_PRINT = "RUNNINs_NO_PRINT"; // hide_moves
+
+const DARK_COLOR = exports.DARK_COLOR = "DARK_COLOR";
+const LIGHT_COLOR = exports.LIGHT_COLOR = "LIGHT_COLOR";
+const HEXAGON_PART = exports.HEXAGON_PART = "HEXAGON_PART";
+const FENCE_PART = exports.FENCE_PART = "FENCE_PART";
+const START_X_LOOK = exports.START_X_LOOK = 3;
+const START_Y_LOOK = exports.START_Y_LOOK = 1; // *10 !!!!!!!!!!!!
+const START_Z_LOOK = exports.START_Z_LOOK = 3;
+const START_X_HEX = exports.START_X_HEX = 0;
+const START_Y_HEX = exports.START_Y_HEX = 1 + HEIGHT_ABOVE_WALKWAY; //  *10  !!!!!!!!!!!!
+const START_Z_HEX = exports.START_Z_HEX = 0;
+const START_XYZ = exports.START_XYZ = `${START_X_HEX},${START_Y_HEX},${START_Z_HEX}`;
+const X_INDX = exports.X_INDX = 0;
+const Y_INDX = exports.Y_INDX = 1;
+const Z_INDX = exports.Z_INDX = 2;
+
+//[top_left, top_rght, rght_tip, bot_rght, bot_left, left_tip];
+const TOP_LEFT_HEX_IND = 0;
+const TOP_RGHT_HEX_IND = 1;
+const RGHT_TIP_HEX_IND = 2;
+const BOT_RGHT_HEX_IND = 3;
+const BOT_LEFT_HEX_IND = 4;
+const LEFT_TIP_HEX_IND = 5;
+const DIRECTION_NN = exports.DIRECTION_NN = "DIRECTION_NN";
+const DIRECTION_SS = exports.DIRECTION_SS = "DIRECTION_SS";
+const DIRECTION_NW = exports.DIRECTION_NW = "DIRECTION_NW";
+const DIRECTION_NE = exports.DIRECTION_NE = "DIRECTION_NE";
+const DIRECTION_SE = exports.DIRECTION_SE = "DIRECTION_SE";
+const DIRECTION_SW = exports.DIRECTION_SW = "DIRECTION_SW";
+const DIRECTION_NONE = exports.DIRECTION_NONE = "DIRECTION_NONE";
+const TILT_NN = exports.TILT_NN = "TILT_NN";
+const TILT_NN90 = exports.TILT_NN90 = "TILT_NN90";
+const FENCE_NN = exports.FENCE_NN = "FENCE_NN";
+const FENCE_SS = exports.FENCE_SS = "FENCE_SS";
+const FENCE_NW = exports.FENCE_NW = "FENCE_NW";
+const FENCE_NE = exports.FENCE_NE = "FENCE_NE";
+const FENCE_SE = exports.FENCE_SE = "FENCE_SE";
+const FENCE_SW = exports.FENCE_SW = "FENCE_SW";
+const TILT_SS = exports.TILT_SS = "TILT_SS";
+const TILT_NW = exports.TILT_NW = "TILT_NW";
+const TILT_NE = exports.TILT_NE = "TILT_NE";
+const TILT_SE = exports.TILT_SE = "TILT_SE";
+const TILT_SW = exports.TILT_SW = "TILT_SW";
+const TILT_NONE = exports.TILT_NONE = "TILT_NONE";
+const SLOPE_NONE = exports.SLOPE_NONE = "SLOPE_NONE";
+const IS_TRANSPARENT = exports.IS_TRANSPARENT = "IS_TRANSPARENT";
+const NOT_TRANSPARENT = exports.NOT_TRANSPARENT = "NOT_TRANSPARENT";
+const TILT_GLASS = exports.TILT_GLASS = "TILT_GLASS";
+const TILT_SE90 = exports.TILT_SE90 = "TILT_SE90";
+const TEST_NN = exports.TEST_NN = "TEST_NN";
+const TEST_SS = exports.TEST_SS = "TEST_SS";
+const TEST_NW = exports.TEST_NW = "TEST_NW";
+const TEST_NE = exports.TEST_NE = "TEST_NE";
+const TEST_SE = exports.TEST_SE = "TEST_SE";
+const TEST_SW = exports.TEST_SW = "TEST_SW";
+const TEST_NONE = "TEST_NONE";
+const HIGHEST_Y = 10;
+const DROP_PER_TICK_FLOAT = exports.DROP_PER_TICK_FLOAT = 0.05;
+const SQRT_3 = exports.SQRT_3 = Math.sqrt(3);
+const C______RED = exports.C______RED = "red";
+const C_____BLUE = exports.C_____BLUE = "blue";
+const C____GREEN = exports.C____GREEN = "green";
+const C___YELLOW = exports.C___YELLOW = "yellow";
+const C___PURPLE = exports.C___PURPLE = "purple";
+const C____BROWN = exports.C____BROWN = "brown";
+const C_NONE = exports.C_NONE = "pink";
+const COL_1 = exports.COL_1 = C___YELLOW;
+const COL_2 = exports.COL_2 = C___PURPLE;
+const TEST_PASSED = exports.TEST_PASSED = "pass";
+const TEST_FAILED = exports.TEST_FAILED = "FAIL !";
+const MOVE_GO = exports.MOVE_GO = "Go";
+const MOVE_STOP = exports.MOVE_STOP = "Stop";
+const TEST_TILE_MOVE = exports.TEST_TILE_MOVE = "TEST_TILE_MOVE";
+const PHYS_TILE_MOVE = exports.PHYS_TILE_MOVE = "PHYS_TILE_MOVE";
+const MV_TILE_SAME = exports.MV_TILE_SAME = "MV_TILE_SAME";
+const MV_TILE_NEW = exports.MV_TILE_NEW = "MV_TILE_NEW";
+const MV_FENCE_BLOCKED = exports.MV_FENCE_BLOCKED = "MV_FENCE_BLOCKED";
+const MV_FALL_JUMP_STRAIGHT = exports.MV_FALL_JUMP_STRAIGHT = "MV_FALL_JUMP_STRAIGHT";
+const MV_RISE_JUMP_STRAIGHT = exports.MV_RISE_JUMP_STRAIGHT = "MV_RISE_JUMP_STRAIGHT";
+const MV_FALL_TRAMPOLINE = exports.MV_FALL_TRAMPOLINE = "MV_FALL_TRAMPOLINE";
+const MV_RISE_TRAMPOLINE = exports.MV_RISE_TRAMPOLINE = "MV_RISE_TRAMPOLINE";
+const MV_START_TRAMPOLINE = exports.MV_START_TRAMPOLINE = "MV_START_TRAMPOLINE";
+const MV_FALL_STEP_OFF = exports.MV_FALL_STEP_OFF = "MV_FALL_STEP_OFF";
+const HEIGHT_Y____0 = exports.HEIGHT_Y____0 = "000";
+const HEIGHT_Y__0_5 = exports.HEIGHT_Y__0_5 = "050";
+const HEIGHT_Y____1 = exports.HEIGHT_Y____1 = "100";
+const HEIGHT_Y__1_5 = exports.HEIGHT_Y__1_5 = "150";
+const HEIGHT_Y____2 = exports.HEIGHT_Y____2 = "200";
+const HEIGHT_Y__2_5 = exports.HEIGHT_Y__2_5 = "250";
+const HEIGHT_Y____3 = exports.HEIGHT_Y____3 = "300";
+const HEIGHT_Y__3_5 = exports.HEIGHT_Y__3_5 = "350";
+const HEIGHT_Y____4 = exports.HEIGHT_Y____4 = "400";
+const HEIGHT_Y__4_5 = exports.HEIGHT_Y__4_5 = "450";
+const HEIGHT_Y____5 = exports.HEIGHT_Y____5 = "500";
+const HEIGHT_Y__5_5 = exports.HEIGHT_Y__5_5 = "550";
+const HEIGHT_Y____6 = exports.HEIGHT_Y____6 = "600";
+const HEIGHT_Y__6_5 = exports.HEIGHT_Y__6_5 = "650";
+const HEIGHT_Y____7 = exports.HEIGHT_Y____7 = "700";
+const HEIGHT_Y__7_5 = exports.HEIGHT_Y__7_5 = "750";
+const HEIGHT_Y____8 = exports.HEIGHT_Y____8 = "800";
+const HEIGHT_Y__8_5 = exports.HEIGHT_Y__8_5 = "850";
+const HEIGHT_Y____9 = exports.HEIGHT_Y____9 = "900";
+const HEIGHT_Y__9_5 = exports.HEIGHT_Y__9_5 = "950";
+const HEIGHT_Y___10 = exports.HEIGHT_Y___10 = "1000";
+const HEIGHT_Y_10_5 = exports.HEIGHT_Y_10_5 = "1050";
+const HEIGHT_Y___11 = exports.HEIGHT_Y___11 = "1100";
+const INCLINE___0 = exports.INCLINE___0 = 0.0;
+const INCLINE_0_5 = exports.INCLINE_0_5 = 0.5;
+const INCLINE___1 = exports.INCLINE___1 = 1.0;
+const INCLINE_1_5 = exports.INCLINE_1_5 = 1.5;
+const INCLINE___2 = exports.INCLINE___2 = 2.0;
+const INCLINE_2_5 = exports.INCLINE_2_5 = 2.5;
+const INCLINE___3 = exports.INCLINE___3 = 3.0;
+const GET_ABOVE_TILES = exports.GET_ABOVE_TILES = 1;
+const RECORD_ENEMY_POINTS = exports.RECORD_ENEMY_POINTS = "RECORD_ENEMY_POINTS";
+const TEST_ENVIRONMENT = exports.TEST_ENVIRONMENT = "TEST_ENVIRONMENT";
+const PROD_ENVIRONMENT = exports.PROD_ENVIRONMENT = "PROD_ENVIRONMENT";
+
+},{}],63:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+Object.defineProperty(exports, "DD", {
+  enumerable: true,
+  get: function () {
+    return _consoleShort.DD;
+  }
+});
+Object.defineProperty(exports, "EE", {
+  enumerable: true,
+  get: function () {
+    return _consoleShort.EE;
+  }
+});
+Object.defineProperty(exports, "TT", {
+  enumerable: true,
+  get: function () {
+    return _consoleShort.TT;
+  }
+});
+exports.buildGlobals = buildGlobals;
+Object.defineProperty(exports, "dd", {
+  enumerable: true,
+  get: function () {
+    return _consoleShort.dd;
+  }
+});
+exports.drawBreadcrumbs = drawBreadcrumbs;
+Object.defineProperty(exports, "ee", {
+  enumerable: true,
+  get: function () {
+    return _consoleShort.ee;
+  }
+});
+exports.renderRequest = renderRequest;
+exports.resetUnderneath = resetUnderneath;
+exports.setCamera = setCamera;
+Object.defineProperty(exports, "tt", {
+  enumerable: true,
+  get: function () {
+    return _consoleShort.tt;
+  }
+});
+var _consoleShort = require("../misc/console-short.js");
+var THREE = _interopRequireWildcard(require("three"));
+var _keyControls = require("../controls/key-controls.js");
+var _buildObjects = require("../objects/build-objects.js");
+var _aDot = require("../objects/a-dot.js");
+function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
+window.HEX_VARS = {
+  PRINT_ALLOWED: "PRINT_XXXXALLOWED",
+  MAX_PRINTS: 1111111150,
+  BREAD_CRUMBS: true
+};
+function buildGlobals(e_enemy_points, e_do_click) {
+  let {
+    g_scene,
+    g_camera,
+    g_width,
+    g_height
+  } = (0, _buildObjects.buildScene)();
+  let g_key_controls = (0, _keyControls.makeControls)(g_camera, e_enemy_points, e_do_click);
+  const g_clock = new THREE.Clock();
+  let g_vector_3 = new THREE.Vector3();
+  const {
+    g_renderer,
+    g_bench
+  } = (0, _buildObjects.buildRenderer)(g_scene, g_width, g_height);
+  (0, _buildObjects.buildListener)(g_camera, g_renderer);
+  const built_globals = {
+    g_clock,
+    g_vector_3,
+    g_scene,
+    g_camera,
+    g_width,
+    g_height,
+    g_key_controls,
+    g_renderer,
+    g_bench
+  };
+  return built_globals;
+}
+function drawBreadcrumbs(the_globals, f_cam_vect) {
+  if (window.HEX_VARS.BREAD_CRUMBS) {
+    let {
+      g_scene,
+      g_camera
+    } = the_globals;
+    (0, _aDot.XyzDot)(g_scene, f_cam_vect.x, g_camera.position.y, f_cam_vect.z, 0x666666);
+  }
+}
+function setCamera(the_globals, start_xyz_coords, start_look_at) {
+  let {
+    g_scene,
+    g_camera
+  } = the_globals;
+  g_camera.position.set(start_xyz_coords[0], start_xyz_coords[1] / 100, start_xyz_coords[2]);
+  g_camera.lookAt(start_look_at[0], start_look_at[1] / 100, start_look_at[2]);
+  g_scene.add(g_camera);
+}
+function renderRequest(the_globals, frameTick) {
+  let {
+    g_renderer,
+    g_scene,
+    g_camera
+  } = the_globals;
+  g_renderer.render(g_scene, g_camera);
+  window.requestAnimationFrame(frameTick);
+}
+function resetUnderneath(f_y100_height) {
+  if (f_y100_height < -100) {
+    f_y100_height = 1600;
+  }
+  return f_y100_height;
+}
+
+},{"../controls/key-controls.js":16,"../misc/console-short.js":28,"../objects/a-dot.js":32,"../objects/build-objects.js":34,"three":3}],64:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26767,69 +27844,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.makeWalkway = makeWalkway;
 var _consoleShort = require("../misc/console-short.js");
-var _hexTile = require("./hex-tile.js");
-var _tileColors = require("../misc/tile-colors.js");
-//import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../values/constants.js";
-
-// const o_walkway_ndxs = [
-//     // x,     y,      z,  incline_dir, incline_amount
-//     ["001", "040", "002"],
-//     ["001", "040", "001"],
-//     ["001", "040", "000"],
-//     ["002", "040", "-01"],
-//     ["003", "040", "-01"],
-//     ["003", "020", "-01"],
-
-//     ["002", "020", "-01"],
-//     ["001", "020", "-01"],
-//     ["000", "020", "000"],
-//     ["000", "020", "001"],
-//     ["000", "020", "002"],
-//     ["000", "020", "003"],
-//     ["000", "020", "004"],
-//     ["000", "020", "005"],
-//     ["000", "020", "006"],
-//     ["000", "020", "007", "blue"], //   0,7      2
-//     ["000", "020", "008"],
-
-//     ["003", "020", "000", "blue", TILT_SS, 1.0],
-//     ["003", "020", "001", "blue", TILT_NN, 1.0],
-//     ["003", "010", "002", "blue", TILT_NN, 1.0],
-//     ["003", "010", "003"],
-//     ["004", "010", "003", "yellow", TILT_SE, 0.5],
-//     ["005", "015", "003", "yellow", TILT_SE, 0.5],
-//     ["006", "015", "003", "yellow", TILT_NW, 0.5],
-//     ["002", "010", "004", "yellow", TILT_SW, 0.2],
-//     ["001", "012", "005", "yellow", TILT_SW, 0.2],
-//     ["000", "008", "006", "yellow", TILT_NE, 0.4],
-//     ["000", "008", "007", "yellow", TILT_NE, 0.4], // 0.7       0.8
-
-//     // 0.8 ==> 8       /10
-//     // 5 ==> 50  therefore we can have s_walkway_height as ints
-
-//     // so we modify the indexs of x,z now y as well
-
-//     ["004", "008", "006", "purple", TILT_SE, 0.5],
-//     ["003", "008", "007", "purple", TILT_SS, 1.0],
-//     ["002", "008", "007", "purple", TILT_SW, 1.5],
-//     ["002", "008", "006", "purple", TILT_NW, 2.0],
-//     ["003", "008", "005", "purple", TILT_NN, 2.5],
-//     ["004", "008", "005", "purple", TILT_NE, 3.0]
-
-//     // ["004", "3.0", "006", TILT_SS, 0.5],
-//     // ["003", "2.5", "007", TILT_SS, 1.0],
-//     // ["002", "2.0", "007", TILT_SS, 1.5],
-//     // ["002", "1.5", "006", TILT_SS, 2.0],
-//     // ["003", "1.0", "005", TILT_SS, 2.5],
-//     // ["004", "0.5", "005", TILT_SS, 3.0]
-// ];
-
-//
-//         x,      y,      z,  hex_color, slope_tilt, incline_amount
-//    ["-001", "00.5", "-001",  c____red,         TILT_NN, 0.1]
-//    ["0000", "0000", "0000",  c_yellow,         TILT_NN, 1]    // more better way !!!!!!!!!!
-//    ["-003", "0050", "-002",  c_purple]
-
+var _hexTile = require("../tiles/hex-tile.js");
+var _colorConsts = require("../values/color-consts.js");
 function coordsBad(x_index, y_level, z_index) {
   if (x_index % 1 != 0) {
     (0, _consoleShort.ee)("checkCoords error x_index ", x_index);
@@ -26845,28 +27861,50 @@ function coordsBad(x_index, y_level, z_index) {
   }
   return false;
 }
-function makeWalkway(g_scene, walkway_meshes, o_walkway_ndxs, walkway_tiles, walkway_columns, WALK_COLORS, WALK_EDGE) {
+function makeWalkTile(g_scene, walkway_meshes, walkway_tiles, ramp_piece) {
+  const [x_str, y_str, z_str] = ramp_piece;
+  const x_index = parseInt(x_str);
+  const y_100_index = parseInt(y_str);
+  const z_index = parseInt(z_str);
+  if (coordsBad(x_index, y_100_index, z_index)) {
+    debugger;
+  }
+  const ramp_xyz = [x_index, y_100_index, z_index];
+  if (ramp_piece.length == 3) {
+    //        [walkway_meshes, walkway_tiles] = HexTileFlat(g_scene, walkway_meshes, walkway_tiles, ramp_xyz);  // qbert
+    [walkway_meshes, walkway_tiles] = (0, _hexTile.HexTile)(g_scene, walkway_meshes, walkway_tiles, ramp_xyz, _colorConsts.WALK_BEFORE_COLORS, _colorConsts.WALK_EDGE);
+  } else {
+    const slope_tilt = ramp_piece[3];
+    const incline_amount = ramp_piece[4];
+    const is_transparent = ramp_piece[5];
+
+    /*
+    [walkway_meshes, walkway_tiles] = HexTileSloped(  // qbert
+        g_scene,
+        walkway_meshes,
+        walkway_tiles,
+        ramp_xyz,
+        is_transparent,
+        slope_tilt,
+        incline_amount
+    );
+    */
+
+    [walkway_meshes, walkway_tiles] = (0, _hexTile.HexTile)(g_scene, walkway_meshes, walkway_tiles, ramp_xyz, _colorConsts.WALK_BEFORE_COLORS, _colorConsts.WALK_EDGE, slope_tilt, incline_amount, is_transparent);
+  }
+  return [walkway_meshes, walkway_tiles];
+}
+function makeWalkway(g_scene, walkway_meshes, o_walkway_ndxs, walkway_tiles, walkway_columns) {
   for (var i = 0; i < o_walkway_ndxs.length; i++) {
     const ramp_piece = o_walkway_ndxs[i];
     if (Array.isArray(ramp_piece)) {
-      const [x_str, y_str, z_str] = ramp_piece;
-      const x_index = parseInt(x_str);
-      const y_100_index = parseInt(y_str); /// y_level
-      const z_index = parseInt(z_str);
-      if (coordsBad(x_index, y_100_index, z_index)) {
-        debugger;
-      }
-      const ramp_xyz = [x_index, y_100_index, z_index];
-      if (ramp_piece.length == 3) {
-        [walkway_meshes, walkway_tiles] = (0, _hexTile.HexTile)(g_scene, walkway_meshes, walkway_tiles, ramp_xyz, WALK_COLORS, WALK_EDGE);
-      } else {
-        const slope_tilt = ramp_piece[3];
-        const incline_amount = ramp_piece[4];
-        const is_transparent = ramp_piece[5];
-        [walkway_meshes, walkway_tiles] = (0, _hexTile.HexTile)(g_scene, walkway_meshes, walkway_tiles, ramp_xyz, WALK_COLORS, WALK_EDGE, slope_tilt, incline_amount, is_transparent);
-      }
+      [walkway_meshes, walkway_tiles] = makeWalkTile(g_scene, walkway_meshes, walkway_tiles, ramp_piece);
     }
   }
+  walkway_columns = makeWalkwayColumns(walkway_tiles);
+  return [walkway_meshes, walkway_tiles, walkway_columns];
+}
+function makeWalkwayColumns(walkway_tiles) {
   var walkway_columns = new Map();
   for (const [_key, a_tile] of walkway_tiles) {
     const x_z = a_tile.x_z;
@@ -26885,10 +27923,10 @@ function makeWalkway(g_scene, walkway_meshes, o_walkway_ndxs, walkway_tiles, wal
       cur_x_z_column.set(a_y_index, xyz_index);
     }
   }
-  return [walkway_meshes, walkway_tiles, walkway_columns];
+  return walkway_columns;
 }
 
-},{"../misc/console-short.js":17,"../misc/tile-colors.js":21,"./hex-tile.js":31}],48:[function(require,module,exports){
+},{"../misc/console-short.js":28,"../tiles/hex-tile.js":39,"../values/color-consts.js":59}],65:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -26897,15 +27935,8 @@ Object.defineProperty(exports, "__esModule", {
 exports.walkwayIncline = walkwayIncline;
 var _consoleShort = require("../misc/console-short.js");
 var _theConstants = require("../values/the-constants.js");
-var _hexRoutines = require("./hex-routines.js");
+var _hexRoutines = require("../tiles/hex-routines.js");
 var _hexMaths = require("../misc/hex-maths.js");
-// function hexIndex(x_hex_ind, y_height, z_hex_ind) {
-//     let y_fixed_to_10ths = Math.trunc(y_height * 10) / 10;
-
-//     let hex_index = `${x_hex_ind},${y_fixed_to_10ths},${z_hex_ind}`;
-//     return hex_index;
-// }
-
 function swivelIntercept(cam_x_z, swivel_a, swivel_b) {
   let [cam_x, cam_z] = cam_x_z;
   let x1 = swivel_a[0];
@@ -27026,828 +28057,4 @@ function walkwayIncline(walkway_tiles, f_cam_vect) {
   return 0; // y_position + ABOVE_WALKWAY;
 }
 
-},{"../misc/console-short.js":17,"../misc/hex-maths.js":19,"../values/the-constants.js":52,"./hex-routines.js":30}],49:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.WALK_EDGE = exports.WALK_BEFORE_COLORS = exports.WALK_AFTER_COLORS = exports.SEA_EDGE = exports.SEA_COLORS = exports.BARRIER_MIDDLE_COLOR = exports.BARRIER_EDGE_COLOR = void 0;
-const SEA_COLORS = exports.SEA_COLORS = [0x0000dd, 0x0000aa, 0x000077];
-const SEA_EDGE = exports.SEA_EDGE = 0x8888cc;
-const WALK_BEFORE_COLORS = exports.WALK_BEFORE_COLORS = [0xdd0000, 0xaa0000, 0x770000];
-const WALK_EDGE = exports.WALK_EDGE = 0xcccccc;
-const WALK_AFTER_COLORS = exports.WALK_AFTER_COLORS = [0x00dd00, 0x00aa00, 0x007700];
-const BARRIER_MIDDLE_COLOR = exports.BARRIER_MIDDLE_COLOR = 0x00cccc;
-const BARRIER_EDGE_COLOR = exports.BARRIER_EDGE_COLOR = 0x00ffff;
-
-},{}],50:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.X_Z_2D_INCREMENT = exports.TRAMPOLINE_RISE_SPEED = exports.TRAMPOLINE_ITERATIONS = exports.TRAMPOLINE_FALL_SPEED = exports.RISE_Y_ADD = exports.RISE_XZ_SPEED_SLOW = exports.RISE_SS_Z_DIFF = exports.RISE_NN_Z_DIFF = exports.JUMP_RISE_STEP_SIZE = exports.JUMP_ITERATIONS = exports.JUMP_FALL_STEP_SIZE = exports.HOR_JUMP_MULTIPLIER = exports.FALL_Y_SUB = void 0;
-var _consoleShort = require("../misc/console-short.js");
-const JUMP_RISE_STEP_SIZE = exports.JUMP_RISE_STEP_SIZE = 25;
-const JUMP_FALL_STEP_SIZE = exports.JUMP_FALL_STEP_SIZE = 25;
-const JUMP_ITERATIONS = exports.JUMP_ITERATIONS = 21; /// must be in 10s
-
-const TRAMPOLINE_RISE_SPEED = exports.TRAMPOLINE_RISE_SPEED = 5;
-const TRAMPOLINE_FALL_SPEED = exports.TRAMPOLINE_FALL_SPEED = 5;
-const TRAMPOLINE_ITERATIONS = exports.TRAMPOLINE_ITERATIONS = 51;
-const X_Z_2D_INCREMENT = exports.X_Z_2D_INCREMENT = 4; // 10 FAST, 2 SLOW
-
-const VERTICAL_INCREMENT = 5; // Y_VERITCAL_INCREMENT
-
-const RISE_Y_ADD = exports.RISE_Y_ADD = VERTICAL_INCREMENT * 1;
-const FALL_Y_SUB = exports.FALL_Y_SUB = VERTICAL_INCREMENT * 1;
-const RISE_XZ_SPEED_SLOW = exports.RISE_XZ_SPEED_SLOW = 25;
-const RISE_NN_Z_DIFF = exports.RISE_NN_Z_DIFF = +1 / RISE_XZ_SPEED_SLOW; ///0.25;
-const RISE_SS_Z_DIFF = exports.RISE_SS_Z_DIFF = -1 / RISE_XZ_SPEED_SLOW; ///0.25;
-
-if (JUMP_RISE_STEP_SIZE % 5 != 0) {
-  (0, _consoleShort.ee)("JUMP RISE size must be in units of 5, not ", JUMP_RISE_STEP_SIZE);
-}
-if (JUMP_FALL_STEP_SIZE % 5 != 0) {
-  (0, _consoleShort.ee)("JUMP FALL size must be in units of 5, not ", JUMP_FALL_STEP_SIZE);
-}
-if (TRAMPOLINE_RISE_SPEED % 5 != 0) {
-  (0, _consoleShort.ee)("TRAMPOLINE RISE size must be in units of 5, not ", TRAMPOLINE_RISE_SPEED);
-}
-if (TRAMPOLINE_FALL_SPEED % 5 != 0) {
-  (0, _consoleShort.ee)("TRAMPOLINE FALL size must be in units of 5, not ", TRAMPOLINE_FALL_SPEED);
-}
-const HOR_JUMP_MULTIPLIER = exports.HOR_JUMP_MULTIPLIER = 2;
-
-},{"../misc/console-short.js":17}],51:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.the_objects = exports.the_globals = exports.g_renderer = exports.g_bench = exports.frame_vars = exports.e_do_click = void 0;
-var _consoleShort = require("../misc/console-short.js");
-var _theGlobals = require("./the-globals.js");
-var _liveTest = require("../tests/live-test.js");
-var _startTiles = require("../tiles/start-tiles.js");
-var _map = require("../maps/map-1.js");
-var _minorRoutines = require("../misc/minor-routines.js");
-var _buildObjects = require("../objects/build-objects.js");
-var THREE = _interopRequireWildcard(require("three"));
-function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-//import { doMap2 } from "../maps/map-2.js";
-
-let e_do_click = exports.e_do_click = {
-  was_clicked: false
-};
-let e_enemy_points = {
-  copy_output: ""
-};
-let [the_map, start_location, start_look_at] = (0, _map.doMap1)();
-let {
-  o_pentagons,
-  o_trampolines,
-  o_fence_ndxs,
-  o_walkway_ndxs,
-  o_unvisited_tiles
-} = (0, _startTiles.startGameTiles)(the_map);
-let the_globals = exports.the_globals = (0, _theGlobals.buildGlobals)(e_enemy_points, e_do_click);
-let {
-  g_scene,
-  g_camera,
-  g_renderer,
-  g_bench
-} = the_globals;
-exports.g_bench = g_bench;
-exports.g_renderer = g_renderer;
-(0, _theGlobals.setCamera)(the_globals, start_location, start_look_at);
-let the_objects = exports.the_objects = (0, _buildObjects.buildObjects)(g_scene, o_fence_ndxs, o_walkway_ndxs, o_trampolines, o_pentagons, o_unvisited_tiles);
-(0, _liveTest.staticTests)();
-let frame_vars = exports.frame_vars = {
-  g_camera: the_globals.g_camera,
-  f_step_iterations: 20,
-  f_bounce_speed: 4,
-  f_cam_vect: new THREE.Vector3(-1.36, 12, 0.58),
-  f_fall_step_size: 20,
-  f_rise_step_size: 21,
-  f_jump_x_step: 0.13,
-  f_jump_z_step: 0.31,
-  f_move_result: "MV_TILE_SAME",
-  f_prev_coords: {
-    x: -1.17,
-    y: 1100,
-    z: -0.21
-  },
-  f_prev_hex: "-1,1000,0",
-  f_this_coords: {
-    x: g_camera.position.x,
-    y: g_camera.position.y,
-    z: g_camera.position.z
-  },
-  f_this_hex: "-2,900,1",
-  f_y100_height: g_camera.position.y * 100
-};
-g_renderer.setAnimationLoop(now_time => (0, _minorRoutines.drawFps)(g_bench, now_time));
-
-},{"../maps/map-1.js":15,"../misc/console-short.js":17,"../misc/minor-routines.js":20,"../objects/build-objects.js":24,"../tests/live-test.js":26,"../tiles/start-tiles.js":43,"./the-globals.js":53,"three":3}],52:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.TILT_NE = exports.TILT_GLASS = exports.TEST_TILE_MOVE = exports.TEST_SW = exports.TEST_SS = exports.TEST_SE = exports.TEST_PASSED = exports.TEST_NW = exports.TEST_NN = exports.TEST_NE = exports.TEST_FAILED = exports.TEST_ENVIRONMENT = exports.TESTINs_PRINT = exports.START_Z_LOOK = exports.START_Z_HEX = exports.START_Y_LOOK = exports.START_Y_HEX = exports.START_X_LOOK = exports.START_X_HEX = exports.START_XYZ = exports.SQRT_3 = exports.RUN_OR_TEST = exports.RUNNINs_NO_PRINT = exports.RECORD_ENEMY_POINTS = exports.PROD_ENVIRONMENT = exports.PRINT_ALLOWED = exports.PHYS_TILE_MOVE = exports.MV_TILE_SAME = exports.MV_TILE_NEW = exports.MV_START_TRAMPOLINE = exports.MV_RISE_TRAMPOLINE = exports.MV_RISE_JUMP_STRAIGHT = exports.MV_FENCE_BLOCKED = exports.MV_FALL_TRAMPOLINE = exports.MV_FALL_STEP_OFF = exports.MV_FALL_JUMP_STRAIGHT = exports.MOVE_STOP = exports.MOVE_GO = exports.LIGHT_COLOR = exports.IS_TRANSPARENT = exports.INCLINE___3 = exports.INCLINE___2 = exports.INCLINE___1 = exports.INCLINE___0 = exports.INCLINE_2_5 = exports.INCLINE_1_5 = exports.INCLINE_0_5 = exports.HEX_PAIR_DIVIDER = exports.HEXAGON_PART = exports.HEIGHT_Y____9 = exports.HEIGHT_Y____8 = exports.HEIGHT_Y____7 = exports.HEIGHT_Y____6 = exports.HEIGHT_Y____5 = exports.HEIGHT_Y____4 = exports.HEIGHT_Y____3 = exports.HEIGHT_Y____2 = exports.HEIGHT_Y____1 = exports.HEIGHT_Y____0 = exports.HEIGHT_Y___11 = exports.HEIGHT_Y___10 = exports.HEIGHT_Y__9_5 = exports.HEIGHT_Y__8_5 = exports.HEIGHT_Y__7_5 = exports.HEIGHT_Y__6_5 = exports.HEIGHT_Y__5_5 = exports.HEIGHT_Y__4_5 = exports.HEIGHT_Y__3_5 = exports.HEIGHT_Y__2_5 = exports.HEIGHT_Y__1_5 = exports.HEIGHT_Y__0_5 = exports.HEIGHT_Y_10_5 = exports.HEIGHT_ABOVE_WALKWAY = exports.GET_ABOVE_TILES = exports.FENCE_SW = exports.FENCE_SS = exports.FENCE_SE = exports.FENCE_NW = exports.FENCE_NN = exports.FENCE_NE = exports.DROP_PER_TICK_FLOAT = exports.DIRECTION_SW = exports.DIRECTION_SS = exports.DIRECTION_SE = exports.DIRECTION_NW = exports.DIRECTION_NONE = exports.DIRECTION_NN = exports.DIRECTION_NE = exports.DARK_COLOR = exports.C______RED = exports.C_____BLUE = exports.C____GREEN = exports.C____BROWN = exports.C___YELLOW = exports.C___PURPLE = exports.C_NONE = exports.COL_2 = exports.COL_1 = exports.BREAD_CRUMBS_ON = exports.BREAD_CRUMBS_OFF = void 0;
-exports.Z_INDX = exports.Y_INDX = exports.X_INDX = exports.TILT_SW = exports.TILT_SS = exports.TILT_SE90 = exports.TILT_SE = exports.TILT_NW = exports.TILT_NONE = exports.TILT_NN90 = exports.TILT_NN = void 0;
-const HEX_PAIR_DIVIDER = exports.HEX_PAIR_DIVIDER = "!!!";
-const HEIGHT_ABOVE_WALKWAY = exports.HEIGHT_ABOVE_WALKWAY = 0.0;
-const BREAD_CRUMBS_ON = exports.BREAD_CRUMBS_ON = "BREAD_CRUMBS_ON";
-const BREAD_CRUMBS_OFF = exports.BREAD_CRUMBS_OFF = "BREAD_CRUMBS_OFF";
-const RUN_OR_TEST = exports.RUN_OR_TEST = "RUN_OR_TEST";
-const PRINT_ALLOWED = exports.PRINT_ALLOWED = "PRINT_ALLOWED";
-const TESTINs_PRINT = exports.TESTINs_PRINT = "TESTINs_PRINT"; // print_moves
-const RUNNINs_NO_PRINT = exports.RUNNINs_NO_PRINT = "RUNNINs_NO_PRINT"; // hide_moves
-
-const DARK_COLOR = exports.DARK_COLOR = "DARK_COLOR";
-const LIGHT_COLOR = exports.LIGHT_COLOR = "LIGHT_COLOR";
-const HEXAGON_PART = exports.HEXAGON_PART = "HEXAGON_PART";
-const START_X_LOOK = exports.START_X_LOOK = 3;
-const START_Y_LOOK = exports.START_Y_LOOK = 1; // *10 !!!!!!!!!!!!
-const START_Z_LOOK = exports.START_Z_LOOK = 3;
-const START_X_HEX = exports.START_X_HEX = 0;
-const START_Y_HEX = exports.START_Y_HEX = 1 + HEIGHT_ABOVE_WALKWAY; //  *10  !!!!!!!!!!!!
-const START_Z_HEX = exports.START_Z_HEX = 0;
-const START_XYZ = exports.START_XYZ = `${START_X_HEX},${START_Y_HEX},${START_Z_HEX}`;
-const X_INDX = exports.X_INDX = 0;
-const Y_INDX = exports.Y_INDX = 1;
-const Z_INDX = exports.Z_INDX = 2;
-
-//[top_left, top_rght, rght_tip, bot_rght, bot_left, left_tip];
-const TOP_LEFT_HEX_IND = 0;
-const TOP_RGHT_HEX_IND = 1;
-const RGHT_TIP_HEX_IND = 2;
-const BOT_RGHT_HEX_IND = 3;
-const BOT_LEFT_HEX_IND = 4;
-const LEFT_TIP_HEX_IND = 5;
-const DIRECTION_NN = exports.DIRECTION_NN = "DIRECTION_NN";
-const DIRECTION_SS = exports.DIRECTION_SS = "DIRECTION_SS";
-const DIRECTION_NW = exports.DIRECTION_NW = "DIRECTION_NW";
-const DIRECTION_NE = exports.DIRECTION_NE = "DIRECTION_NE";
-const DIRECTION_SE = exports.DIRECTION_SE = "DIRECTION_SE";
-const DIRECTION_SW = exports.DIRECTION_SW = "DIRECTION_SW";
-const DIRECTION_NONE = exports.DIRECTION_NONE = "DIRECTION_NONE";
-const TILT_NN = exports.TILT_NN = "TILT_NN";
-const TILT_NN90 = exports.TILT_NN90 = "TILT_NN90";
-const FENCE_NN = exports.FENCE_NN = "FENCE_NN";
-const FENCE_SS = exports.FENCE_SS = "FENCE_SS";
-const FENCE_NW = exports.FENCE_NW = "FENCE_NW";
-const FENCE_NE = exports.FENCE_NE = "FENCE_NE";
-const FENCE_SE = exports.FENCE_SE = "FENCE_SE";
-const FENCE_SW = exports.FENCE_SW = "FENCE_SW";
-const TILT_SS = exports.TILT_SS = "TILT_SS";
-const TILT_NW = exports.TILT_NW = "TILT_NW";
-const TILT_NE = exports.TILT_NE = "TILT_NE";
-const TILT_SE = exports.TILT_SE = "TILT_SE";
-const TILT_SW = exports.TILT_SW = "TILT_SW";
-const TILT_NONE = exports.TILT_NONE = "TILT_NONE";
-const TILT_GLASS = exports.TILT_GLASS = "TILT_GLASS";
-const TILT_SE90 = exports.TILT_SE90 = "TILT_SE90";
-const TEST_NN = exports.TEST_NN = "TEST_NN";
-const TEST_SS = exports.TEST_SS = "TEST_SS";
-const TEST_NW = exports.TEST_NW = "TEST_NW";
-const TEST_NE = exports.TEST_NE = "TEST_NE";
-const TEST_SE = exports.TEST_SE = "TEST_SE";
-const TEST_SW = exports.TEST_SW = "TEST_SW";
-const TEST_NONE = "TEST_NONE";
-const HIGHEST_Y = 10;
-const DROP_PER_TICK_FLOAT = exports.DROP_PER_TICK_FLOAT = 0.05;
-const SQRT_3 = exports.SQRT_3 = Math.sqrt(3);
-const C______RED = exports.C______RED = "red";
-const C_____BLUE = exports.C_____BLUE = "blue";
-const C____GREEN = exports.C____GREEN = "green";
-const C___YELLOW = exports.C___YELLOW = "yellow";
-const C___PURPLE = exports.C___PURPLE = "purple";
-const C____BROWN = exports.C____BROWN = "brown";
-const C_NONE = exports.C_NONE = "pink";
-const COL_1 = exports.COL_1 = C___YELLOW;
-const COL_2 = exports.COL_2 = C___PURPLE;
-const TEST_PASSED = exports.TEST_PASSED = "pass";
-const TEST_FAILED = exports.TEST_FAILED = "FAIL !";
-const MOVE_GO = exports.MOVE_GO = "Go";
-const MOVE_STOP = exports.MOVE_STOP = "Stop";
-const TEST_TILE_MOVE = exports.TEST_TILE_MOVE = "TEST_TILE_MOVE";
-const PHYS_TILE_MOVE = exports.PHYS_TILE_MOVE = "PHYS_TILE_MOVE";
-const MV_TILE_SAME = exports.MV_TILE_SAME = "MV_TILE_SAME";
-const MV_TILE_NEW = exports.MV_TILE_NEW = "MV_TILE_NEW";
-const MV_FENCE_BLOCKED = exports.MV_FENCE_BLOCKED = "MV_FENCE_BLOCKED";
-const MV_FALL_JUMP_STRAIGHT = exports.MV_FALL_JUMP_STRAIGHT = "MV_FALL_JUMP_STRAIGHT";
-const MV_RISE_JUMP_STRAIGHT = exports.MV_RISE_JUMP_STRAIGHT = "MV_RISE_JUMP_STRAIGHT";
-const MV_FALL_TRAMPOLINE = exports.MV_FALL_TRAMPOLINE = "MV_FALL_TRAMPOLINE";
-const MV_RISE_TRAMPOLINE = exports.MV_RISE_TRAMPOLINE = "MV_RISE_TRAMPOLINE";
-const MV_START_TRAMPOLINE = exports.MV_START_TRAMPOLINE = "MV_START_TRAMPOLINE";
-const MV_FALL_STEP_OFF = exports.MV_FALL_STEP_OFF = "MV_FALL_STEP_OFF";
-const HEIGHT_Y____0 = exports.HEIGHT_Y____0 = "000";
-const HEIGHT_Y__0_5 = exports.HEIGHT_Y__0_5 = "050";
-const HEIGHT_Y____1 = exports.HEIGHT_Y____1 = "100";
-const HEIGHT_Y__1_5 = exports.HEIGHT_Y__1_5 = "150";
-const HEIGHT_Y____2 = exports.HEIGHT_Y____2 = "200";
-const HEIGHT_Y__2_5 = exports.HEIGHT_Y__2_5 = "250";
-const HEIGHT_Y____3 = exports.HEIGHT_Y____3 = "300";
-const HEIGHT_Y__3_5 = exports.HEIGHT_Y__3_5 = "350";
-const HEIGHT_Y____4 = exports.HEIGHT_Y____4 = "400";
-const HEIGHT_Y__4_5 = exports.HEIGHT_Y__4_5 = "450";
-const HEIGHT_Y____5 = exports.HEIGHT_Y____5 = "500";
-const HEIGHT_Y__5_5 = exports.HEIGHT_Y__5_5 = "550";
-const HEIGHT_Y____6 = exports.HEIGHT_Y____6 = "600";
-const HEIGHT_Y__6_5 = exports.HEIGHT_Y__6_5 = "650";
-const HEIGHT_Y____7 = exports.HEIGHT_Y____7 = "700";
-const HEIGHT_Y__7_5 = exports.HEIGHT_Y__7_5 = "750";
-const HEIGHT_Y____8 = exports.HEIGHT_Y____8 = "800";
-const HEIGHT_Y__8_5 = exports.HEIGHT_Y__8_5 = "850";
-const HEIGHT_Y____9 = exports.HEIGHT_Y____9 = "900";
-const HEIGHT_Y__9_5 = exports.HEIGHT_Y__9_5 = "950";
-const HEIGHT_Y___10 = exports.HEIGHT_Y___10 = "1000";
-const HEIGHT_Y_10_5 = exports.HEIGHT_Y_10_5 = "1050";
-const HEIGHT_Y___11 = exports.HEIGHT_Y___11 = "1100";
-const INCLINE___0 = exports.INCLINE___0 = 0.0;
-const INCLINE_0_5 = exports.INCLINE_0_5 = 0.5;
-const INCLINE___1 = exports.INCLINE___1 = 1.0;
-const INCLINE_1_5 = exports.INCLINE_1_5 = 1.5;
-const INCLINE___2 = exports.INCLINE___2 = 2.0;
-const INCLINE_2_5 = exports.INCLINE_2_5 = 2.5;
-const INCLINE___3 = exports.INCLINE___3 = 3.0;
-const IS_TRANSPARENT = exports.IS_TRANSPARENT = "IS_TRANSPARENT";
-const GET_ABOVE_TILES = exports.GET_ABOVE_TILES = 1;
-const RECORD_ENEMY_POINTS = exports.RECORD_ENEMY_POINTS = "RECORD_ENEMY_POINTS";
-const TEST_ENVIRONMENT = exports.TEST_ENVIRONMENT = "TEST_ENVIRONMENT";
-const PROD_ENVIRONMENT = exports.PROD_ENVIRONMENT = "PROD_ENVIRONMENT";
-
-},{}],53:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-Object.defineProperty(exports, "EE", {
-  enumerable: true,
-  get: function () {
-    return _consoleShort.EE;
-  }
-});
-Object.defineProperty(exports, "TT", {
-  enumerable: true,
-  get: function () {
-    return _consoleShort.TT;
-  }
-});
-exports.buildGlobals = buildGlobals;
-exports.camVectCoords = camVectCoords;
-exports.drawBreadcrumbs = drawBreadcrumbs;
-Object.defineProperty(exports, "ee", {
-  enumerable: true,
-  get: function () {
-    return _consoleShort.ee;
-  }
-});
-exports.moveCamera = moveCamera;
-exports.renderRequest = renderRequest;
-exports.resetUnderneath = resetUnderneath;
-exports.setCamera = setCamera;
-Object.defineProperty(exports, "tt", {
-  enumerable: true,
-  get: function () {
-    return _consoleShort.tt;
-  }
-});
-var _consoleShort = require("../misc/console-short.js");
-var THREE = _interopRequireWildcard(require("three"));
-var _keyControls = require("../controls/key-controls.js");
-var _theConstants = require("./the-constants.js");
-var _walkwayHeights = require("../tiles/walkway-heights.js");
-var _buildObjects = require("../objects/build-objects.js");
-var _aDot = require("../objects/a-dot.js");
-function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-window.HEX_VARS = {
-  PRINT_ALLOWED: "PRINT_ALLXXOWED",
-  MAX_PRINTS: 1111111150,
-  BREAD_CRUMBS: true
-};
-function camVectCoords(g_camera, f_y100_height) {
-  const f_cam_vect = g_camera.position;
-  let f_this_coords = {
-    x: f_cam_vect.x,
-    y: f_y100_height,
-    z: f_cam_vect.z
-  };
-  return [f_cam_vect, f_this_coords];
-}
-function buildGlobals(e_enemy_points, e_do_click) {
-  let {
-    g_scene,
-    g_camera,
-    g_width,
-    g_height
-  } = (0, _buildObjects.buildScene)();
-  let g_key_controls = (0, _keyControls.makeControls)(g_camera, e_enemy_points, e_do_click);
-  const g_clock = new THREE.Clock();
-  let g_vector_3 = new THREE.Vector3();
-  const {
-    g_renderer,
-    g_bench
-  } = (0, _buildObjects.buildRenderer)(g_scene, g_width, g_height);
-  (0, _buildObjects.buildListener)(g_camera, g_renderer);
-  const built_globals = {
-    g_clock,
-    g_vector_3,
-    g_scene,
-    g_camera,
-    g_width,
-    g_height,
-    g_key_controls,
-    g_renderer,
-    g_bench
-  };
-  return built_globals;
-}
-function drawBreadcrumbs(the_globals, f_cam_vect) {
-  if (window.HEX_VARS.BREAD_CRUMBS) {
-    let {
-      g_scene,
-      g_camera
-    } = the_globals;
-    (0, _aDot.XyzDot)(g_scene, f_cam_vect.x, g_camera.position.y, f_cam_vect.z, 0x666666);
-  }
-}
-function setCamera(the_globals, test_xyz_camera, start_look_at) {
-  let {
-    g_scene,
-    g_camera
-  } = the_globals;
-  g_camera.position.set(test_xyz_camera[0], test_xyz_camera[1] / 100, test_xyz_camera[2]);
-  g_camera.lookAt(start_look_at[0], start_look_at[1] / 100, start_look_at[2]);
-  g_scene.add(g_camera);
-}
-function renderRequest(the_globals, frameTick) {
-  let {
-    g_renderer,
-    g_scene,
-    g_camera
-  } = the_globals;
-  g_renderer.render(g_scene, g_camera);
-  window.requestAnimationFrame(frameTick);
-}
-function resetUnderneath(f_y100_height) {
-  if (f_y100_height < -100) {
-    f_y100_height = 1600;
-  }
-  return f_y100_height;
-}
-function moveCamera(the_globals, the_objects, f_this_coords, f_y100_height, f_move_result) {
-  let {
-    g_key_controls,
-    g_camera,
-    g_clock,
-    g_vector_3
-  } = the_globals;
-  let o_walkway_tiles = the_objects.o_walkway_tiles;
-  const clock_delta = g_clock.getDelta();
-  g_camera.getWorldDirection(g_vector_3);
-  if (f_move_result == _theConstants.MV_RISE_JUMP_STRAIGHT || f_move_result == _theConstants.MV_FALL_JUMP_STRAIGHT) {
-    g_key_controls.enabled = false;
-  } else {
-    g_key_controls.enabled = true;
-    (0, _keyControls.moveKeys)(clock_delta, g_key_controls);
-  }
-  const inc_y = (0, _walkwayHeights.walkwayIncline)(o_walkway_tiles, f_this_coords);
-  g_camera.position.y = f_y100_height / 100 + _theConstants.GET_ABOVE_TILES + inc_y;
-  return g_camera;
-}
-
-},{"../controls/key-controls.js":7,"../misc/console-short.js":17,"../objects/a-dot.js":22,"../objects/build-objects.js":24,"../tiles/walkway-heights.js":48,"./the-constants.js":52,"three":3}],54:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.bouncePlayer = bouncePlayer;
-exports.doFallJump = doFallJump;
-exports.doFallPlayer = doFallPlayer;
-exports.doRiseJump = doRiseJump;
-exports.jumpClick = jumpClick;
-var _consoleShort = require("../misc/console-short.js");
-var _trampolineConst = require("./trampoline-const.js");
-var _theConstants = require("../values/the-constants.js");
-var _moveConsts = require("../values/move-consts.js");
-/////////
-function doRiseJump(f_step_iterations, f_rise_step_size, f_y100_height) {
-  if (f_step_iterations == 0) {
-    let c_move_result = _theConstants.MV_FALL_JUMP_STRAIGHT;
-    return [c_move_result, f_y100_height];
-  }
-  const rise_y_100 = f_y100_height + f_rise_step_size;
-  let c_move_result = _theConstants.MV_RISE_JUMP_STRAIGHT;
-  return [c_move_result, rise_y_100];
-}
-function doFallJump(fall_data) {
-  let {
-    o_walkway_tiles,
-    o_trampolines,
-    f_this_hex,
-    f_y100_height,
-    f_fall_step_size
-  } = fall_data;
-  if (o_walkway_tiles.has(f_this_hex)) {
-    let c_move_result = _theConstants.MV_TILE_SAME;
-    return [c_move_result, f_y100_height];
-  } else if (o_trampolines.has(f_this_hex)) {
-    let c_move_result = _theConstants.MV_START_TRAMPOLINE;
-    return [c_move_result, f_y100_height];
-  } else {
-    const fall_y_100 = f_y100_height - f_fall_step_size;
-    let c_move_result = _theConstants.MV_FALL_JUMP_STRAIGHT;
-    return [c_move_result, fall_y_100];
-  }
-}
-function doFallPlayer(fall_data) {
-  let {
-    o_walkway_tiles,
-    o_trampolines,
-    f_this_hex,
-    f_y100_height,
-    f_fall_step_size
-  } = fall_data;
-  if (o_walkway_tiles.has(f_this_hex)) {
-    let c_move_result = _theConstants.MV_TILE_SAME;
-    return [c_move_result, f_y100_height];
-  } else if (o_trampolines.has(f_this_hex)) {
-    let c_move_result = _theConstants.MV_START_TRAMPOLINE;
-    return [c_move_result, f_y100_height];
-  } else {
-    const fall_y_100 = f_y100_height - f_fall_step_size;
-    let c_move_result = _theConstants.MV_FALL_STEP_OFF;
-    return [c_move_result, fall_y_100];
-  }
-}
-function bouncePlayer(bounce_data, unvisited_tiles) {
-  let {
-    f_step_iterations,
-    f_move_result,
-    g_camera,
-    f_jump_x_step,
-    f_jump_z_step,
-    f_y100_height
-  } = bounce_data;
-  let done_died = f_y100_height == 0;
-  let done_finished = unvisited_tiles.size === 0;
-  if (done_died || done_finished) {
-    window.location.reload();
-  }
-  if (f_move_result == _theConstants.MV_FALL_TRAMPOLINE || f_move_result == _theConstants.MV_RISE_TRAMPOLINE || f_move_result == _theConstants.MV_FALL_JUMP_STRAIGHT || f_move_result == _theConstants.MV_RISE_JUMP_STRAIGHT || f_move_result == _theConstants.MV_FALL_STEP_OFF) {
-    g_camera.position.z += f_jump_z_step;
-    g_camera.position.x += f_jump_x_step;
-    f_step_iterations--;
-  }
-  return [f_step_iterations, g_camera];
-}
-function jumpClick(f_prev_coords, f_this_coords) {
-  const x_dif = f_this_coords.x - f_prev_coords.x;
-  const z_dif = f_this_coords.z - f_prev_coords.z;
-  let f_jump_x_step = x_dif * _moveConsts.HOR_JUMP_MULTIPLIER;
-  let f_jump_z_step = z_dif * _moveConsts.HOR_JUMP_MULTIPLIER;
-  //
-  let f_bounce_speed = _trampolineConst.BOUNCE_SPEED___4;
-  let f_rise_step_size = _moveConsts.JUMP_RISE_STEP_SIZE;
-  let f_fall_step_size = _moveConsts.JUMP_FALL_STEP_SIZE;
-  let f_step_iterations = _moveConsts.JUMP_ITERATIONS;
-  let data_values = {
-    f_jump_x_step,
-    f_jump_z_step,
-    f_bounce_speed,
-    f_rise_step_size,
-    f_fall_step_size,
-    f_step_iterations
-  };
-  return data_values;
-}
-
-},{"../misc/console-short.js":17,"../values/move-consts.js":50,"../values/the-constants.js":52,"./trampoline-const.js":55}],55:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.BOUNCE_SPEED___4 = exports.BOUNCE_SPEED___3 = exports.BOUNCE_SPEED___2 = exports.BOUNCE_SPEED___1 = exports.BOUNCE_SPEED_3_5 = exports.BOUNCE_SPEED_2_5 = exports.BOUNCE_SPEED_1_5 = exports.BOUNCE_COUNT___25 = void 0;
-const BOUNCE_SPEED___1 = exports.BOUNCE_SPEED___1 = 1;
-const BOUNCE_SPEED_1_5 = exports.BOUNCE_SPEED_1_5 = 1.5;
-const BOUNCE_SPEED___2 = exports.BOUNCE_SPEED___2 = 2;
-const BOUNCE_SPEED_2_5 = exports.BOUNCE_SPEED_2_5 = 2.5;
-const BOUNCE_SPEED___3 = exports.BOUNCE_SPEED___3 = 3;
-const BOUNCE_SPEED_3_5 = exports.BOUNCE_SPEED_3_5 = 3.5;
-const BOUNCE_SPEED___4 = exports.BOUNCE_SPEED___4 = 4;
-const BOUNCE_COUNT___25 = exports.BOUNCE_COUNT___25 = 25;
-
-},{}],56:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.makeTrampolines = makeTrampolines;
-var _consoleShort = require("../misc/console-short.js");
-var _theConstants = require("../values/the-constants.js");
-var THREE = _interopRequireWildcard(require("three"));
-var _hexTile = require("../tiles/hex-tile.js");
-var _trampolineMesh = require("./trampoline-mesh.js");
-var _meshTiles = require("../tiles/mesh-tiles.js");
-var _hexMaths = require("../misc/hex-maths.js");
-function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-function trampolineTriangles(hex_points) {
-  const [top_left, top_right, right_tip, bot_right, bot_left, left_tip, middle_point] = hex_points;
-  const t1 = [...middle_point, ...top_left, ...top_right];
-  const t2 = [...middle_point, ...bot_right, ...bot_left];
-  const t3 = [...middle_point, ...right_tip, ...bot_right];
-  const t4 = [...middle_point, ...top_right, ...right_tip];
-  const t5 = [...middle_point, ...bot_left, ...left_tip];
-  const t6 = [...middle_point, ...left_tip, ...top_left];
-  let hexagon_triangles = [t1, t2, t3, t4, t5, t6];
-  return hexagon_triangles;
-}
-function makeTrampolines(g_scene, o_trampolines) {
-  var trampoline_columns = new Map();
-  let o_trampoline_meshes = new Map();
-  for (var i = 0; i < o_trampolines.length; i++) {
-    const trampoline_data = o_trampolines[i];
-
-    // ["0", HEIGHT_Y____9, "1", BOUNCE_SPEED___4, BOUNCE_COUNT___25, TILT_SW, INCLINE___1]
-    let [x_str, y_str, z_str, f_bounce_speed, f_step_iterations, slope_tilt, incline_amount] = trampoline_data;
-    f_step_iterations = parseInt(f_step_iterations);
-    const x_index = parseInt(x_str);
-    const y_100_index = parseInt(y_str);
-    const z_index = parseInt(z_str);
-    const x_y_z = [x_index, y_100_index, z_index];
-    const xyz_index = `${x_index},${y_100_index},${z_index}`;
-    if (slope_tilt == undefined) {
-      slope_tilt = _theConstants.TILT_NONE;
-      incline_amount = 0;
-    }
-    if (incline_amount == undefined) {
-      incline_amount[_theConstants.TILT_NONE, 0];
-    }
-    let [x_center, z_center] = (0, _hexMaths.tileCenterCoord)(x_index, z_index);
-    const tile_radius = 1;
-    const a_tile = new THREE.Group();
-    a_tile.position.set(x_center, 0, z_center);
-    const tile_points = (0, _hexTile.hexPoints)(tile_radius, y_100_index, slope_tilt, incline_amount);
-    let d_tile_3colors = {
-      dark_color: "red",
-      light_color: "green",
-      edge_color: "blue"
-    };
-    trampoline_columns = trampolineObj(trampoline_columns, x_y_z, f_bounce_speed, f_step_iterations, slope_tilt, incline_amount, tile_points, d_tile_3colors);
-    const top_triangles = trampolineTriangles(tile_points);
-    (0, _trampolineMesh.trampolineMesh)(a_tile, top_triangles, f_bounce_speed);
-    g_scene.add(a_tile);
-    (0, _meshTiles.addCoords)(a_tile, x_y_z, slope_tilt, incline_amount);
-    o_trampoline_meshes.set(xyz_index, a_tile);
-  }
-  return [o_trampoline_meshes, trampoline_columns];
-}
-function trampolineObj(stair_tiles, x_y_z, f_bounce_speed, f_step_iterations, slope_tilt, incline_amount, tile_points, d_tile_3colors) {
-  let {
-    light_color,
-    dark_color,
-    _edge_color
-  } = d_tile_3colors;
-  const [x_index, y_index, z_index] = x_y_z;
-  const xyz_index = `${x_index},${y_index},${z_index}`;
-  let [x_center, z_center] = (0, _hexMaths.tileCenterCoord)(x_index, z_index);
-  let tile_positions = [];
-  for (let i = 0; i < tile_points.length; i++) {
-    let tile_point = tile_points[i];
-    if (Array.isArray(tile_point)) {
-      let [x, y, z] = tile_point;
-      x = x + x_center;
-      z = z + z_center;
-      tile_positions.push([x, y, z]);
-    }
-  }
-  let accross_length = 0;
-  let top_point, bottom_point;
-  if (slope_tilt == _theConstants.TILT_NW) {
-    bottom_point = tile_positions[1];
-    top_point = tile_positions[5];
-    accross_length = (0, _hexMaths.distance2hexpoints)(bottom_point, top_point);
-  } else if (slope_tilt == _theConstants.TILT_NE) {
-    bottom_point = tile_positions[0];
-    top_point = tile_positions[2];
-    accross_length = (0, _hexMaths.distance2hexpoints)(bottom_point, top_point);
-  } else if (slope_tilt == _theConstants.TILT_SW) {
-    bottom_point = tile_positions[2];
-    top_point = tile_positions[0];
-    accross_length = (0, _hexMaths.distance2hexpoints)(bottom_point, top_point);
-  } else if (slope_tilt == _theConstants.TILT_SE) {
-    bottom_point = tile_positions[5];
-    top_point = tile_positions[2];
-    accross_length = (0, _hexMaths.distance2hexpoints)(bottom_point, top_point);
-  } else if (slope_tilt == _theConstants.TILT_NN) {
-    bottom_point = tile_positions[0];
-    top_point = tile_positions[3];
-  } else if (slope_tilt == _theConstants.TILT_SS) {
-    bottom_point = tile_positions[3];
-    top_point = tile_positions[0];
-  } else {
-    bottom_point = tile_positions[0];
-    top_point = bottom_point;
-  }
-  let top_point_y = top_point[1];
-  let bottom_point_y = bottom_point[1];
-  if (top_point_y === bottom_point_y) {
-    top_point_y = top_point_y; // * 10;
-    bottom_point_y = top_point_y;
-  } else {
-    top_point_y = top_point_y; // * 10; // - 0.0001;
-    bottom_point_y = bottom_point_y; // * 10; // + 0.0001;
-  }
-  var tile_obj = {
-    x_center: x_center,
-    y_position: y_index,
-    //
-    z_center: z_center,
-    tilt_up: slope_tilt,
-    angle_incline: incline_amount,
-    accross_length: accross_length,
-    tile_positions: tile_positions,
-    x_z: `${x_index},${z_index}`,
-    // a_c !!!
-    xyz_index: xyz_index,
-    f_bounce_speed: f_bounce_speed,
-    f_step_iterations: f_step_iterations,
-    light_color: light_color,
-    dark_color: dark_color,
-    high_y: top_point_y,
-    // high_y,
-    low_y: bottom_point_y // low_y
-  };
-  stair_tiles.set(xyz_index, tile_obj);
-  return stair_tiles;
-}
-
-},{"../misc/console-short.js":17,"../misc/hex-maths.js":19,"../tiles/hex-tile.js":31,"../tiles/mesh-tiles.js":32,"../values/the-constants.js":52,"./trampoline-mesh.js":57,"three":3}],57:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.trampolineMesh = trampolineMesh;
-var _consoleShort = require("../misc/console-short.js");
-var _trampolineConst = require("./trampoline-const.js");
-var _theConstants = require("../values/the-constants.js");
-var THREE = _interopRequireWildcard(require("three"));
-function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
-function hexToRGB(hex) {
-  let rr = hex >> 16;
-  let gg = hex >> 8 & 255;
-  let bb = hex & 255;
-  return {
-    r: rr,
-    g: gg,
-    b: bb
-  };
-}
-function geometricVertices(the_vertices) {
-  const float_vertices = new Float32Array(the_vertices);
-  const the_geometry = new THREE.BufferGeometry(1, 1, 1); //.toNonIndexed();
-  the_geometry.setAttribute("position", new THREE.Float32BufferAttribute(float_vertices, 3));
-  return the_geometry;
-}
-function trampolineMesh(group, vertices_set, f_bounce_speed) {
-  let pie_colors;
-  if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED___1) {
-    pie_colors = PIE_COLOR___1;
-  } else if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED_1_5) {
-    pie_colors = PIE_COLOR_1_5;
-  } else if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED___2) {
-    pie_colors = PIE_COLOR___2;
-  } else if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED_2_5) {
-    pie_colors = PIE_COLOR_2_5;
-  } else if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED___3) {
-    pie_colors = PIE_COLOR___3;
-  } else if (f_bounce_speed == _trampolineConst.BOUNCE_SPEED_3_5) {
-    pie_colors = PIE_COLOR_3_5;
-  } else {
-    pie_colors = PIE_COLOR___4;
-  }
-  for (let i = 0; i < vertices_set.length; i += 1) {
-    let a_pie = vertices_set[i];
-    const side_geometry = geometricVertices(a_pie);
-    const side_material = new THREE.MeshLambertMaterial({
-      color: pie_colors[i],
-      opacity: 1
-    });
-    side_material.side = THREE.DoubleSide;
-    const hexagon_side = new THREE.Mesh(side_geometry, side_material);
-    hexagon_side.name = _theConstants.HEXAGON_PART;
-    group.add(hexagon_side);
-  }
-}
-
-// should be in color.js
-const p__white = 0xffffff;
-const p___grey = 0xcccccc;
-const p_violet = 0xff00ff;
-const p_yellow = 0xffff00;
-const p___cyan = 0x00ffff;
-const PIE_COLOR___1 = [p___grey, p_violet, p___grey, p_violet, p___grey, p_violet];
-const PIE_COLOR_1_5 = [p___grey, p___cyan, p___grey, p___cyan, p___grey, p___cyan];
-const PIE_COLOR___2 = [p___grey, p_yellow, p___grey, p_yellow, p___grey, p_yellow];
-const PIE_COLOR_2_5 = [p__white, p_violet, p__white, p_violet, p__white, p_violet];
-const PIE_COLOR___3 = [p__white, p___cyan, p__white, p___cyan, p__white, p___cyan];
-const PIE_COLOR_3_5 = [p__white, p_yellow, p__white, p_yellow, p__white, p_yellow];
-const PIE_COLOR___4 = [p_yellow, p_yellow, p_violet, p___cyan, p_violet, p___cyan];
-
-},{"../misc/console-short.js":17,"../values/the-constants.js":52,"./trampoline-const.js":55,"three":3}],58:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.doFallTrampoline = doFallTrampoline;
-exports.doRiseTrampoline = doRiseTrampoline;
-exports.trampolineLift = trampolineLift;
-var _consoleShort = require("../misc/console-short.js");
-var _theConstants = require("../values/the-constants.js");
-var _moveConsts = require("../values/move-consts.js");
-function doRiseTrampoline(f_step_iterations, f_rise_step_size, f_y100_height) {
-  if (f_step_iterations == 0) {
-    let c_move_result = _theConstants.MV_FALL_TRAMPOLINE;
-    return [c_move_result, f_y100_height];
-  }
-  const rise_y_100 = f_y100_height + f_rise_step_size;
-  let c_move_result = _theConstants.MV_RISE_TRAMPOLINE;
-  return [c_move_result, rise_y_100];
-}
-function doFallTrampoline(fall_data) {
-  let {
-    o_walkway_tiles,
-    o_trampolines,
-    f_this_hex,
-    f_y100_height,
-    f_fall_step_size
-  } = fall_data;
-  if (o_walkway_tiles.has(f_this_hex)) {
-    let c_move_result = _theConstants.MV_TILE_SAME;
-    return [c_move_result, f_y100_height];
-  } else if (o_trampolines.has(f_this_hex)) {
-    let c_move_result = _theConstants.MV_START_TRAMPOLINE;
-    return [c_move_result, f_y100_height];
-  } else {
-    const fall_y_100 = f_y100_height - f_fall_step_size;
-    let c_move_result = _theConstants.MV_FALL_TRAMPOLINE;
-    return [c_move_result, fall_y_100];
-  }
-}
-
-// https://www.dummies.com/article/academics-the-arts/math/pre-calculus/quick-guide-to-the-30-60-90-degree-triangle-168056/
-function trampolineLift(o_trampolines, tile_index) {
-  let the_trampo = o_trampolines.get(tile_index);
-  let f_jump_x_step, f_jump_z_step;
-  let f_bounce_speed = the_trampo.f_bounce_speed;
-  let f_rise_step_size = _moveConsts.TRAMPOLINE_RISE_SPEED;
-  let f_fall_step_size = _moveConsts.TRAMPOLINE_FALL_SPEED;
-  let f_step_iterations = the_trampo.f_step_iterations;
-  const tamp_tilt = the_trampo.tilt_up;
-  if (tamp_tilt == _theConstants.TILT_NONE) {
-    f_jump_x_step = 0;
-    f_jump_z_step = 0;
-  } else if (tamp_tilt == _theConstants.TILT_NN) {
-    f_jump_x_step = 0;
-    f_jump_z_step = _moveConsts.RISE_NN_Z_DIFF;
-  } else if (tamp_tilt == _theConstants.TILT_SS) {
-    f_jump_x_step = 0;
-    f_jump_z_step = _moveConsts.RISE_SS_Z_DIFF;
-  } else if (tamp_tilt == _theConstants.TILT_SW) {
-    f_jump_x_step = +(0.5 * _theConstants.SQRT_3) / _moveConsts.RISE_XZ_SPEED_SLOW;
-    f_jump_z_step = -0.5 / _moveConsts.RISE_XZ_SPEED_SLOW;
-  } else if (tamp_tilt == _theConstants.TILT_NE) {
-    f_jump_x_step = -(0.5 * _theConstants.SQRT_3) / _moveConsts.RISE_XZ_SPEED_SLOW;
-    f_jump_z_step = +0.5 / _moveConsts.RISE_XZ_SPEED_SLOW;
-  } else if (tamp_tilt == _theConstants.TILT_NW) {
-    f_jump_x_step = +(0.5 * _theConstants.SQRT_3) / _moveConsts.RISE_XZ_SPEED_SLOW;
-    f_jump_z_step = +0.5 / _moveConsts.RISE_XZ_SPEED_SLOW;
-  } else if (tamp_tilt == _theConstants.TILT_SE) {
-    f_jump_x_step = -(0.5 * _theConstants.SQRT_3) / _moveConsts.RISE_XZ_SPEED_SLOW;
-    f_jump_z_step = -0.5 / _moveConsts.RISE_XZ_SPEED_SLOW;
-  }
-  f_jump_z_step *= f_bounce_speed;
-  f_jump_x_step *= f_bounce_speed;
-  let data_values = {
-    f_jump_x_step,
-    f_jump_z_step,
-    f_bounce_speed,
-    f_rise_step_size,
-    f_fall_step_size,
-    f_step_iterations
-  };
-  return data_values;
-}
-
-},{"../misc/console-short.js":17,"../values/move-consts.js":50,"../values/the-constants.js":52}]},{},[14]);
+},{"../misc/console-short.js":28,"../misc/hex-maths.js":30,"../tiles/hex-routines.js":38,"../values/the-constants.js":62}]},{},[25]);

@@ -43,7 +43,7 @@ import {
     BOUNCE_SPEED___3,
     BOUNCE_SPEED_3_5,
     BOUNCE_SPEED___4
-} from "../vertical-movement/trampoline-const.js";
+} from "../trampolines/trampoline-const.js";
 
 const TRIE_WALKWAY = [
     ["1", HEIGHT_Y___11, "-1"],
@@ -80,7 +80,7 @@ const fence_6 = { hex_a: ["-1", HEIGHT_Y___11, "1"], hex_b: ["0", HEIGHT_Y___11,
 //const TRIE_FENCES = [fence_1, fence_2, fence_3, fence_4, fence_5, fence_6];  // 3 5
 
 ////////////////////
-const fence_3 = { hex_a: ["0", HEIGHT_Y___11, "0"], hex_b: ["-1", HEIGHT_Y___11, "0"], fence_height: HEIGHT_Y____5 }; // SE   ????????????  fence_3
+const fence_3 = { hex_a: ["0", HEIGHT_Y___11, "0"], hex_b: ["-1", HEIGHT_Y___11, "0"], fence_height: "1300" }; // SE   ????????????  fence_3
 //const fence_3 = { hex_a: ["-1", HEIGHT_Y___11, "0"], hex_b: ["0", HEIGHT_Y___11, "0"], fence_height: HEIGHT_Y____5 }; //  NW         NORTH WEST of 0,0
 
 const fence_5 = { hex_a: ["0", HEIGHT_Y___11, "0"], hex_b: ["1", HEIGHT_Y___11, "0"], fence_height: HEIGHT_Y____5 }; //  NW        SOUTH EAST OF 0,0
@@ -92,7 +92,7 @@ const TRIE_FENCES = [fence_3];
 const TRIE_TRAMPOLINES = [
     //   ["000", HEIGHT_Y___10, "-1", BOUNCE_SPEED___4, BOUNCE_COUNT___25, TILT_NONE, INCLINE___0],
 
-    ["0", HEIGHT_Y___11, "1", BOUNCE_SPEED___4, BOUNCE_COUNT___25, TILT_NONE, INCLINE___0]
+    ["0", HEIGHT_Y___11, "1", BOUNCE_SPEED___4, 100, TILT_NONE, INCLINE___0]
 ];
 
 const TRIE_FIGURE = {

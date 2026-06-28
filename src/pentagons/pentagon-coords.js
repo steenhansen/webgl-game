@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../misc/console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 //import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../values/constants.js";
 import { RECORD_ENEMY_POINTS } from "../values/the-constants.js";
 import * as THREE from "three";

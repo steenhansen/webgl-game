@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../misc/console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 import * as THREE from "three";
 import {
     MV_START_TRAMPOLINE,
@@ -21,10 +21,11 @@ import {
     TILT_NONE
 } from "../values/the-constants.js";
 import { hexPoints, tileTriangles, tileCenterCoord } from "./hex-tile.js";
-import { addCoords } from "./mesh-tiles.js";
+import { addTextLoc } from "./text-tiles.js";
 import { tileMesh } from "./tile-mesh.js";
-import { seaColor } from "../misc/tile-colors.js";
+import { seaColor } from "../colors/tile-colors.js";
 
+// this has no use anymore !!!!!!!!
 function undefTileDebugInfo(prev_tilt_up) {
     const prev_new_data = {
         prev_tilt_up: prev_tilt_up,
@@ -40,52 +41,48 @@ function undefTileDebugInfo(prev_tilt_up) {
     return { prev_new_data, data };
 }
 
-function moveAllow(local_data, mess_1) {
+function moveSame(move_name, prev_hex, this_hex) {
     if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
-        let { prev_tilt_up, new_tilt_up, prev_hex, this_hex } = local_data;
-        ee(`${mess_1} Allowed :: ${prev_hex},${prev_tilt_up} :: ${this_hex},${new_tilt_up}`);
+        dd(`      Same ${move_name} :: ${prev_hex} :: ${this_hex}`);
     }
-    if (local_data.prev_hex == local_data.this_hex) {
-        return MV_TILE_SAME;
+    return MV_TILE_SAME;
+}
+
+function moveNew(debug_data) {
+    if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
+        dd(`       New ${debug_data}`);
     }
     return MV_TILE_NEW;
 }
 
-function moveBlock(local_data, mess_1) {
+function moveBlock(debug_data) {
     if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
-        let { prev_tilt_up, new_tilt_up, prev_hex, this_hex } = local_data;
-        ee(`${mess_1} Blocked :: ${prev_hex},${prev_tilt_up} :: ${this_hex},${new_tilt_up}`);
+        dd(`   Blocked ${debug_data}`);
     }
     return MV_FENCE_BLOCKED;
 }
 
-function moveDescendOneStep(local_data, mess_1) {
+function moveOntoTrampoline(debug_data) {
     if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
-        let { prev_tilt_up, new_tilt_up, prev_hex, this_hex } = local_data;
-        ee(`${mess_1} DescendOneStep :: ${prev_hex},${prev_tilt_up} :: ${this_hex},${new_tilt_up}`);
+        dd(`Trampoline ${debug_data}`);
     }
-    let c_move_result = MV_FALL_STEP_OFF;
-    return c_move_result;
-}
-function moveOntoTrampoline(local_data, mess_1) {
-    if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
-        let { prev_tilt_up, new_tilt_up, prev_hex, this_hex } = local_data;
-        ee(`${mess_1} Trampoline :: ${prev_hex},${prev_tilt_up} :: ${this_hex},${new_tilt_up}`);
-    }
-    let c_move_result = MV_START_TRAMPOLINE;
-    return c_move_result;
+    return MV_START_TRAMPOLINE;
 }
 
-function moveIntoAir(local_data, mess_1) {
+function moveIntoAir(debug_data) {
     if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
-        let { prev_tilt_up, new_tilt_up, prev_hex, this_hex } = local_data;
-        ee(`${mess_1} Airborne :: ${prev_hex},${prev_tilt_up} :: ${this_hex},${new_tilt_up}`);
+        dd(`   IntoAir ${debug_data}`);
     }
-    let c_move_result = MV_FALL_STEP_OFF;
-    return c_move_result;
+    return MV_FALL_STEP_OFF;
 }
 
-////////////////////
+function moveDescendOneStep(debug_data) {
+    if (window.HEX_VARS.PRINT_ALLOWED == "PRINT_ALLOWED") {
+        dd(`   OneStep ${debug_data}`);
+    }
+    return MV_FALL_STEP_OFF;
+}
+
 function ground_field(g_scene, hex_tiles, ground_tiles, start_x, end_x, sea_colors, sea_edge) {
     for (let x = start_x; x < end_x; x++) {
         [hex_tiles, ground_tiles] = groundRow(hex_tiles, ground_tiles, g_scene, x, -10, 10, sea_colors, sea_edge);
@@ -115,10 +112,10 @@ function groundTile(hex_tiles, g_scene, x_y_z, sea_colors, sea_edge) {
     tileMesh(a_tile, top_triangles, sea_color, sea_edge);
 
     g_scene.add(a_tile);
-    addCoords(a_tile, x_y_z, TILT_NONE, 0);
+    addTextLoc(a_tile, x_y_z, TILT_NONE, 0);
     const xyz_index = `${x_index},${y_height},${z_index}`;
     hex_tiles.set(xyz_index, a_tile);
     return hex_tiles;
 }
 
-export { moveDescendOneStep, moveOntoTrampoline, moveIntoAir, undefTileDebugInfo, groundRow, ground_field, groundTile, moveAllow, moveBlock };
+export { moveDescendOneStep, moveOntoTrampoline, moveIntoAir, undefTileDebugInfo, groundRow, ground_field, groundTile, moveNew, moveBlock, moveSame };

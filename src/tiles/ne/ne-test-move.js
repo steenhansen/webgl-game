@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../../console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../../console-short.js";
 
 import { checkPrevNextTiles } from "../cam-adjust/test-funcs.js";
 import { TEST_PASSED, TEST_FAILED, MOVE_GO } from "../../values/constants.js";

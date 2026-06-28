@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "./console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "./console-short.js";
 
 import { SQRT_3 } from "../values/the-constants.js";
 

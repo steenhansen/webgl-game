@@ -1,26 +1,12 @@
-import { ee, tt, EE, TT } from "../../misc/console-short.js";
-import { moveDescendOneStep, moveOntoTrampoline, moveIntoAir, undefTileDebugInfo, moveAllow, moveBlock } from "../ground-tiles.js";
-import {
-    PRINT_ALLOWED,
-    RUN_OR_TEST,
-    MV_FALL_JUMP_STRAIGHT,
-    MV_TILE_NEW,
-    MV_TILE_SAME,
-    MV_FENCE_BLOCKED,
-    TESTINs_PRINT,
-    FENCE_SE,
-    TILT_SS,
-    TILT_NONE,
-    TILT_NN,
-    TILT_NE,
-    TILT_SE,
-    TILT_SW,
-    TILT_NW
-} from "../../values/the-constants.js";
-import { stripYindex, tileData, offWalkway, hitFence } from "../hex-routines.js";
+import { ee, tt, dd, EE, TT, DD } from "../../misc/console-short.js";
+import { moveDescendOneStep, moveOntoTrampoline, moveIntoAir, moveBlock, moveNew, moveSame } from "../ground-tiles.js";
+import { MV_TILE_SAME, TILT_SS, TILT_NONE, TILT_NN, TILT_NE, TILT_SE, TILT_SW, TILT_NW } from "../../values/the-constants.js";
+import { tileData, offWalkway, hitFence } from "../hex-routines.js";
 
 import {
-    NW_AIRBORNE,
+    NW_WALK_AIR,
+    NW_TRAMPOLINE_AIR,
+    NW_0_SAME,
     NW_1_UP_UP_CLOCK,
     NW_2_UP_UP_COUNTER,
     NW_3_DOWN_DOWN_CLOCK,
@@ -34,61 +20,68 @@ import {
     NW_11_DOWN__DOWN,
     NW_12_UP__DOWN,
     NW_13_DOWN__UP,
-    NW_14_BLOCKED
+    NW_14_BLOCKED,
+    NW_15_TRAMPOLINE,
+    NW_16_STROLL_INTO_AIR,
+    NW_17_DESCEND_ONE_STEP
 } from "./nw-constants.js";
 
-function moveToNw(the_objects, prev_hex, this_hex, is_a_trampoline) {
-    let { o_walkway_tiles, o_walkway_columns, o_fence_walls, o_fence_columns } = the_objects;
-    const { prev_new_data, data } = tileData(o_walkway_tiles, prev_hex, this_hex);
-
+function tile2TileNW(o_walkway_tiles, this_hex, prev_hex) {
+    const { prev_new_data, tile_data } = tileData(o_walkway_tiles, prev_hex, this_hex);
     const { prev_tilt_up, new_tilt_up } = prev_new_data;
-    const local_data = { prev_tilt_up, new_tilt_up, prev_hex, this_hex };
-    if (hitFence(o_fence_walls, o_fence_columns, prev_hex, this_hex)) {
-        return moveBlock(local_data, NW_14_BLOCKED);
-    }
-    if (offWalkway(o_walkway_columns, this_hex)) {
-        if (is_a_trampoline) {
-            return moveOntoTrampoline(local_data, NW_AIRBORNE);
-        } else {
-            return moveIntoAir(local_data, NW_AIRBORNE);
-        }
-    }
-
-    const { low_to_low, high_to_high, lows_and_highs, high_to_low, low_to_high } = data;
-
-    if (nwCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-        return moveAllow(local_data, NW_1_UP_UP_CLOCK); //      ⭮
-    } else if (nwCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-        return moveAllow(local_data, NW_2_UP_UP_COUNTER); //      ⭯
-    } else if (nwCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-        return moveAllow(local_data, NW_3_DOWN_DOWN_CLOCK); //  ⭮
-    } else if (nwCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, data)) {
-        return moveAllow(local_data, NW_4_DOWN_DOWN_COUNTER); //  ⭯
+    const { low_to_low, high_to_high, lows_and_highs, high_to_low, low_to_high } = tile_data;
+    let move_result;
+    if (nwCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+        move_result = moveNew(NW_1_UP_UP_CLOCK, prev_hex, this_hex); //      ⭮
+    } else if (nwCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+        move_result = moveNew(NW_2_UP_UP_COUNTER, prev_hex, this_hex); //      ⭯
+    } else if (nwCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+        move_result = moveNew(NW_3_DOWN_DOWN_CLOCK, prev_hex, this_hex); //  ⭮
+    } else if (nwCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
+        move_result = moveNew(NW_4_DOWN_DOWN_COUNTER, prev_hex, this_hex); //  ⭯              http://xahlee.info/comp/unicode_arrows.html
     } else if (nwFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-        return moveAllow(local_data, NW_5_FLAT__FLAT); // - -
+        move_result = moveNew(NW_5_FLAT__FLAT, prev_hex, this_hex); // - -
     } else if (nwFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-        return moveAllow(local_data, NW_6_FLAT__UP); //   _⭜
+        move_result = moveNew(NW_6_FLAT__UP, prev_hex, this_hex); //   _⭜
     } else if (nwUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-        return moveAllow(local_data, NW_7_UP__FLAT); //   ↗¯¯
-    } else if (nwDownToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-        return moveAllow(local_data, NW_8_DOWN__FLAT); // ↘__
+        move_result = moveNew(NW_7_UP__FLAT, prev_hex, this_hex); //   ↗¯¯
+    } else if (nwDownToFlat(prev_tilt_up, new_tilt_up, low_to_high)) {
+        move_result = moveNew(NW_8_DOWN__FLAT, prev_hex, this_hex); // ↘__
     } else if (nwFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-        return moveAllow(local_data, NW_9_FLAT__DOWN); // ¯⭝
+        move_result = moveNew(NW_9_FLAT__DOWN, prev_hex, this_hex); // ¯⭝
     } else if (nwUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-        return moveAllow(local_data, NW_10_UP__UP); //     ↗↗
+        move_result = moveNew(NW_10_UP__UP, prev_hex, this_hex); //     ↗↗
     } else if (nwDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-        return moveAllow(local_data, NW_11_DOWN__DOWN); // ↘↘
+        move_result = moveNew(NW_11_DOWN__DOWN, prev_hex, this_hex); // ↘↘
     } else if (nwUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-        return moveAllow(local_data, NW_12_UP__DOWN); //  ↗↘
+        move_result = moveNew(NW_12_UP__DOWN, prev_hex, this_hex); //  ↗↘
     } else if (nwDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-        return moveAllow(local_data, NW_13_DOWN__UP); //  ↘↗
-    } else if (prev_hex == this_hex) {
-        return MV_TILE_SAME;
+        move_result = moveNew(NW_13_DOWN__UP, prev_hex, this_hex); //  ↘↗
+    } else if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
+        move_result = moveDescendOneStep(NW_17_DESCEND_ONE_STEP, prev_hex, this_hex); // ⬎_   ??????? does this ever get gotton to ?   MV_FALL_STEP_OFF
+    } else {
+        ee("should never happen NW, move_result", move_result);
     }
-    if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
-        return moveDescendOneStep(local_data, NW_AIRBORNE);
+    return move_result;
+}
+
+function leaveTileNW(the_objects, this_hex, prev_hex, is_a_trampoline) {
+    let { o_walkway_tiles, o_walkway_columns, o_fence_walls } = the_objects;
+    const is_off_walkway = offWalkway(o_walkway_columns, this_hex);
+    let move_result;
+    if (prev_hex == this_hex) {
+        move_result = moveSame(NW_0_SAME, prev_hex, this_hex);
+    } else if (hitFence(o_fence_walls, prev_hex, this_hex)) {
+        move_result = moveBlock(NW_14_BLOCKED, prev_hex, this_hex);
+        console.log("NW Block");
+    } else if (is_off_walkway && is_a_trampoline) {
+        move_result = moveOntoTrampoline(NW_15_TRAMPOLINE, prev_hex, this_hex);
+    } else if (is_off_walkway) {
+        move_result = moveIntoAir(NW_16_STROLL_INTO_AIR, prev_hex, this_hex);
+    } else {
+        move_result = tile2TileNW(o_walkway_tiles, this_hex, prev_hex);
     }
-    return moveBlock(local_data, NW_14_BLOCKED); //  ↘↗
+    return move_result;
 }
 
 /*  curve_up__curve_up.png   like a flower */
@@ -200,4 +193,4 @@ function nwDownToUp(prev_tilt_up, new_tilt_up, low_to_low) {
     return false;
 }
 
-export { moveToNw };
+export { leaveTileNW };

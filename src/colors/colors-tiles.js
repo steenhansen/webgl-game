@@ -1,9 +1,9 @@
-import { ee, tt, EE, TT } from "../misc/console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 import { HEXAGON_PART } from "../values/the-constants.js";
 
 import { WALK_AFTER_COLORS } from "../values/color-consts.js";
 
-import { seaColor } from "../misc/tile-colors.js";
+import { seaColor } from "./tile-colors.js";
 
 const colorLeft = (hex) => {
     const r = hex & 0xff0000;

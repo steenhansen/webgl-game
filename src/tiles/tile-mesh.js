@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../misc/console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 import * as THREE from "three";
 import { HEXAGON_PART } from "../values/the-constants.js";
 
@@ -9,6 +9,57 @@ function intToHexBGR(intColor) {
     let b = (intColor & 0xff0000) >>> 16;
     let combined = r | g | b;
     return "#" + (combined >>> 0).toString(16).padStart(6, "0");
+}
+
+function tileMeshTransparent(group, vertices_set, start_color, outline_color) {
+    // qbert  111111
+    let side_material = new THREE.MeshLambertMaterial({ color: start_color, opacity: 0.3, transparent: true });
+    tileMeshBase(group, vertices_set, side_material, outline_color);
+    // const side_geometry = geometricVertices(vertices_set);
+    // side_material.side = THREE.DoubleSide;
+    // const hexagon_side = new THREE.Mesh(side_geometry, side_material);
+    // hexagon_side.name = HEXAGON_PART;
+
+    // const edges = new THREE.EdgesGeometry(side_geometry);
+    // const lineMaterial = new THREE.LineBasicMaterial({ color: outline_color, linewidth: 8 });
+    // lineMaterial.side = THREE.DoubleSide;
+    // const edgeLines = new THREE.LineSegments(edges, lineMaterial);
+    // hexagon_side.add(edgeLines);
+    // group.add(hexagon_side);
+}
+
+function tileMeshBase(group, vertices_set, side_material, outline_color) {
+    // qbert    111111111111111
+    //let side_material = new THREE.MeshLambertMaterial({ color: start_color, opacity: 1 });
+
+    const side_geometry = geometricVertices(vertices_set);
+    side_material.side = THREE.DoubleSide;
+    const hexagon_side = new THREE.Mesh(side_geometry, side_material);
+    hexagon_side.name = HEXAGON_PART;
+
+    const edges = new THREE.EdgesGeometry(side_geometry);
+    const lineMaterial = new THREE.LineBasicMaterial({ color: outline_color, linewidth: 8 });
+    lineMaterial.side = THREE.DoubleSide;
+    const edgeLines = new THREE.LineSegments(edges, lineMaterial);
+    hexagon_side.add(edgeLines);
+    group.add(hexagon_side);
+}
+
+function tileMeshOpaque(group, vertices_set, start_color, outline_color) {
+    // qbert 1111111111111
+    let side_material = new THREE.MeshLambertMaterial({ color: start_color, opacity: 1 });
+    tileMeshBase(group, vertices_set, side_material, outline_color);
+    // const side_geometry = geometricVertices(vertices_set);
+    // side_material.side = THREE.DoubleSide;
+    // const hexagon_side = new THREE.Mesh(side_geometry, side_material);
+    // hexagon_side.name = HEXAGON_PART;
+
+    // const edges = new THREE.EdgesGeometry(side_geometry);
+    // const lineMaterial = new THREE.LineBasicMaterial({ color: outline_color, linewidth: 8 });
+    // lineMaterial.side = THREE.DoubleSide;
+    // const edgeLines = new THREE.LineSegments(edges, lineMaterial);
+    // hexagon_side.add(edgeLines);
+    // group.add(hexagon_side);
 }
 
 function tileMesh(group, vertices_set, start_color, outline_color, is_transparent) {

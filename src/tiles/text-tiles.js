@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../misc/console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 
 import * as THREE from "three";
 
@@ -12,7 +12,7 @@ const WHITE_LABELS = 0xffffff;
 var the_font = loader2.parse(type_face);
 
 //const Y_TO_ACTUAL_HEIGHT = 10;
-function addCoords(a_tile, x_y_z, slope_tilt, incline_amount) {
+function addTextLoc(a_tile, x_y_z, slope_tilt, incline_amount) {
     // const [up_direction, angled_height] = incline_and_dir;
     let [x_index, y_100_index, z_index] = x_y_z;
 
@@ -42,6 +42,8 @@ function addCoords(a_tile, x_y_z, slope_tilt, incline_amount) {
     }
 
     text_mesh.rotation.x = -Math.PI / 2;
+
+    //text_mesh.side = THREE.DoubleSide;
 
     if (slope_tilt != TILT_NONE) {
         text_mesh.rotation.y = -Math.PI / 2;
@@ -73,12 +75,21 @@ function addCoords(a_tile, x_y_z, slope_tilt, incline_amount) {
         x = -0.7;
         z = -0.25;
     } else {
-        ee(" addCoords() unknown slope_tilt", slope_tilt);
+        ee(" addTextLoc() unknown slope_tilt", slope_tilt);
     }
 
     text_mesh.position.x = x;
     text_mesh.position.z = z;
     a_tile.add(text_mesh);
+
+    /////////////////////////
+    var text_underneath = new THREE.Mesh(textGeometry, textMaterial);
+    text_underneath.rotation.x = Math.PI / 2;
+    text_underneath.position.y = y_index - 0.1;
+
+    text_underneath.position.x = x - 0.2;
+    text_underneath.position.z = z + 0.3;
+    a_tile.add(text_underneath);
 }
 
-export { addCoords };
+export { addTextLoc };

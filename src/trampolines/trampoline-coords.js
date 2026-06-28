@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../misc/console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 
 import {
     MV_START_TRAMPOLINE,
@@ -26,7 +26,7 @@ import * as THREE from "three";
 import { hexPoints } from "../tiles/hex-tile.js";
 
 import { trampolineMesh } from "./trampoline-mesh.js";
-import { addCoords } from "../tiles/mesh-tiles.js";
+import { addTextLoc } from "../tiles/text-tiles.js";
 import { distance2hexpoints, tileCenterCoord } from "../misc/hex-maths.js";
 function trampolineTriangles(hex_points) {
     const [top_left, top_right, right_tip, bot_right, bot_left, left_tip, middle_point] = hex_points;
@@ -92,7 +92,7 @@ function makeTrampolines(g_scene, o_trampolines) {
         trampolineMesh(a_tile, top_triangles, f_bounce_speed);
 
         g_scene.add(a_tile);
-        addCoords(a_tile, x_y_z, slope_tilt, incline_amount);
+        addTextLoc(a_tile, x_y_z, slope_tilt, incline_amount);
         o_trampoline_meshes.set(xyz_index, a_tile);
     }
     return [o_trampoline_meshes, trampoline_columns];

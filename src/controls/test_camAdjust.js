@@ -1,11 +1,11 @@
-import { ee, tt, EE, TT } from "../../console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../../console-short.js";
 
 import { AScene } from "../../a-scene.js";
 import { C____GREEN, C_____BLUE, C___YELLOW, TILT_NE, TILT_NONE, TILT_NN, TILT_SW } from "../../values/constants.js";
-import { makeWalkway } from "../walkway-coords.js";
+import { makeWalkway } from "../walkways/walkway-coords.js";
 import { tileTransition } from "./camAdjust.js";
 
-import { tileCenterCoord } from "../hex-tile.js";
+import { tileCenterCoord } from "../tiles/hex-tile.js";
 
 import { TEST_TILE_MOVE, TEST_TILE_MOVE } from "../values/constants.js";
 

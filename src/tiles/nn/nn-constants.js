@@ -6,9 +6,10 @@ const z_start = 0;
 const x_finish = 0;
 const z_finish = -1;
 
-const NN_INTO_AIR = "NN_INTO_AIR";
-const NN_AIRBORNE = "NN_AIRBORNE";
+const NN_WALK_AIR = "NN_WALK_AIR";
+const NN_TRAMPOLINE_AIR = "NN_TRAMPOLINE_AIR";
 
+const NN_0_SAME = "NN_0_SAME";
 const NN_1_UP_UP_CLOCK = "NN_1_UP_UP_CLOCK";
 const NN_2_UP_UP_COUNTER = "NN_2_UP_UP_COUNTER";
 const NN_3_DOWN_DOWN_CLOCK = "NN_3_DOWN_DOWN_CLOCK";
@@ -23,6 +24,10 @@ const NN_11_DOWN__DOWN = "NN_11_DOWN__DOWN";
 const NN_12_UP__DOWN = "NN_12_UP__DOWN";
 const NN_13_DOWN__UP = "NN_13_DOWN__UP";
 const NN_14_BLOCKED = "NN_14_BLOCKED";
+
+const NN_15_TRAMPOLINE = "NN_15_TRAMPOLINE";
+const NN_16_STROLL_INTO_AIR = "NN_16_STROLL_INTO_AIR";
+const NN_17_DESCEND_ONE_STEP = "NN_17_DESCEND_ONE_STEP";
 
 const NN_1_TEST = [[x_start, 1, z_start, COL_1, TILT_SE, 1], [x_finish, 1, z_finish, COL_2, TILT_NE, 1], NN_1_UP_UP_CLOCK];
 const NN_2_2_2_TEST = [[x_start, 1, z_start, COL_1, TILT_SE, 1], [x_finish, 1, z_finish, COL_2, TILT_NE, 1], NN_2_UP_UP_COUNTER];
@@ -57,9 +62,9 @@ const NN_START_FINISHES = {
 };
 
 export {
-    NN_START_FINISHES,
-    NN_AIRBORNE,
-    NN_INTO_AIR,
+    NN_WALK_AIR,
+    NN_TRAMPOLINE_AIR,
+    NN_0_SAME,
     NN_1_UP_UP_CLOCK,
     NN_2_UP_UP_COUNTER,
     NN_3_DOWN_DOWN_CLOCK,
@@ -73,5 +78,8 @@ export {
     NN_11_DOWN__DOWN,
     NN_12_UP__DOWN,
     NN_13_DOWN__UP,
-    NN_14_BLOCKED
+    NN_14_BLOCKED,
+    NN_15_TRAMPOLINE,
+    NN_16_STROLL_INTO_AIR,
+    NN_17_DESCEND_ONE_STEP
 };

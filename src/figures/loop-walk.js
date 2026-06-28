@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "../misc/console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 
 import { FENCE_NN, FENCE_SS, FENCE_SE, FENCE_NW, FENCE_SW, FENCE_NE } from "../values/the-constants.js";
 
@@ -47,7 +47,7 @@ import {
     BOUNCE_SPEED___3,
     BOUNCE_SPEED_3_5,
     BOUNCE_SPEED___4
-} from "../vertical-movement/trampoline-const.js";
+} from "../trampolines/trampoline-const.js";
 
 import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW, TILT_NONE } from "../values/constants.js";
 

@@ -1,4 +1,4 @@
-import { ee, tt, EE, TT } from "./console-short.js";
+import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 
 function seaColor(x_y_z, three_colors) {
     const [x_index, _y_height, z_index] = x_y_z;

@@ -1,12 +1,17 @@
-import { ee, tt, EE, TT, moveCamera, camVectCoords } from "./values/the-globals.js";
-import { followCamera } from "./controls/perspective-camera.js";
-import { bouncePlayer } from "./vertical-movement/player-moves.js";
+import { ee, tt, dd, EE, TT, DD } from "./values/the-globals.js";
+
+import { moveCamera, followCamera, camVectCoords } from "./controls/perspective-camera.js";
+import { bouncePlayer } from "./trampolines/player-moves.js";
 import { minorTicks } from "./misc/minor-routines.js";
 import { currentHexIdxs } from "./tiles/hex-routines.js";
-import { frame_vars, e_do_click, the_globals, the_objects, g_renderer, g_bench } from "./values/start-up.js";
+import { frame_vars, e_do_click, the_globals, the_objects } from "./values/start-up.js";
 
 let { f_this_coords, f_y100_height, f_bounce_speed, f_step_iterations, f_cam_vect, f_this_hex, f_prev_hex } = frame_vars;
 let { g_camera, f_prev_coords, f_fall_step_size, f_rise_step_size, f_jump_x_step, f_jump_z_step, f_move_result } = frame_vars;
+
+//g_camera.position.x = 0;
+//g_camera.position.y = 11.999864555812998;
+//g_camera.position.z = -0.8662599999979148; // exactly on angled piece
 
 const frameTick = () => {
     [f_cam_vect, f_this_coords] = camVectCoords(g_camera, f_y100_height);
@@ -25,6 +30,7 @@ const frameTick = () => {
         f_this_hex, //     -2,900,1
         f_y100_height //   1100
     };
+
     let changed_vars = followCamera(the_objects, frame_vars, e_do_click, g_camera);
     ({ f_step_iterations, f_rise_step_size, f_prev_hex, f_bounce_speed, f_move_result, f_y100_height } = changed_vars);
     ({ f_this_hex, f_jump_x_step, f_jump_z_step, f_fall_step_size, f_prev_coords, f_this_coords } = changed_vars);
