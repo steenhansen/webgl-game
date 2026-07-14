@@ -1,11 +1,20 @@
 import { ee, tt, dd, EE, TT, DD } from "../../misc/console-short.js";
 
-import { MV_TILE_SAME, TILT_SS, TILT_NONE, TILT_NN, TILT_NE, TILT_SE, TILT_SW, TILT_NW } from "../../values/the-constants.js";
-import { tileData, offWalkway, hitFence } from "../hex-routines.js";
-import { moveDescendOneStep, moveOntoTrampoline, moveIntoAir, undefTileDebugInfo, moveBlock, moveNew, moveSame } from "../ground-tiles.js";
 import {
-    SW_WALK_AIR,
-    SW_TRAMPOLINE_AIR,
+    MV_FENCE_BLOCKED,
+    MV_FALL_STEP_OFF,
+    MV_TILE_SAME,
+    MV_TILE_NEW,
+    TILT_SS,
+    TILT_NONE,
+    TILT_NN,
+    TILT_NE,
+    TILT_SE,
+    TILT_SW,
+    TILT_NW
+} from "../../values/the-constants.js";
+import { tileData, offWalkway, hitFence } from "../hex-routines.js";
+import {
     SW_0_SAME,
     SW_1_UP_UP_CLOCK,
     SW_2_UP_UP_COUNTER,
@@ -21,24 +30,45 @@ import {
     SW_12_UP__DOWN,
     SW_13_DOWN__UP,
     SW_14_BLOCKED,
-    SW_15_TRAMPOLINE,
-    SW_16_STROLL_INTO_AIR,
-    SW_17_DESCEND_ONE_STEP
+    SW_15_STROLL_INTO_AIR,
+    SW_16_DESCEND_ONE_STEP
 } from "./sw-constants.js";
 
-function leaveTileSW(the_objects, this_hex, prev_hex, is_a_trampoline) {
+function moveDescendOneStepSw(sw_dir, prev_hex, this_hex) {
+    delete window.HEX_VARS.TEST_MOVE_TYPES.SW[sw_dir];
+    return MV_FALL_STEP_OFF;
+}
+
+function moveIntoAirSw(sw_dir, prev_hex, this_hex) {
+    delete window.HEX_VARS.TEST_MOVE_TYPES.SW[sw_dir];
+    return MV_FALL_STEP_OFF;
+}
+
+function moveBlockSw(sw_dir, prev_hex, this_hex) {
+    delete window.HEX_VARS.TEST_MOVE_TYPES.SW[sw_dir];
+    return MV_FENCE_BLOCKED;
+}
+
+function moveSameSw(sw_dir, prev_hex, this_hex) {
+    delete window.HEX_VARS.TEST_MOVE_TYPES.SW[sw_dir];
+    return MV_TILE_SAME;
+}
+
+function moveNewSw(sw_dir, prev_hex, this_hex) {
+    delete window.HEX_VARS.TEST_MOVE_TYPES.SW[sw_dir];
+    return MV_TILE_NEW;
+}
+
+function leaveTileSW(the_objects, this_hex, prev_hex) {
     let { o_walkway_tiles, o_walkway_columns, o_fence_walls } = the_objects;
     const is_off_walkway = offWalkway(o_walkway_columns, this_hex);
     let move_result;
     if (prev_hex == this_hex) {
-        move_result = moveSame(SW_0_SAME, prev_hex, this_hex);
+        move_result = moveSameSw(SW_0_SAME, prev_hex, this_hex);
     } else if (hitFence(o_fence_walls, prev_hex, this_hex)) {
-        move_result = moveBlock(SW_14_BLOCKED, prev_hex, this_hex);
-        console.log("SW Block");
-    } else if (is_off_walkway && is_a_trampoline) {
-        move_result = moveOntoTrampoline(SW_15_TRAMPOLINE, prev_hex, this_hex);
+        move_result = moveBlockSw(SW_14_BLOCKED, prev_hex, this_hex);
     } else if (is_off_walkway) {
-        move_result = moveIntoAir(SW_16_STROLL_INTO_AIR, prev_hex, this_hex);
+        move_result = moveIntoAirSw(SW_15_STROLL_INTO_AIR, prev_hex, this_hex);
     } else {
         move_result = tile2TileSW(o_walkway_tiles, this_hex, prev_hex);
     }
@@ -51,35 +81,35 @@ function tile2TileSW(o_walkway_tiles, this_hex, prev_hex) {
     const { low_to_low, high_to_high, lows_and_highs, high_to_low, low_to_high } = tile_data;
     let move_result;
     if (swCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
-        move_result = moveNew(SW_1_UP_UP_CLOCK, prev_hex, this_hex); //      ⭮
+        move_result = moveNewSw(SW_1_UP_UP_CLOCK, prev_hex, this_hex); //      ⭮
     } else if (swCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
-        move_result = moveNew(SW_2_UP_UP_COUNTER, prev_hex, this_hex); //      ⭯
+        move_result = moveNewSw(SW_2_UP_UP_COUNTER, prev_hex, this_hex); //      ⭯
     } else if (swCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
-        move_result = moveNew(SW_3_DOWN_DOWN_CLOCK, prev_hex, this_hex); //  ⭮
+        move_result = moveNewSw(SW_3_DOWN_DOWN_CLOCK, prev_hex, this_hex); //  ⭮
     } else if (swCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
-        move_result = moveNew(SW_4_DOWN_DOWN_COUNTER, prev_hex, this_hex); //  ⭯              http://xahlee.info/comp/unicode_arrows.html
+        move_result = moveNewSw(SW_4_DOWN_DOWN_COUNTER, prev_hex, this_hex); //  ⭯              http://xahlee.info/comp/unicode_arrows.html
     } else if (swFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-        move_result = moveNew(SW_5_FLAT__FLAT, prev_hex, this_hex); // - -
+        move_result = moveNewSw(SW_5_FLAT__FLAT, prev_hex, this_hex); // - -
     } else if (swFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-        move_result = moveNew(SW_6_FLAT__UP, prev_hex, this_hex); //   _⭜
+        move_result = moveNewSw(SW_6_FLAT__UP, prev_hex, this_hex); //   _⭜
     } else if (swUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-        move_result = moveNew(SW_7_UP__FLAT, prev_hex, this_hex); //   ↗¯¯
+        move_result = moveNewSw(SW_7_UP__FLAT, prev_hex, this_hex); //   ↗¯¯
     } else if (swDownToFlat(prev_tilt_up, new_tilt_up, low_to_high)) {
-        move_result = moveNew(SW_8_DOWN__FLAT, prev_hex, this_hex); // ↘__
+        move_result = moveNewSw(SW_8_DOWN__FLAT, prev_hex, this_hex); // ↘__
     } else if (swFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-        move_result = moveNew(SW_9_FLAT__DOWN, prev_hex, this_hex); // ¯⭝
+        move_result = moveNewSw(SW_9_FLAT__DOWN, prev_hex, this_hex); // ¯⭝
     } else if (swUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-        move_result = moveNew(SW_10_UP__UP, prev_hex, this_hex); //     ↗↗
+        move_result = moveNewSw(SW_10_UP__UP, prev_hex, this_hex); //     ↗↗
     } else if (swDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-        move_result = moveNew(SW_11_DOWN__DOWN, prev_hex, this_hex); // ↘↘
+        move_result = moveNewSw(SW_11_DOWN__DOWN, prev_hex, this_hex); // ↘↘
     } else if (swUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-        move_result = moveNew(SW_12_UP__DOWN, prev_hex, this_hex); //  ↗↘
+        move_result = moveNewSw(SW_12_UP__DOWN, prev_hex, this_hex); //  ↗↘
     } else if (swDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-        move_result = moveNew(SW_13_DOWN__UP, prev_hex, this_hex); //  ↘↗
+        move_result = moveNewSw(SW_13_DOWN__UP, prev_hex, this_hex); //  ↘↗
     } else if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
-        move_result = moveDescendOneStep(SW_17_DESCEND_ONE_STEP, prev_hex, this_hex); // ⬎_   ??????? does this ever get gotton to ?   MV_FALL_STEP_OFF
+        move_result = moveDescendOneStepSw(SW_16_DESCEND_ONE_STEP, prev_hex, this_hex); // ⬎_   ??????? does this ever get gotton to ?   MV_FALL_STEP_OFF
     } else {
-        ee("should never happen SW, move_result", move_result);
+        move_result = moveBlockSw(SW_14_BLOCKED, prev_hex, this_hex);
     }
     return move_result;
 }

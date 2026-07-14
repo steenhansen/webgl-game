@@ -1,8 +1,5 @@
 import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 
-import * as THREE from "three";
-import { walkwayIncline } from "../walkways/walkway-heights.js";
-import { moveKeys, makeControls } from "../controls/key-controls.js";
 import {
     GET_ABOVE_TILES,
     MV_START_TRAMPOLINE,
@@ -16,16 +13,16 @@ import {
     MV_FALL_TRAMPOLINE
 } from "../values/the-constants.js";
 
-import { TRAMPOLINE_ITERATIONS } from "../values/move-consts.js";
+import { TRAMPOLINE_ITERATIONS, TURNS_TO_FLIP } from "../values/move-consts.js";
 
 import { coords2Indexes } from "../tiles/hex-tile.js";
 import { hexIndex } from "../tiles/hex-routines.js";
-import { transition2NewTile } from "./camera-adjust.js";
+import { transition2NewTile } from "./adjust-camera.js";
 import { flipTileColorG } from "../colors/colors-tiles.js";
 
 import { doRiseTrampoline, doFallTrampoline, trampolineLift } from "../trampolines/trampoline-moves.js";
 
-import { doFallPlayer, jumpClick, doRiseJump, doFallJump } from "../trampolines/player-moves.js";
+import { doFallPlayer, jumpClick, doRiseJump, doFallJump } from "../player/player-moves.js";
 
 function followCamera(the_objects, frame_vars, e_do_click, g_camera) {
     //
@@ -64,8 +61,9 @@ function followCamera(the_objects, frame_vars, e_do_click, g_camera) {
     function isSteppingOff() {
         return f_move_result == MV_FALL_STEP_OFF;
     }
+
     function doStepOff() {
-        f_move_result = transition2NewTile(the_objects, f_prev_coords, f_this_coords, false);
+        f_move_result = transition2NewTile(the_objects, f_prev_coords, f_this_coords);
         [f_move_result, f_y100_height] = doFallPlayer(fall_data);
     }
 
@@ -101,24 +99,11 @@ function followCamera(the_objects, frame_vars, e_do_click, g_camera) {
         f_move_result = changed_move;
     }
 
-    // qbert maybe not need as we now have one exit...
-    function isFenceBlockedNew(f_move_result) {
-        const is_nw_blocked = f_move_result == NW_14_BLOCKED;
-        const is_nn_blocked = f_move_result == NN_14_BLOCKED;
-        const is_ne_blocked = f_move_result == NE_14_BLOCKED;
-        const is_se_blocked = f_move_result == SE_14_BLOCKED;
-        const is_ss_blocked = f_move_result == SS_14_BLOCKED;
-        const is_sw_blocked = f_move_result == SW_14_BLOCKED;
-        const is_blocked = is_nw_blocked || is_nn_blocked || is_ne_blocked || is_se_blocked || is_ss_blocked || is_sw_blocked;
-        return is_blocked;
-    }
-
     function isFenceBlocked() {
         return f_move_result == MV_FENCE_BLOCKED;
     }
     function doFenceBlock() {
-        let is_a_trampoline = false;
-        f_move_result = transition2NewTile(the_objects, f_prev_coords, f_this_coords, is_a_trampoline);
+        f_move_result = transition2NewTile(the_objects, f_prev_coords, f_this_coords);
         g_camera.position.x = f_prev_coords.x;
         g_camera.position.z = f_prev_coords.z;
     }
@@ -128,23 +113,65 @@ function followCamera(the_objects, frame_vars, e_do_click, g_camera) {
     }
 
     function doNewTile(the_objects) {
-        let { o_trampolines } = the_objects;
-        let is_a_trampoline = o_trampolines.has(f_this_hex);
-        f_move_result = transition2NewTile(the_objects, f_prev_coords, f_this_coords, is_a_trampoline);
-        if (is_a_trampoline) {
-            f_step_iterations = TRAMPOLINE_ITERATIONS;
-        }
-        flipTileColorG(the_objects, f_this_hex, f_prev_hex);
+        f_move_result = transition2NewTile(the_objects, f_prev_coords, f_this_coords);
     }
 
-    function _isOnSameTile() {
-        return f_move_result == MV_TILE_NEW;
-    }
     function doSameTile(the_objects) {
-        f_move_result = transition2NewTile(the_objects, f_prev_coords, f_this_coords, false);
-        flipTileColorG(the_objects, f_this_hex, f_prev_hex);
+        f_move_result = transition2NewTile(the_objects, f_prev_coords, f_this_coords);
     }
 
+    function red2Green(the_objects, f_this_hex, f_red_2_green) {
+        let { cur_hex_tile, red_turns_left } = f_red_2_green;
+        if (f_this_hex == cur_hex_tile) {
+            red_turns_left--;
+        } else {
+            cur_hex_tile = f_this_hex;
+            red_turns_left = TURNS_TO_FLIP;
+        }
+
+        if (red_turns_left == 0) {
+            flipTileColorG(the_objects, f_this_hex);
+        }
+
+        return { cur_hex_tile, red_turns_left };
+    }
+
+    function adustCameraHeight(the_objects, o_walkway_tiles, ndx_x, f_y100_height, ndx_z) {
+        let low = `${ndx_x},${f_y100_height - 100},${ndx_z}`;
+        let high = `${ndx_x},${f_y100_height + 100},${ndx_z}`;
+        if (o_walkway_tiles.has(low)) {
+            f_y100_height -= 100;
+        } else if (o_walkway_tiles.has(high)) {
+            f_y100_height += 100;
+            g_camera.position.y = f_y100_height / 100 + GET_ABOVE_TILES + 0;
+        }
+        doNewTile(the_objects);
+        return f_y100_height;
+    }
+
+    function processMovement() {
+        if (isWalkwayClick()) {
+            doStartJumpingUp();
+        } else if (isJumpingUp()) {
+            doJumpUp();
+        } else if (isJumpingDown()) {
+            doJumpDown();
+        } else if (isSteppingOff()) {
+            doStepOff();
+        } else if (isStartTrampoline()) {
+            doStartBounceUp(o_trampolines);
+        } else if (isBouncingUp()) {
+            doBounceUp();
+        } else if (isBouncingDown()) {
+            doBounceDown(o_trampolines);
+        } else if (isFenceBlocked()) {
+            doFenceBlock();
+        } else if (isOnNewTile()) {
+            f_y100_height = adustCameraHeight(the_objects, o_walkway_tiles, ndx_x, f_y100_height, ndx_z);
+        } else {
+            doSameTile(the_objects);
+        }
+    }
     /////////////////////////////////////////
     let {
         f_move_result,
@@ -159,52 +186,20 @@ function followCamera(the_objects, frame_vars, e_do_click, g_camera) {
         f_jump_x_step,
         f_jump_z_step,
         f_prev_coords,
-        f_this_coords
+        f_this_coords,
+        f_red_2_green
     } = frame_vars;
+
     let changed_move;
     let [ndx_x, ndx_z] = coords2Indexes(f_cam_vect.x, f_cam_vect.z);
-
     let { o_walkway_tiles, o_trampolines } = the_objects;
-
     f_this_hex = hexIndex(ndx_x, f_y100_height, ndx_z);
+    f_red_2_green = red2Green(the_objects, f_this_hex, f_red_2_green);
     let fall_data = { o_walkway_tiles, o_trampolines, f_this_hex, f_y100_height, f_fall_step_size };
-
-    if (isWalkwayClick()) {
-        doStartJumpingUp();
-    } else if (isJumpingUp()) {
-        doJumpUp();
-    } else if (isJumpingDown()) {
-        doJumpDown();
-    } else if (isSteppingOff()) {
-        doStepOff();
-    } else if (isStartTrampoline()) {
-        doStartBounceUp(o_trampolines);
-    } else if (isBouncingUp()) {
-        doBounceUp();
-    } else if (isBouncingDown()) {
-        doBounceDown(o_trampolines);
-    } else if (isFenceBlocked()) {
-        doFenceBlock();
-    } else if (isOnNewTile()) {
-        let low = `${ndx_x},${f_y100_height - 100},${ndx_z}`;
-        let med = `${ndx_x},${f_y100_height},${ndx_z}`;
-        let high = `${ndx_x},${f_y100_height + 100},${ndx_z}`;
-
-        if (o_walkway_tiles.has(low)) {
-            f_y100_height -= 100;
-        }
-        if (o_walkway_tiles.has(high)) {
-            f_y100_height += 100;
-            g_camera.position.y = f_y100_height / 100 + GET_ABOVE_TILES + 0;
-        }
-
-        doNewTile(the_objects);
-    } else {
-        //_isOnSameTile();
-        doSameTile(the_objects);
-    }
-
+    processMovement();
     f_prev_hex = f_this_hex;
+    e_do_click.was_clicked = false;
+
     const changed_vars = {
         f_move_result,
         f_y100_height,
@@ -217,47 +212,10 @@ function followCamera(the_objects, frame_vars, e_do_click, g_camera) {
         f_prev_hex,
         f_this_hex,
         f_prev_coords,
-        f_this_coords
+        f_this_coords,
+        f_red_2_green
     };
-    e_do_click.was_clicked = false;
     return changed_vars;
 }
 
-function PerspCamera(the_fov, width_height, nf_planes) {
-    const [camera_width, camera_height] = width_height;
-    const [near_plane, far_plane] = nf_planes;
-    const camera_aspect = camera_width / camera_height;
-    const g_camera = new THREE.PerspectiveCamera(the_fov, camera_aspect, near_plane, far_plane);
-    return g_camera;
-}
-
-function projMatrix(the_camera, width_height) {
-    const [camera_width, camera_height] = width_height;
-    const camera_aspect = camera_width / camera_height;
-    the_camera.aspect = camera_aspect;
-    the_camera.updateProjectionMatrix();
-}
-
-function moveCamera(the_globals, the_objects, f_this_coords, f_y100_height, f_move_result) {
-    let { g_key_controls, g_camera, g_clock, g_vector_3 } = the_globals;
-    let o_walkway_tiles = the_objects.o_walkway_tiles;
-    const clock_delta = g_clock.getDelta();
-    g_camera.getWorldDirection(g_vector_3);
-    if (f_move_result == MV_RISE_JUMP_STRAIGHT || f_move_result == MV_FALL_JUMP_STRAIGHT) {
-        g_key_controls.enabled = false;
-    } else {
-        g_key_controls.enabled = true;
-        moveKeys(clock_delta, g_key_controls);
-    }
-    const inc_y = walkwayIncline(o_walkway_tiles, f_this_coords);
-    g_camera.position.y = f_y100_height / 100 + GET_ABOVE_TILES + inc_y;
-    return g_camera;
-}
-
-function camVectCoords(g_camera, f_y100_height) {
-    const f_cam_vect = g_camera.position;
-    let f_this_coords = { x: f_cam_vect.x, y: f_y100_height, z: f_cam_vect.z };
-    return [f_cam_vect, f_this_coords];
-}
-
-export { moveCamera, PerspCamera, projMatrix, followCamera, camVectCoords };
+export { followCamera };

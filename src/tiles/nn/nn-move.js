@@ -1,11 +1,21 @@
 import { ee, tt, dd, EE, TT, DD } from "../../misc/console-short.js";
-import { moveDescendOneStep, moveOntoTrampoline, moveIntoAir, moveBlock, moveNew, moveSame } from "../ground-tiles.js";
-import { MV_TILE_SAME, TILT_SS, TILT_NONE, TILT_NN, TILT_NE, TILT_SE, TILT_SW, TILT_NW } from "../../values/the-constants.js";
+
+import {
+    MV_FENCE_BLOCKED,
+    MV_FALL_STEP_OFF,
+    MV_TILE_SAME,
+    MV_TILE_NEW,
+    TILT_SS,
+    TILT_NONE,
+    TILT_NN,
+    TILT_NE,
+    TILT_SE,
+    TILT_SW,
+    TILT_NW
+} from "../../values/the-constants.js";
 import { tileData, offWalkway, hitFence } from "../hex-routines.js";
 
 import {
-    NN_WALK_AIR,
-    NN_TRAMPOLINE_AIR,
     NN_0_SAME,
     NN_1_UP_UP_CLOCK,
     NN_2_UP_UP_COUNTER,
@@ -21,10 +31,34 @@ import {
     NN_12_UP__DOWN,
     NN_13_DOWN__UP,
     NN_14_BLOCKED,
-    NN_15_TRAMPOLINE,
-    NN_16_STROLL_INTO_AIR,
-    NN_17_DESCEND_ONE_STEP
+    NN_15_STROLL_INTO_AIR,
+    NN_16_DESCEND_ONE_STEP
 } from "./nn-constants.js";
+
+function moveDescendOneStepNn(nn_dir, prev_hex, this_hex) {
+    delete window.HEX_VARS.TEST_MOVE_TYPES.NN[nn_dir];
+    return MV_FALL_STEP_OFF;
+}
+
+function moveIntoAirNn(nn_dir, prev_hex, this_hex) {
+    delete window.HEX_VARS.TEST_MOVE_TYPES.NN[nn_dir];
+    return MV_FALL_STEP_OFF;
+}
+
+function moveBlockNn(nn_dir, prev_hex, this_hex) {
+    delete window.HEX_VARS.TEST_MOVE_TYPES.NN[nn_dir];
+    return MV_FENCE_BLOCKED;
+}
+
+function moveSameNn(nn_dir, prev_hex, this_hex) {
+    delete window.HEX_VARS.TEST_MOVE_TYPES.NN[nn_dir];
+    return MV_TILE_SAME;
+}
+
+function moveNewNn(nn_dir, prev_hex, this_hex) {
+    delete window.HEX_VARS.TEST_MOVE_TYPES.NN[nn_dir];
+    return MV_TILE_NEW;
+}
 
 function nnFlatToUp(prev_tilt_up, new_tilt_up, low_to_low) {
     const NONE_to_NN = prev_tilt_up == TILT_NONE && new_tilt_up == TILT_NN;
@@ -48,52 +82,50 @@ function tile2TileNN(o_walkway_tiles, this_hex, prev_hex) {
     const { low_to_low, high_to_high, lows_and_highs, high_to_low, low_to_high } = tile_data;
     let move_result;
     if (nnCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
-        move_result = moveNew(NN_1_UP_UP_CLOCK, prev_hex, this_hex); //      ⭮
+        move_result = moveNewNn(NN_1_UP_UP_CLOCK, prev_hex, this_hex); //      ⭮
     } else if (nnCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
-        move_result = moveNew(NN_2_UP_UP_COUNTER, prev_hex, this_hex); //      ⭯
+        move_result = moveNewNn(NN_2_UP_UP_COUNTER, prev_hex, this_hex); //      ⭯
     } else if (nnCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
-        move_result = moveNew(NN_3_DOWN_DOWN_CLOCK, prev_hex, this_hex); //  ⭮
+        move_result = moveNewNn(NN_3_DOWN_DOWN_CLOCK, prev_hex, this_hex); //  ⭮
     } else if (nnCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
-        move_result = moveNew(NN_4_DOWN_DOWN_COUNTER, prev_hex, this_hex); //  ⭯              http://xahlee.info/comp/unicode_arrows.html
+        move_result = moveNewNn(NN_4_DOWN_DOWN_COUNTER, prev_hex, this_hex); //  ⭯              http://xahlee.info/comp/unicode_arrows.html
     } else if (nnFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-        move_result = moveNew(NN_5_FLAT__FLAT, prev_hex, this_hex); // - -
+        move_result = moveNewNn(NN_5_FLAT__FLAT, prev_hex, this_hex); // - -
     } else if (nnFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-        move_result = moveNew(NN_6_FLAT__UP, prev_hex, this_hex); //   _⭜
+        move_result = moveNewNn(NN_6_FLAT__UP, prev_hex, this_hex); //   _⭜
     } else if (nnUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-        move_result = moveNew(NN_7_UP__FLAT, prev_hex, this_hex); //   ↗¯¯
+        move_result = moveNewNn(NN_7_UP__FLAT, prev_hex, this_hex); //   ↗¯¯
     } else if (nnDownToFlat(prev_tilt_up, new_tilt_up, low_to_high)) {
-        move_result = moveNew(NN_8_DOWN__FLAT, prev_hex, this_hex); // ↘__
+        move_result = moveNewNn(NN_8_DOWN__FLAT, prev_hex, this_hex); // ↘__
     } else if (nnFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-        move_result = moveNew(NN_9_FLAT__DOWN, prev_hex, this_hex); // ¯⭝
+        move_result = moveNewNn(NN_9_FLAT__DOWN, prev_hex, this_hex); // ¯⭝
     } else if (nnUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-        move_result = moveNew(NN_10_UP__UP, prev_hex, this_hex); //     ↗↗
+        move_result = moveNewNn(NN_10_UP__UP, prev_hex, this_hex); //     ↗↗
     } else if (nnDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-        move_result = moveNew(NN_11_DOWN__DOWN, prev_hex, this_hex); // ↘↘
+        move_result = moveNewNn(NN_11_DOWN__DOWN, prev_hex, this_hex); // ↘↘
     } else if (nnUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-        move_result = moveNew(NN_12_UP__DOWN, prev_hex, this_hex); //  ↗↘
+        move_result = moveNewNn(NN_12_UP__DOWN, prev_hex, this_hex); //  ↗↘
     } else if (nnDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-        move_result = moveNew(NN_13_DOWN__UP, prev_hex, this_hex); //  ↘↗
+        move_result = moveNewNn(NN_13_DOWN__UP, prev_hex, this_hex); //  ↘↗
     } else if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
-        move_result = moveDescendOneStep(NN_17_DESCEND_ONE_STEP, prev_hex, this_hex); // ⬎_   ??????? does this ever get gotton to ?
+        move_result = moveDescendOneStepNn(NN_16_DESCEND_ONE_STEP, prev_hex, this_hex); // ⬎_   ??????? does this ever get gotton to ?
     } else {
-        ee("should never happen NN, move_result", tile_data);
+        move_result = moveBlockNn(NN_14_BLOCKED, prev_hex, this_hex);
     }
     return move_result;
 }
 
-function leaveTileNN(the_objects, this_hex, prev_hex, is_a_trampoline) {
+function leaveTileNN(the_objects, this_hex, prev_hex) {
     let { o_walkway_tiles, o_walkway_columns, o_fence_walls } = the_objects;
     const is_off_walkway = offWalkway(o_walkway_columns, this_hex);
     let move_result;
+    //  0,1100,-6      <>   0,1200,-6         ["0", 1100, "-6", TILT_SS, INCLINE___1]
     if (prev_hex == this_hex) {
-        move_result = moveSame(NN_0_SAME, prev_hex, this_hex);
+        move_result = moveSameNn(NN_0_SAME, prev_hex, this_hex);
     } else if (hitFence(o_fence_walls, prev_hex, this_hex)) {
-        move_result = moveBlock(NN_14_BLOCKED, prev_hex, this_hex);
-        console.log("NN Block");
-    } else if (is_off_walkway && is_a_trampoline) {
-        move_result = moveOntoTrampoline(NN_15_TRAMPOLINE, prev_hex, this_hex); //??
+        move_result = moveBlockNn(NN_14_BLOCKED, prev_hex, this_hex);
     } else if (is_off_walkway) {
-        move_result = moveIntoAir(NN_16_STROLL_INTO_AIR, prev_hex, this_hex); //???
+        move_result = moveIntoAirNn(NN_15_STROLL_INTO_AIR, prev_hex, this_hex); //???
     } else {
         move_result = tile2TileNN(o_walkway_tiles, this_hex, prev_hex);
     }

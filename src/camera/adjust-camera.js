@@ -23,7 +23,7 @@ import { nearTestSS } from "./camera-ss.js";
 import { nearTestSW } from "./camera-sw.js";
 import { nearTestSE } from "./camera-se.js";
 
-function transition2NewTile(the_objects, f_prev_coords, f_this_coords, is_a_trampoline) {
+function transition2NewTile(the_objects, f_prev_coords, f_this_coords) {
     let ndx_y100 = f_this_coords.y;
     let y_index = ndx_y100 / 100;
     let y_frac = y_index % 1;
@@ -37,22 +37,19 @@ function transition2NewTile(the_objects, f_prev_coords, f_this_coords, is_a_tram
     let [prev_x_ind, prev_z_ind] = coords2Indexes(f_prev_coords.x, f_prev_coords.z);
     let [ndx_x, ndx_z] = coords2Indexes(f_this_coords.x, f_this_coords.z);
     let move_dir = movingDirection(f_prev_coords.x, f_prev_coords.z, f_this_coords.x, f_this_coords.z);
-    let prev_hex = hexIndex(prev_x_ind, f_prev_coords.y, prev_z_ind);
     let move_result;
     if (move_dir == DIRECTION_NN) {
-        move_result = nearTestNN(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
+        move_result = nearTestNN(the_objects, ndx_x, ndx_y100, ndx_z, prev_x_ind, f_prev_coords.y, prev_z_ind);
     } else if (move_dir == DIRECTION_NE) {
-        move_result = nearTestNE(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
+        move_result = nearTestNE(the_objects, ndx_x, ndx_y100, ndx_z, prev_x_ind, f_prev_coords.y, prev_z_ind);
     } else if (move_dir == DIRECTION_SS) {
-        move_result = nearTestSS(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
+        move_result = nearTestSS(the_objects, ndx_x, ndx_y100, ndx_z, prev_x_ind, f_prev_coords.y, prev_z_ind);
     } else if (move_dir == DIRECTION_SW) {
-        move_result = nearTestSW(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
+        move_result = nearTestSW(the_objects, ndx_x, ndx_y100, ndx_z, prev_x_ind, f_prev_coords.y, prev_z_ind);
     } else if (move_dir == DIRECTION_NW) {
-        move_result = nearTestNW(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
+        move_result = nearTestNW(the_objects, ndx_x, ndx_y100, ndx_z, prev_x_ind, f_prev_coords.y, prev_z_ind);
     } else if (move_dir == DIRECTION_SE) {
-        move_result = nearTestSE(the_objects, ndx_x, ndx_y100, ndx_z, prev_hex, is_a_trampoline);
-    } else if (is_a_trampoline) {
-        move_result = MV_START_TRAMPOLINE;
+        move_result = nearTestSE(the_objects, ndx_x, ndx_y100, ndx_z, prev_x_ind, f_prev_coords.y, prev_z_ind);
     } else {
         move_result = MV_TILE_SAME;
     }
@@ -115,4 +112,12 @@ function movingDirection(prev_x_coord, prev_z_coord, new_x_coord, new_z_coord) {
     return move_direction;
 }
 
-export { transition2NewTile };
+function isVerticallyNear2(the_objects, this_hex) {
+    const o_walkway_tiles = the_objects.o_walkway_tiles;
+    if (o_walkway_tiles.has(this_hex)) {
+        return true;
+    }
+    return false;
+}
+
+export { transition2NewTile, isVerticallyNear2 };

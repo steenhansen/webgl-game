@@ -141,6 +141,27 @@ const HEIGHT_Y___10 = "1000";
 
 const HEIGHT_Y_10_5 = "1050";
 const HEIGHT_Y___11 = "1100";
+const HEIGHT_Y___12 = "1200";
+const HEIGHT_Y___13 = "1300";
+const HEIGHT_Y___14 = "1400";
+const HEIGHT_Y___15 = "1500";
+const HEIGHT_Y___16 = "1600";
+const HEIGHT_Y___17 = "1700";
+const HEIGHT_Y___18 = "1800";
+const HEIGHT_Y___19 = "1900";
+const HEIGHT_Y___20 = "2000";
+
+const HEIGHT_Y___21 = "2100";
+const HEIGHT_Y___22 = "2200";
+const HEIGHT_Y___23 = "2300";
+const HEIGHT_Y___24 = "2400";
+const HEIGHT_Y___25 = "2500";
+const HEIGHT_Y___26 = "2600";
+const HEIGHT_Y___27 = "2700";
+const HEIGHT_Y___28 = "2800";
+const HEIGHT_Y___29 = "2900";
+
+const HEIGHT_Y___30 = "3000";
 
 const INCLINE___0 = 0.0;
 const INCLINE_0_5 = 0.5;
@@ -204,6 +225,25 @@ export {
     HEIGHT_Y___10,
     HEIGHT_Y_10_5,
     HEIGHT_Y___11,
+    HEIGHT_Y___12,
+    HEIGHT_Y___13,
+    HEIGHT_Y___14,
+    HEIGHT_Y___15,
+    HEIGHT_Y___16,
+    HEIGHT_Y___17,
+    HEIGHT_Y___18,
+    HEIGHT_Y___19,
+    HEIGHT_Y___20,
+    HEIGHT_Y___21,
+    HEIGHT_Y___22,
+    HEIGHT_Y___23,
+    HEIGHT_Y___24,
+    HEIGHT_Y___25,
+    HEIGHT_Y___26,
+    HEIGHT_Y___27,
+    HEIGHT_Y___28,
+    HEIGHT_Y___29,
+    HEIGHT_Y___30,
     MV_FENCE_BLOCKED,
     COL_1,
     COL_2,

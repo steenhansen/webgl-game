@@ -47,7 +47,11 @@ function doFallTrampoline(fall_data) {
 function trampolineLift(o_trampolines, tile_index) {
     let the_trampo = o_trampolines.get(tile_index);
     let f_jump_x_step, f_jump_z_step;
-    let f_bounce_speed = the_trampo.f_bounce_speed;
+
+    if (the_trampo.f_bounce_speed === undefined) {
+        ee("the_trampo.f_bounce_speed is undef", o_trampolines, tile_index);
+    }
+    let f_bounce_speed = the_trampo.f_bounce_speed; // qbert undefined
     let f_rise_step_size = TRAMPOLINE_RISE_SPEED;
     let f_fall_step_size = TRAMPOLINE_FALL_SPEED;
     let f_step_iterations = the_trampo.f_step_iterations;
@@ -62,6 +66,7 @@ function trampolineLift(o_trampolines, tile_index) {
         f_jump_x_step = 0;
         f_jump_z_step = RISE_SS_Z_DIFF;
     } else if (tamp_tilt == TILT_SW) {
+        ///
         f_jump_x_step = +(0.5 * SQRT_3) / RISE_XZ_SPEED_SLOW;
         f_jump_z_step = -0.5 / RISE_XZ_SPEED_SLOW;
     } else if (tamp_tilt == TILT_NE) {

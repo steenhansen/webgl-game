@@ -1,9 +1,11 @@
 import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 import * as THREE from "three";
 
+import { test_move_types } from "./test-values.js";
 window.HEX_VARS = {
-    PRINT_ALLOWED: "PRINT_XXXXALLOWED",
+    PRINT_ALLOWED: "PRINT_X_ALLOWED",
     MAX_PRINTS: 1111111150,
+    TEST_MOVE_TYPES: test_move_types,
     BREAD_CRUMBS: true
 };
 

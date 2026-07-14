@@ -33,21 +33,13 @@ import {
 } from "../values/the-constants.js";
 import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW, TILT_NONE } from "../values/the-constants.js";
 
-const HAT_WALKWAY = [
-    // [START_X_NDX, START_Y_NDX, START_Z_NDX, TILT_NONE, INCLINE___0, IS_TRANSPARENT];
-    ["001", HEIGHT_Y___11, "000", TILT_SE, INCLINE___1],
-    ["000", HEIGHT_Y___11, "001", TILT_SS, INCLINE___1],
-    ["-01", HEIGHT_Y___11, "001", TILT_SW, INCLINE___1],
-    ["-01", HEIGHT_Y___11, "000", TILT_NW, INCLINE___1],
-    ["000", HEIGHT_Y___11, "-01", TILT_NN, INCLINE___1],
-    ["001", HEIGHT_Y___11, "-01", TILT_NE, INCLINE___1]
+const HAT_SHAPE = [
+    ["001", HEIGHT_Y___11, "000", TILT_NW, INCLINE___1],
+    ["000", HEIGHT_Y___11, "001", TILT_NN, INCLINE___1],
+    ["-01", HEIGHT_Y___11, "001", TILT_NE, INCLINE___1],
+    ["-01", HEIGHT_Y___11, "000", TILT_SE, INCLINE___1],
+    ["000", HEIGHT_Y___11, "-01", TILT_SS, INCLINE___1],
+    ["001", HEIGHT_Y___11, "-01", TILT_SW, INCLINE___1]
 ];
 
-const FLOWER_FIGURE = {
-    walkway_locs: HAT_WALKWAY,
-    fence_locs: [],
-    trampoline_locs: [],
-    pentagon_locs: []
-};
-
-export { FLOWER_FIGURE };
+export { HAT_SHAPE };

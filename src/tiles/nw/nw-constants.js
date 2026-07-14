@@ -26,9 +26,8 @@ const NW_12_UP__DOWN = "NW_12_UP__DOWN";
 const NW_13_DOWN__UP = "NW_13_DOWN__UP";
 const NW_14_BLOCKED = "NW_14_BLOCKED";
 
-const NW_15_TRAMPOLINE = "NW_15_TRAMPOLINE";
-const NW_16_STROLL_INTO_AIR = "NW_16_STROLL_INTO_AIR";
-const NW_17_DESCEND_ONE_STEP = "NW_17_DESCEND_ONE_STEP";
+const NW_15_STROLL_INTO_AIR = "NW_15_STROLL_INTO_AIR";
+const NW_16_DESCEND_ONE_STEP = "NW_16_DESCEND_ONE_STEP";
 
 const NW_1_TEST = [[x_start, 1, z_start, COL_1, TILT_SS, 1], [x_finish, 1, z_finish, COL_2, TILT_SW, 1], NW_1_UP_UP_CLOCK];
 const NW_222_TEST = [[x_start, 1, z_start, COL_1, TILT_SS, 1], [x_finish, 1, z_finish, COL_2, TILT_SW, 1], NW_2_UP_UP_COUNTER];
@@ -80,7 +79,6 @@ export {
     NW_12_UP__DOWN,
     NW_13_DOWN__UP,
     NW_14_BLOCKED,
-    NW_15_TRAMPOLINE,
-    NW_16_STROLL_INTO_AIR,
-    NW_17_DESCEND_ONE_STEP
+    NW_15_STROLL_INTO_AIR,
+    NW_16_DESCEND_ONE_STEP
 };

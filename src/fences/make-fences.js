@@ -81,15 +81,15 @@ function buildFencePanes(g_scene, o_object_meshes, o_fence_walls, x_y_z_a, x_y_z
     const mesh_index_a = `${xyz_index_a}${HEX_PAIR_DIVIDER}${xyz_index_b}`;
     const mesh_index_b = `${xyz_index_b}${HEX_PAIR_DIVIDER}${xyz_index_a}`;
 
-    let core_a = verticalPane(g_scene, o_object_meshes, o_fence_walls, mesh_index_a, x_y_z_a, fence_position, fence_height);
+    let front_pane = frontBackPane(g_scene, o_object_meshes, o_fence_walls, mesh_index_a, x_y_z_a, fence_position, fence_height);
     let oppose_position = opposingFenceLocation(fence_position);
-    let core_b = verticalPane(g_scene, o_object_meshes, o_fence_walls, mesh_index_b, x_y_z_b, oppose_position, fence_height);
+    let back_pane = frontBackPane(g_scene, o_object_meshes, o_fence_walls, mesh_index_b, x_y_z_b, oppose_position, fence_height);
 
-    edgePanes(g_scene, core_a, core_b);
+    leftRightTopPanes(g_scene, front_pane, back_pane);
     return [o_object_meshes, o_fence_walls];
 }
 
-function verticalPane(g_scene, object_meshes, o_fence_walls, mesh_index, x_y_z, fence_position, fence_height) {
+function frontBackPane(g_scene, object_meshes, o_fence_walls, mesh_index, x_y_z, fence_position, fence_height) {
     const [x_index, y_index, z_index] = x_y_z;
     let [x_center, z_center] = tileCenterCoord(x_index, z_index);
     const vertical_pane = new THREE.Group();
@@ -111,17 +111,17 @@ function verticalPane(g_scene, object_meshes, o_fence_walls, mesh_index, x_y_z, 
     return shifted_xz_triangles;
 }
 
-function edgePanes(g_scene, core_a, core_b) {
+function leftRightTopPanes(g_scene, front_pane, back_pane) {
     const edge_panes = new THREE.Group();
 
-    let a_top_rite = [core_a[0], core_a[1], core_a[2]];
-    let a_bot_rite = [core_a[3], core_a[4], core_a[5]];
-    let a_bot_left = [core_a[6], core_a[7], core_a[8]];
-    let _______a_4 = [core_a[9], core_a[10], core_a[11]];
-    let _______a_5 = [core_a[12], core_a[13], core_a[14]];
-    let a_top_left = [core_a[15], core_a[16], core_a[17]];
+    let a_top_rite = [front_pane[0], front_pane[1], front_pane[2]];
+    let a_bot_rite = [front_pane[3], front_pane[4], front_pane[5]];
+    let a_bot_left = [front_pane[6], front_pane[7], front_pane[8]];
+    let _______a_4 = [front_pane[9], front_pane[10], front_pane[11]];
+    let _______a_5 = [front_pane[12], front_pane[13], front_pane[14]];
+    let a_top_left = [front_pane[15], front_pane[16], front_pane[17]];
 
-    let is_NN_or_SS = core_a[2] == core_a[17];
+    let is_NN_or_SS = front_pane[2] == front_pane[17];
 
     if (is_NN_or_SS) {
         let temp_a_top_rite = a_top_rite;
@@ -134,34 +134,31 @@ function edgePanes(g_scene, core_a, core_b) {
         a_top_left = temp_a_top_rite;
     }
 
-    // a_top_rite = [core_a[0], core_a[1], core_a[2]];
-    // a_bot_rite = [core_a[3], core_a[4], core_a[5]];
-    // a_bot_left = [core_a[6], core_a[7], core_a[8]];
-    // _______a_4 = [core_a[9], core_a[10], core_a[11]];
-    // _______a_5 = [core_a[12], core_a[13], core_a[14]];
-    // a_top_left = [core_a[15], core_a[16], core_a[17]];
+    let b_top_rite = [back_pane[0], back_pane[1], back_pane[2]];
+    let b_bot_rite = [back_pane[3], back_pane[4], back_pane[5]];
+    let b_bot_left = [back_pane[6], back_pane[7], back_pane[8]];
+    let _______b_4 = [back_pane[9], back_pane[10], back_pane[11]];
+    let _______b_5 = [back_pane[12], back_pane[13], back_pane[14]];
+    let b_top_left = [back_pane[15], back_pane[16], back_pane[17]];
 
-    // let is_NN_or_SS =core_a[2] == core_a[17];
-    // if (core_a[2] == core_a[17]) {
-    //     console.log("a_top_rite", a_top_rite);
-    //     console.log("a_top_left", a_top_left);
-    // }
-    // if (a_top_rite[2] == a_top_left[2]) {
-    //     console.log("a_top_rite", a_top_rite);
-    //     console.log("a_top_left", a_top_left);
-    // }
-    let b_top_rite = [core_b[0], core_b[1], core_b[2]];
-    let b_bot_rite = [core_b[3], core_b[4], core_b[5]];
-    let b_bot_left = [core_b[6], core_b[7], core_b[8]];
-    let _______b_4 = [core_b[9], core_b[10], core_b[11]];
-    let _______b_5 = [core_b[12], core_b[13], core_b[14]];
-    let b_top_left = [core_b[15], core_b[16], core_b[17]];
+    let bot_right = [...a_bot_rite, ...a_bot_left, ...b_bot_left];
+    let bot_left = [...b_bot_rite, ...b_bot_left, ...a_bot_left];
+    let bot_side = [...bot_right, ...bot_left];
+
+    let top_right = [...a_top_rite, ...a_top_left, ...b_top_left];
+    let top_left = [...b_top_rite, ...b_top_left, ...a_top_left];
+    let top_side = [...top_right, ...top_left];
 
     let right_bottom = [...a_top_rite, ...b_bot_left, ...a_bot_rite];
     let right_top = [...a_top_rite, ...b_top_left, ...b_bot_left];
     let left_bottom = [...a_top_left, ...b_bot_rite, ...a_bot_left];
     let left_top = [...a_top_left, ...b_top_rite, ...b_bot_rite];
-    let the_sides = [...right_bottom, ...right_top, ...left_bottom, ...left_top];
+
+    let right_side = [...right_bottom, ...right_top];
+    let left_side = [...left_bottom, ...left_top];
+
+    let the_sides = [...bot_side, ...top_side, ...right_side, ...left_side];
+
     fenceMesh(edge_panes, the_sides, BARRIER_EDGE_COLOR, BARRIER_MIDDLE_COLOR);
     g_scene.add(edge_panes);
 }

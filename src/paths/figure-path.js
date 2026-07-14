@@ -82,4 +82,24 @@ function translateFigure(a_figure, x_shift, y_shift, z_shift) {
     return translated_figure;
 }
 
-export { figurePathway, translateFigure, createStartFigure };
+function translateShape(walkway_locs, x_shift, y_shift, z_shift) {
+    const translated_shape = [];
+    for (const walkway_tile of walkway_locs) {
+        let translated_tile = translateHex(walkway_tile, x_shift, y_shift, z_shift);
+        translated_shape.push(translated_tile);
+    }
+    return translated_shape;
+}
+
+function shape2figure(the_shape) {
+    const a_figure = {
+        walkway_locs: the_shape,
+        fence_locs: [],
+        trampoline_locs: [],
+        pentagon_locs: []
+    };
+
+    return a_figure;
+}
+
+export { figurePathway, translateFigure, translateShape, createStartFigure, shape2figure };

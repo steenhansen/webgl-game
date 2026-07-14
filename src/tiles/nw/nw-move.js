@@ -1,11 +1,21 @@
 import { ee, tt, dd, EE, TT, DD } from "../../misc/console-short.js";
-import { moveDescendOneStep, moveOntoTrampoline, moveIntoAir, moveBlock, moveNew, moveSame } from "../ground-tiles.js";
-import { MV_TILE_SAME, TILT_SS, TILT_NONE, TILT_NN, TILT_NE, TILT_SE, TILT_SW, TILT_NW } from "../../values/the-constants.js";
+
+import {
+    MV_FENCE_BLOCKED,
+    MV_FALL_STEP_OFF,
+    MV_TILE_NEW,
+    MV_TILE_SAME,
+    TILT_SS,
+    TILT_NONE,
+    TILT_NN,
+    TILT_NE,
+    TILT_SE,
+    TILT_SW,
+    TILT_NW
+} from "../../values/the-constants.js";
 import { tileData, offWalkway, hitFence } from "../hex-routines.js";
 
 import {
-    NW_WALK_AIR,
-    NW_TRAMPOLINE_AIR,
     NW_0_SAME,
     NW_1_UP_UP_CLOCK,
     NW_2_UP_UP_COUNTER,
@@ -21,10 +31,34 @@ import {
     NW_12_UP__DOWN,
     NW_13_DOWN__UP,
     NW_14_BLOCKED,
-    NW_15_TRAMPOLINE,
-    NW_16_STROLL_INTO_AIR,
-    NW_17_DESCEND_ONE_STEP
+    NW_15_STROLL_INTO_AIR,
+    NW_16_DESCEND_ONE_STEP
 } from "./nw-constants.js";
+
+function moveDescendOneStepNw(nw_dir, prev_hex, this_hex) {
+    delete window.HEX_VARS.TEST_MOVE_TYPES.NW[nw_dir];
+    return MV_FALL_STEP_OFF;
+}
+
+function moveIntoAirNw(nw_dir, prev_hex, this_hex) {
+    delete window.HEX_VARS.TEST_MOVE_TYPES.NW[nw_dir];
+    return MV_FALL_STEP_OFF;
+}
+
+function moveBlockNw(nw_dir, prev_hex, this_hex) {
+    delete window.HEX_VARS.TEST_MOVE_TYPES.NW[nw_dir];
+    return MV_FENCE_BLOCKED;
+}
+
+function moveSameNw(nw_dir, prev_hex, this_hex) {
+    delete window.HEX_VARS.TEST_MOVE_TYPES.NW[nw_dir];
+    return MV_TILE_SAME;
+}
+
+function moveNewNw(nw_dir, prev_hex, this_hex) {
+    delete window.HEX_VARS.TEST_MOVE_TYPES.NW[nw_dir];
+    return MV_TILE_NEW;
+}
 
 function tile2TileNW(o_walkway_tiles, this_hex, prev_hex) {
     const { prev_new_data, tile_data } = tileData(o_walkway_tiles, prev_hex, this_hex);
@@ -32,52 +66,49 @@ function tile2TileNW(o_walkway_tiles, this_hex, prev_hex) {
     const { low_to_low, high_to_high, lows_and_highs, high_to_low, low_to_high } = tile_data;
     let move_result;
     if (nwCurveInClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
-        move_result = moveNew(NW_1_UP_UP_CLOCK, prev_hex, this_hex); //      ⭮
+        move_result = moveNewNw(NW_1_UP_UP_CLOCK, prev_hex, this_hex); //      ⭮
     } else if (nwCurveInCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
-        move_result = moveNew(NW_2_UP_UP_COUNTER, prev_hex, this_hex); //      ⭯
+        move_result = moveNewNw(NW_2_UP_UP_COUNTER, prev_hex, this_hex); //      ⭯
     } else if (nwCurveOutClock(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
-        move_result = moveNew(NW_3_DOWN_DOWN_CLOCK, prev_hex, this_hex); //  ⭮
+        move_result = moveNewNw(NW_3_DOWN_DOWN_CLOCK, prev_hex, this_hex); //  ⭮
     } else if (nwCurveOutCounter(prev_tilt_up, new_tilt_up, lows_and_highs, tile_data)) {
-        move_result = moveNew(NW_4_DOWN_DOWN_COUNTER, prev_hex, this_hex); //  ⭯              http://xahlee.info/comp/unicode_arrows.html
+        move_result = moveNewNw(NW_4_DOWN_DOWN_COUNTER, prev_hex, this_hex); //  ⭯              http://xahlee.info/comp/unicode_arrows.html
     } else if (nwFlatToFlat(prev_tilt_up, new_tilt_up, low_to_low)) {
-        move_result = moveNew(NW_5_FLAT__FLAT, prev_hex, this_hex); // - -
+        move_result = moveNewNw(NW_5_FLAT__FLAT, prev_hex, this_hex); // - -
     } else if (nwFlatToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-        move_result = moveNew(NW_6_FLAT__UP, prev_hex, this_hex); //   _⭜
+        move_result = moveNewNw(NW_6_FLAT__UP, prev_hex, this_hex); //   _⭜
     } else if (nwUpToFlat(prev_tilt_up, new_tilt_up, high_to_high)) {
-        move_result = moveNew(NW_7_UP__FLAT, prev_hex, this_hex); //   ↗¯¯
+        move_result = moveNewNw(NW_7_UP__FLAT, prev_hex, this_hex); //   ↗¯¯
     } else if (nwDownToFlat(prev_tilt_up, new_tilt_up, low_to_high)) {
-        move_result = moveNew(NW_8_DOWN__FLAT, prev_hex, this_hex); // ↘__
+        move_result = moveNewNw(NW_8_DOWN__FLAT, prev_hex, this_hex); // ↘__
     } else if (nwFlatToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-        move_result = moveNew(NW_9_FLAT__DOWN, prev_hex, this_hex); // ¯⭝
+        move_result = moveNewNw(NW_9_FLAT__DOWN, prev_hex, this_hex); // ¯⭝
     } else if (nwUpToUp(prev_tilt_up, new_tilt_up, high_to_low)) {
-        move_result = moveNew(NW_10_UP__UP, prev_hex, this_hex); //     ↗↗
+        move_result = moveNewNw(NW_10_UP__UP, prev_hex, this_hex); //     ↗↗
     } else if (nwDownToDown(prev_tilt_up, new_tilt_up, low_to_high)) {
-        move_result = moveNew(NW_11_DOWN__DOWN, prev_hex, this_hex); // ↘↘
+        move_result = moveNewNw(NW_11_DOWN__DOWN, prev_hex, this_hex); // ↘↘
     } else if (nwUpToDown(prev_tilt_up, new_tilt_up, high_to_high)) {
-        move_result = moveNew(NW_12_UP__DOWN, prev_hex, this_hex); //  ↗↘
+        move_result = moveNewNw(NW_12_UP__DOWN, prev_hex, this_hex); //  ↗↘
     } else if (nwDownToUp(prev_tilt_up, new_tilt_up, low_to_low)) {
-        move_result = moveNew(NW_13_DOWN__UP, prev_hex, this_hex); //  ↘↗
+        move_result = moveNewNw(NW_13_DOWN__UP, prev_hex, this_hex); //  ↘↗
     } else if (prev_new_data.new_high_y <= prev_new_data.prev_low_y) {
-        move_result = moveDescendOneStep(NW_17_DESCEND_ONE_STEP, prev_hex, this_hex); // ⬎_   ??????? does this ever get gotton to ?   MV_FALL_STEP_OFF
+        move_result = moveDescendOneStepNw(NW_16_DESCEND_ONE_STEP, prev_hex, this_hex); // ⬎_   ??????? does this ever get gotton to ?   MV_FALL_STEP_OFF
     } else {
-        ee("should never happen NW, move_result", move_result);
+        move_result = moveBlockNw(NW_14_BLOCKED, prev_hex, this_hex);
     }
     return move_result;
 }
 
-function leaveTileNW(the_objects, this_hex, prev_hex, is_a_trampoline) {
+function leaveTileNW(the_objects, this_hex, prev_hex) {
     let { o_walkway_tiles, o_walkway_columns, o_fence_walls } = the_objects;
     const is_off_walkway = offWalkway(o_walkway_columns, this_hex);
     let move_result;
     if (prev_hex == this_hex) {
-        move_result = moveSame(NW_0_SAME, prev_hex, this_hex);
+        move_result = moveSameNw(NW_0_SAME, prev_hex, this_hex);
     } else if (hitFence(o_fence_walls, prev_hex, this_hex)) {
-        move_result = moveBlock(NW_14_BLOCKED, prev_hex, this_hex);
-        console.log("NW Block");
-    } else if (is_off_walkway && is_a_trampoline) {
-        move_result = moveOntoTrampoline(NW_15_TRAMPOLINE, prev_hex, this_hex);
+        move_result = moveBlockNw(NW_14_BLOCKED, prev_hex, this_hex);
     } else if (is_off_walkway) {
-        move_result = moveIntoAir(NW_16_STROLL_INTO_AIR, prev_hex, this_hex);
+        move_result = moveIntoAirNw(NW_15_STROLL_INTO_AIR, prev_hex, this_hex);
     } else {
         move_result = tile2TileNW(o_walkway_tiles, this_hex, prev_hex);
     }

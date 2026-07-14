@@ -9,7 +9,7 @@ import { ground_field } from "../tiles/ground-tiles.js";
 import * as THREE from "three";
 import GLBench from "gl-bench/dist/gl-bench.module";
 import { AScene } from "../objects/a-scene.js";
-import { PerspCamera, projMatrix } from "../controls/perspective-camera.js";
+import { PerspCamera, projMatrix } from "../camera/perspective-camera.js";
 
 function buildObjects(g_scene, o_fence_ndxs, o_walkway_ndxs, o_trampolines, o_pentagons, o_unvisited_tiles) {
     var o_ground_tiles = new Map([]);

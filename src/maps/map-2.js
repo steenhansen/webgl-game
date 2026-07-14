@@ -1,8 +1,10 @@
 import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 
-import { translateFigure, createStartFigure, translateShape } from "../paths/figure-path.js";
+import { translateFigure, createStartFigure, translateShape, shape2figure } from "../paths/figure-path.js";
 import { translateAllFigures } from "./merge-figures.js";
 import { tileCenterCoord } from "../tiles/hex-tile.js";
+
+import { SPIRAL_CLOCKWISE_SHAPE } from "../shapes/spiral-clockwise-shape.js";
 
 import {
     IS_TRANSPARENT,
@@ -75,39 +77,59 @@ const LOOK_X_NDX = 0;
 const LOOK_Y_NDX = 1100;
 const LOOK_Z_NDX = -2;
 
-import { TEST_NE_FIGURE } from "../figures/test-ne-figure.js";
+import { TEST_NN_PIER } from "../figures/test-nn-pier.js";
 import { TEST_NN_FIGURE } from "../figures/test-nn-figure.js";
 import { TEST_SS_FIGURE } from "../figures/test-ss-figure.js";
 import { TEST_SW_FIGURE } from "../figures/test-sw-figure.js";
 import { TEST_NW_FIGURE } from "../figures/test-nw-figure.js";
 import { TEST_SE_FIGURE } from "../figures/test-se-figure.js";
+//import { HAT_SHAPE } from "../figures/hat-shape.js";
+//import { FLOWER_FIGURE } from "../figures/flower-shape.js";
 
 function makeMap1() {
     const start_figure = createStartFigure("start-bobo", start_tile);
 
-    const fig_ne = translateFigure(TEST_NE_FIGURE, 0, 0, 0);
-    const fig_nn = translateFigure(TEST_NN_FIGURE, 0, 0, 0);
-    const fig_ss = translateFigure(TEST_SS_FIGURE, 0, 0, 0);
-    const fig_sw = translateFigure(TEST_SW_FIGURE, 0, 0, 0);
-    const fig_nw = translateFigure(TEST_NW_FIGURE, 0, 0, 0);
-    const fig_se = translateFigure(TEST_SE_FIGURE, 0, 0, 0);
+    const spiral_figure = shape2figure(SPIRAL_CLOCKWISE_SHAPE);
+
+    // const spiral = translateShape(SPIRAL_CLOCKWISE_SHAPE, 0, 0, 0);
+
+    //  const spiral = translateFigure(SPIRAL_CLOCKWISE_SHAPE, 0, 0, 0);
+
+    const pier_nn = translateFigure(TEST_NN_PIER, 0, 0, 0);
+    // const fig_ss = translateFigure(TEST_SS_FIGURE, 0, 0, 0);
+    // const fig_sw = translateFigure(TEST_SW_FIGURE, 0, 0, 0);
+    // const fig_nw = translateFigure(TEST_NW_FIGURE, 0, 0, 0);
+    // const fig_se = translateFigure(TEST_SE_FIGURE, 0, 0, 0);
+    // const fig_hat = translateShape(HAT_SHAPE, -2, 0, 0);
+
+    // const fig_flower = translateFigure(FLOWER_FIGURE, 0, -100, 2);
 
     const trampoline_fig = {
         trampoline_locs: [
+            // ...spiral
             // ["01", HEIGHT_Y___10, "00", BOUNCE_SPEED__50, BOUNCE_COUNT___25, TILT_NONE, INCLINE___0],
             // //   ["00", HEIGHT_Y___11, "-1", BOUNCE_SPEED__50, BOUNCE_COUNT__250, TILT_NONE, INCLINE___0],
             // ["00", HEIGHT_Y___11, "-1", 0, 50, TILT_NONE, INCLINE___0],
             // ["-1", HEIGHT_Y___10, "01", BOUNCE_SPEED___4, BOUNCE_COUNT___50, TILT_SW, INCLINE___1]
         ]
     };
-    const maps_figures = [start_figure, fig_ne, fig_nn, fig_ss, fig_sw, fig_nw, fig_se];
+    //fig_nw
+
+    // const maps_figures = [start_figure, pier_nn, ...spiral_figure];
+    const maps_figures = [start_figure, pier_nn, spiral_figure];
+
+    // const maps_figures = [start_figure, fig_hat, fig_flower, fig_nw, trampoline_fig];
+    //const maps_figures = [start_figure, fig_1];
+
     const trie_map = translateAllFigures(maps_figures);
+
     return trie_map;
 }
 
-function startMap1() {
+function startMap2() {
     let [start_coord_x, start_coord_z] = tileCenterCoord(START_X_NDX, START_Z_NDX);
-    let start_coord_y = +START_Y_NDX;
+    //    let start_coord_y = +START_Y_NDX + 200; // / 100 + 10;
+    let start_coord_y = +START_Y_NDX; // + 200; // / 100 + 10;
 
     let start_location = [start_coord_x, start_coord_y, start_coord_z];
 
@@ -117,10 +139,10 @@ function startMap1() {
     return [start_location, start_look_at];
 }
 
-function doMap1() {
+function doMap2() {
     let the_map = makeMap1();
-    let [start_location, start_look_at] = startMap1();
+    let [start_location, start_look_at] = startMap2();
     return [the_map, start_location, start_look_at];
 }
 
-export { doMap1 };
+export { doMap2 };

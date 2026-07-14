@@ -9,7 +9,7 @@ import {
     BOUNCE_SPEED___3,
     BOUNCE_SPEED_3_5,
     BOUNCE_SPEED___4
-} from "./trampoline-const.js";
+} from "../trampolines/trampoline-const.js";
 
 import {
     MV_START_TRAMPOLINE,
@@ -65,7 +65,8 @@ function doFallPlayer(fall_data) {
 }
 
 function playerDie(done_died, done_finished) {
-    window.location.reload();
+    console.log("playerDie", done_died, done_finished);
+    // window.location.reload();
 }
 
 function bouncePlayer(bounce_data, unvisited_tiles) {

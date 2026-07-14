@@ -25,9 +25,8 @@ const SE_11_DOWN__DOWN = "SE_11_DOWN__DOWN";
 const SE_12_UP__DOWN = "SE_12_UP__DOWN";
 const SE_13_DOWN__UP = "SE_13_DOWN__UP";
 const SE_14_BLOCKED = "SE_14_BLOCKED";
-const SE_15_TRAMPOLINE = "SE_15_TRAMPOLINE";
-const SE_16_STROLL_INTO_AIR = "SE_16_STROLL_INTO_AIR";
-const SE_17_DESCEND_ONE_STEP = "SE_17_DESCEND_ONE_STEP";
+const SE_15_STROLL_INTO_AIR = "SE_15_STROLL_INTO_AIR";
+const SE_16_DESCEND_ONE_STEP = "SE_16_DESCEND_ONE_STEP";
 const SE_1_TEST = [[x_start, 1, z_start, COL_1, TILT_NN, 1], [x_finish, 1, z_finish, COL_2, TILT_NE, 1], SE_1_UP_UP_CLOCK];
 
 const SE_2222_TEST = [[x_start, 1, z_start, COL_1, TILT_NN, 1], [x_finish, 1, z_finish, COL_2, TILT_NE, 1], SE_2_UP_UP_COUNTER];
@@ -81,7 +80,6 @@ export {
     SE_12_UP__DOWN,
     SE_13_DOWN__UP,
     SE_14_BLOCKED,
-    SE_15_TRAMPOLINE,
-    SE_16_STROLL_INTO_AIR,
-    SE_17_DESCEND_ONE_STEP
+    SE_15_STROLL_INTO_AIR,
+    SE_16_DESCEND_ONE_STEP
 };
