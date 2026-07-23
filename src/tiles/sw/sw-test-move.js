@@ -2,7 +2,7 @@ import { ee, tt, dd, EE, TT, DD } from "../../console-short.js";
 
 import { checkPrevNextTiles } from "../cam-adjust/test-funcs.js";
 import { TEST_PASSED, TEST_FAILED, MOVE_GO } from "../../values/constants.js";
-import { tileCenterCoord } from "../hex-tile.js";
+import { tileIndex2floatCoords } from "../hex-tile.js";
 
 function sw_load_test(test_number) {
     const test_start_finish = SW_CONST.SW_START_FINISHES[test_number];
@@ -10,11 +10,11 @@ function sw_load_test(test_number) {
     const [start_index, finish_index, test_name] = test_start_finish;
 
     const [start_index_x, start_index_y, start_index_z] = start_index;
-    let [start_x_cam, start_z_cam] = tileCenterCoord(start_index_x, start_index_z);
+    let [start_x_cam, start_z_cam] = tileIndex2floatCoords(start_index_x, start_index_z);
     const se_xyz_camera = [start_x_cam, start_index_y, start_z_cam];
 
     const [finish_index_x, _finish_index_y, finish_index_z] = finish_index;
-    let [finish_x_cam, finish_z_cam] = tileCenterCoord(finish_index_x, finish_index_z);
+    let [finish_x_cam, finish_z_cam] = tileIndex2floatCoords(finish_index_x, finish_index_z);
     const se_lookat = [finish_x_cam, 0, finish_z_cam];
 
     return [test_start_finish, se_xyz_camera, se_lookat, test_name];

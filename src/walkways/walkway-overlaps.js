@@ -1,12 +1,12 @@
 import { ee, tt, dd, EE, TT, DD } from "../console-short.js";
 
-import { tileCenterCoord } from "../tiles/hex-tile.js";
+import { tileIndex2floatCoords } from "../tiles/hex-tile.js";
 
 // function walkwayOverlaps(stair_overlaps, x_y_z) {
 //     const [x_index, y_index, z_index] = x_y_z;
 //     const y_int = parseInt(y_index);
 //     const xyz_index = `${x_index},${y_index},${z_index}`;
-//     let [x_center, z_center] = tileCenterCoord(x_index, z_index);
+//     let [x_center, z_center] = tileIndex2floatCoords(x_index, z_index);
 
 //     const x_mid = Math.floor(x_center);
 //     const x_low = x_mid - 1;

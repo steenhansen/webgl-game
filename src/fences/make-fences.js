@@ -5,7 +5,7 @@ import { BARRIER_MIDDLE_COLOR, BARRIER_EDGE_COLOR } from "../values/color-consts
 import { FENCE_NN, FENCE_SS, FENCE_SE, FENCE_NW, FENCE_SW, FENCE_NE } from "../values/the-constants.js";
 import { opposingFenceLocation, corePanePoints, hex2Fence, corePaneTriangles, fenceMesh } from "./fence-coords.js";
 import { HEX_PAIR_DIVIDER } from "../values/the-constants.js";
-import { tileCenterCoord } from "../misc/hex-maths.js";
+import { tileIndex2floatCoords } from "../misc/hex-maths.js";
 const FENCE_HEX_RADIUS = 0.8; // 1 is the normal
 
 function xyzHexNdx2Int(fence_xyz) {
@@ -91,7 +91,7 @@ function buildFencePanes(g_scene, o_object_meshes, o_fence_walls, x_y_z_a, x_y_z
 
 function frontBackPane(g_scene, object_meshes, o_fence_walls, mesh_index, x_y_z, fence_position, fence_height) {
     const [x_index, y_index, z_index] = x_y_z;
-    let [x_center, z_center] = tileCenterCoord(x_index, z_index);
+    let [x_center, z_center] = tileIndex2floatCoords(x_index, z_index);
     const vertical_pane = new THREE.Group();
     vertical_pane.position.set(x_center, 0, z_center);
     const pane_points = corePanePoints(FENCE_HEX_RADIUS, y_index, fence_position, fence_height);

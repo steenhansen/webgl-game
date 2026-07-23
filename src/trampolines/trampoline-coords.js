@@ -27,7 +27,7 @@ import { hexPoints } from "../tiles/hex-tile.js";
 
 import { trampolineMesh } from "./trampoline-mesh.js";
 import { addTextLoc } from "../tiles/text-tiles.js";
-import { distance2hexpoints, tileCenterCoord } from "../misc/hex-maths.js";
+import { distance2hexpoints, tileIndex2floatCoords } from "../misc/hex-maths.js";
 function trampolineTriangles(hex_points) {
     const [top_left, top_right, right_tip, bot_right, bot_left, left_tip, middle_point] = hex_points;
 
@@ -69,7 +69,7 @@ function makeTrampolines(g_scene, o_trampolines) {
             incline_amount[(TILT_NONE, 0)];
         }
 
-        let [x_center, z_center] = tileCenterCoord(x_index, z_index);
+        let [x_center, z_center] = tileIndex2floatCoords(x_index, z_index);
         const tile_radius = 1;
 
         const a_tile = new THREE.Group();
@@ -102,7 +102,7 @@ function trampolineObj(stair_tiles, x_y_z, f_bounce_speed, f_step_iterations, sl
     let { light_color, dark_color, _edge_color } = d_tile_3colors;
     const [x_index, y_index, z_index] = x_y_z;
     const xyz_index = `${x_index},${y_index},${z_index}`;
-    let [x_center, z_center] = tileCenterCoord(x_index, z_index);
+    let [x_center, z_center] = tileIndex2floatCoords(x_index, z_index);
     let tile_positions = [];
 
     for (let i = 0; i < tile_points.length; i++) {

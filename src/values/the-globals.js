@@ -15,9 +15,9 @@ import { buildScene, buildRenderer, buildListener } from "../objects/build-objec
 
 import { XyzDot } from "../objects/a-dot.js";
 
-function buildGlobals(e_enemy_points, e_do_click) {
+function buildGlobals(g_recording_figure, e_do_click) {
     let { g_scene, g_camera, g_width, g_height } = buildScene();
-    let g_key_controls = makeControls(g_camera, e_enemy_points, e_do_click);
+    let [g_key_controls, g_enemy_points] = makeControls(g_camera, g_recording_figure, e_do_click);
 
     const g_clock = new THREE.Clock();
     let g_vector_3 = new THREE.Vector3();
@@ -31,6 +31,7 @@ function buildGlobals(e_enemy_points, e_do_click) {
         g_width,
         g_height,
         g_key_controls,
+        g_enemy_points,
         g_renderer,
         g_bench
     };

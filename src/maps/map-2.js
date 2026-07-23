@@ -1,12 +1,14 @@
 import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 
 import { translateFigure, createStartFigure, translateShape, shape2figure } from "../paths/figure-path.js";
-import { translateAllFigures } from "./merge-figures.js";
-import { tileCenterCoord } from "../tiles/hex-tile.js";
+import { combineFigures } from "./merge-figures.js";
+import { tileIndex2floatCoords } from "../tiles/hex-tile.js";
 
-import { SPIRAL_CLOCKWISE_SHAPE } from "../shapes/spiral-clockwise-shape.js";
+//import { SPIRAL_CLOCKWISE_SHAPE } from "../shapes/spiral-clockwise-shape.js";
 
 import {
+    ENEMY_VISIBLE,
+    ENEMY_HIDDEN,
     IS_TRANSPARENT,
     INCLINE___0,
     INCLINE_0_5,
@@ -77,7 +79,7 @@ const LOOK_X_NDX = 0;
 const LOOK_Y_NDX = 1100;
 const LOOK_Z_NDX = -2;
 
-import { TEST_NN_PIER } from "../figures/test-nn-pier.js";
+import { makeNnPier } from "../figures/figure-nn-pier.js";
 import { TEST_NN_FIGURE } from "../figures/test-nn-figure.js";
 import { TEST_SS_FIGURE } from "../figures/test-ss-figure.js";
 import { TEST_SW_FIGURE } from "../figures/test-sw-figure.js";
@@ -86,61 +88,51 @@ import { TEST_SE_FIGURE } from "../figures/test-se-figure.js";
 //import { HAT_SHAPE } from "../figures/hat-shape.js";
 //import { FLOWER_FIGURE } from "../figures/flower-shape.js";
 
-function makeMap1() {
-    const start_figure = createStartFigure("start-bobo", start_tile);
+const MAP2_ENEMY = [
+    // [0, 1159, 0],
+    // [0, 1159, -0.14],
+    // [0, 1159, -0.21]
+];
 
-    const spiral_figure = shape2figure(SPIRAL_CLOCKWISE_SHAPE);
+const MAP2_WALKWAY = [
+    [0, 1100, 0, TILT_NONE, INCLINE___0, IS_TRANSPARENT]
+    //   [0, 1100, 1]
+    // [0, 1100, 2],
+    // [0, 1100, 3]
+];
 
-    // const spiral = translateShape(SPIRAL_CLOCKWISE_SHAPE, 0, 0, 0);
+function makeMap2(the_name) {
+    const start_figure = createStartFigure(the_name, start_tile);
 
-    //  const spiral = translateFigure(SPIRAL_CLOCKWISE_SHAPE, 0, 0, 0);
+    const enemey_locations = { ENEMY_X_Y_Z: MAP2_ENEMY, START_ENEMY_IND: 0, INDEX_ITERATION: 1 };
 
-    const pier_nn = translateFigure(TEST_NN_PIER, 0, 0, 0);
-    // const fig_ss = translateFigure(TEST_SS_FIGURE, 0, 0, 0);
-    // const fig_sw = translateFigure(TEST_SW_FIGURE, 0, 0, 0);
-    // const fig_nw = translateFigure(TEST_NW_FIGURE, 0, 0, 0);
-    // const fig_se = translateFigure(TEST_SE_FIGURE, 0, 0, 0);
-    // const fig_hat = translateShape(HAT_SHAPE, -2, 0, 0);
+    start_figure.WALKWAY__LOCS = MAP2_WALKWAY;
+    start_figure.ENEMY__LOCS = { [the_name]: enemey_locations };
 
-    // const fig_flower = translateFigure(FLOWER_FIGURE, 0, -100, 2);
+    const pier_a_name = the_name + "__A";
+    const pier_b_name = the_name + "__B";
+    const pier_nn_a = makeNnPier(pier_a_name, [0, 0, -1], ENEMY_VISIBLE);
+    const pier_nn_b = makeNnPier(pier_b_name, [-8, -800, 5], ENEMY_VISIBLE);
 
-    const trampoline_fig = {
-        trampoline_locs: [
-            // ...spiral
-            // ["01", HEIGHT_Y___10, "00", BOUNCE_SPEED__50, BOUNCE_COUNT___25, TILT_NONE, INCLINE___0],
-            // //   ["00", HEIGHT_Y___11, "-1", BOUNCE_SPEED__50, BOUNCE_COUNT__250, TILT_NONE, INCLINE___0],
-            // ["00", HEIGHT_Y___11, "-1", 0, 50, TILT_NONE, INCLINE___0],
-            // ["-1", HEIGHT_Y___10, "01", BOUNCE_SPEED___4, BOUNCE_COUNT___50, TILT_SW, INCLINE___1]
-        ]
-    };
-    //fig_nw
-
-    // const maps_figures = [start_figure, pier_nn, ...spiral_figure];
-    const maps_figures = [start_figure, pier_nn, spiral_figure];
-
-    // const maps_figures = [start_figure, fig_hat, fig_flower, fig_nw, trampoline_fig];
-    //const maps_figures = [start_figure, fig_1];
-
-    const trie_map = translateAllFigures(maps_figures);
-
-    return trie_map;
+    const figure_22list = [start_figure, pier_nn_a, pier_nn_b];
+    const map_2 = combineFigures(the_name, figure_22list);
+    return map_2;
 }
 
 function startMap2() {
-    let [start_coord_x, start_coord_z] = tileCenterCoord(START_X_NDX, START_Z_NDX);
-    //    let start_coord_y = +START_Y_NDX + 200; // / 100 + 10;
-    let start_coord_y = +START_Y_NDX; // + 200; // / 100 + 10;
+    let [start_coord_x, start_coord_z] = tileIndex2floatCoords(START_X_NDX, START_Z_NDX);
+    let start_coord_y = +START_Y_NDX;
 
     let start_location = [start_coord_x, start_coord_y, start_coord_z];
 
-    let [look_coord_x, look_coord_z] = tileCenterCoord(LOOK_X_NDX, LOOK_Z_NDX);
+    let [look_coord_x, look_coord_z] = tileIndex2floatCoords(LOOK_X_NDX, LOOK_Z_NDX);
     let start_look_at = [look_coord_x, LOOK_Y_NDX, look_coord_z];
 
     return [start_location, start_look_at];
 }
 
 function doMap2() {
-    let the_map = makeMap1();
+    let the_map = makeMap2("map2");
     let [start_location, start_look_at] = startMap2();
     return [the_map, start_location, start_look_at];
 }

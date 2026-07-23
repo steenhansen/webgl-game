@@ -5,14 +5,14 @@ import { SQRT_3, TILT_NN, TILT_SS, TILT_NONE } from "../values/constants.js";
 
 import { DIRECTION_NONE, DIRECTION_SS, DIRECTION_NN, DIRECTION_NW, DIRECTION_SE, DIRECTION_NE, DIRECTION_SW } from "../../values/the-constants.js";
 
-import { hexPoints, tileTriangles, tileCenterCoord } from "./hex-tile.js";
+import { hexPoints, tileTriangles, tileIndex2floatCoords } from "./hex-tile.js";
 
 let float_xyz = { x: 1.2345, y: 6.789, z: 0.6543 };
 
 let row_h_col_indexes = { x_row: 1, y_10_height: 12, z_column: 4 };
 
 // from https://www.redblobgames.com/grids/hexagons/#pixel-to-hex
-//function coords2Indexes(x_coord, z_coord) {
+//function floatCoords2tileIndex(x_coord, z_coord) {
 function xzCoord2hexRowCol(x_coord, z_coord) {
     const x_row_float = (2 / 3) * x_coord;
     const z_column_float = (-1 / 3) * x_coord + (SQRT_3 / 3) * z_coord;
@@ -75,13 +75,13 @@ function testAngledTile(x_index, z_index, tilt_up) {
 }
 
 function testNewAdjustCamY() {
-    var old_x_z = tileCenterCoord(0, 0);
+    var old_x_z = tileIndex2floatCoords(0, 0);
     var old_pos = { x: old_x_z[0], y: 10, z: old_x_z[1] };
 
     var old_1 = testAngledTile(0, 0, TILT_NN);
 
     var new_1 = testAngledTile(0, -1, TILT_NN);
-    var new_x_z = tileCenterCoord(0, -1);
+    var new_x_z = tileIndex2floatCoords(0, -1);
     var new_pos = { x: new_x_z[0], y: 10, z: new_x_z[1] };
 
     let m_1 = newAdjustCamY(old_1, old_pos, new_1, new_pos);

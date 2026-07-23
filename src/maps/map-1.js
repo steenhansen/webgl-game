@@ -1,8 +1,8 @@
 import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 
 import { translateFigure, createStartFigure, translateShape } from "../paths/figure-path.js";
-import { translateAllFigures } from "./merge-figures.js";
-import { tileCenterCoord } from "../tiles/hex-tile.js";
+import { combineFigures } from "./merge-figures.js";
+import { tileIndex2floatCoords } from "../tiles/hex-tile.js";
 
 import {
     IS_TRANSPARENT,
@@ -93,25 +93,25 @@ function makeMap1() {
     const fig_se = translateFigure(TEST_SE_FIGURE, 0, 0, 0);
 
     const trampoline_fig = {
-        trampoline_locs: [
+        TRAMPOLINE__LOCS: [
             // ["01", HEIGHT_Y___10, "00", BOUNCE_SPEED__50, BOUNCE_COUNT___25, TILT_NONE, INCLINE___0],
             // //   ["00", HEIGHT_Y___11, "-1", BOUNCE_SPEED__50, BOUNCE_COUNT__250, TILT_NONE, INCLINE___0],
             // ["00", HEIGHT_Y___11, "-1", 0, 50, TILT_NONE, INCLINE___0],
             // ["-1", HEIGHT_Y___10, "01", BOUNCE_SPEED___4, BOUNCE_COUNT___50, TILT_SW, INCLINE___1]
         ]
     };
-    const maps_figures = [start_figure, fig_ne, fig_nn, fig_ss, fig_sw, fig_nw, fig_se];
-    const trie_map = translateAllFigures(maps_figures);
+    const figure_list = [start_figure, fig_ne, fig_nn, fig_ss, fig_sw, fig_nw, fig_se];
+    const trie_map = combineFigures("map-1", figure_list);
     return trie_map;
 }
 
 function startMap1() {
-    let [start_coord_x, start_coord_z] = tileCenterCoord(START_X_NDX, START_Z_NDX);
+    let [start_coord_x, start_coord_z] = tileIndex2floatCoords(START_X_NDX, START_Z_NDX);
     let start_coord_y = +START_Y_NDX;
 
     let start_location = [start_coord_x, start_coord_y, start_coord_z];
 
-    let [look_coord_x, look_coord_z] = tileCenterCoord(LOOK_X_NDX, LOOK_Z_NDX);
+    let [look_coord_x, look_coord_z] = tileIndex2floatCoords(LOOK_X_NDX, LOOK_Z_NDX);
     let start_look_at = [look_coord_x, LOOK_Y_NDX, look_coord_z];
 
     return [start_location, start_look_at];

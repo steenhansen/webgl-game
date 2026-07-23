@@ -15,7 +15,7 @@ import {
 
 import { TRAMPOLINE_ITERATIONS, TURNS_TO_FLIP } from "../values/move-consts.js";
 
-import { coords2Indexes } from "../tiles/hex-tile.js";
+import { floatCoords2tileIndex } from "../tiles/hex-tile.js";
 import { hexIndex } from "../tiles/hex-routines.js";
 import { transition2NewTile } from "./adjust-camera.js";
 import { flipTileColorG } from "../colors/colors-tiles.js";
@@ -191,7 +191,7 @@ function followCamera(the_objects, frame_vars, e_do_click, g_camera) {
     } = frame_vars;
 
     let changed_move;
-    let [ndx_x, ndx_z] = coords2Indexes(f_cam_vect.x, f_cam_vect.z);
+    let [ndx_x, ndx_z] = floatCoords2tileIndex(f_cam_vect.x, f_cam_vect.z);
     let { o_walkway_tiles, o_trampolines } = the_objects;
     f_this_hex = hexIndex(ndx_x, f_y100_height, ndx_z);
     f_red_2_green = red2Green(the_objects, f_this_hex, f_red_2_green);

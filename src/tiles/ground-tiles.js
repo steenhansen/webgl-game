@@ -20,7 +20,7 @@ import {
     TILT_SW,
     TILT_NONE
 } from "../values/the-constants.js";
-import { hexPoints, tileTriangles, tileCenterCoord } from "./hex-tile.js";
+import { hexPoints, tileTriangles, tileIndex2floatCoords } from "./hex-tile.js";
 import { addTextLoc } from "./text-tiles.js";
 import { tileMesh } from "./tile-mesh.js";
 import { seaColor } from "../colors/tile-colors.js";
@@ -102,7 +102,7 @@ function groundTile(hex_tiles, g_scene, x_y_z, sea_colors, sea_edge) {
     const [x_index, y_height, z_index] = x_y_z;
     let sea_color = seaColor(x_y_z, sea_colors);
 
-    let [x_center, z_center] = tileCenterCoord(x_index, z_index);
+    let [x_center, z_center] = tileIndex2floatCoords(x_index, z_index);
     const tile_radius = 1;
     const a_tile = new THREE.Group();
     a_tile.position.set(x_center, 0, z_center);

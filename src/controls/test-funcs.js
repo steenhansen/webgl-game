@@ -1,7 +1,7 @@
 import { ee, tt, dd, EE, TT, DD } from "../../console-short.js";
 
 import { AScene } from "../../a-scene.js";
-import { tileCenterCoord } from "../tiles/hex-tile.js";
+import { tileIndex2floatCoords } from "../tiles/hex-tile.js";
 import { transition2NewTile } from "./camAdjust.js";
 import { makeWalkway } from "../walkways/walkway-coords.js";
 
@@ -31,7 +31,7 @@ import {
 } from "../../values/constants.js";
 
 function make_camPos(x_hex_index, y_height, z_hex_index) {
-    let [x_center_coord, z_center_coord] = tileCenterCoord(x_hex_index, z_hex_index);
+    let [x_center_coord, z_center_coord] = tileIndex2floatCoords(x_hex_index, z_hex_index);
     let a_f_cam_vect = { x: x_center_coord, y: y_height, z: z_center_coord };
     return a_f_cam_vect;
 }

@@ -2,7 +2,7 @@ import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 
 import { TILT_NN, TILT_SS, TILT_NW, TILT_NE, TILT_SE, TILT_SW } from "../values/the-constants.js";
 import { hexIndex } from "../tiles/hex-routines.js";
-import { coords2Indexes } from "../misc/hex-maths.js";
+import { floatCoords2tileIndex } from "../misc/hex-maths.js";
 
 function swivelIntercept(cam_x_z, swivel_a, swivel_b) {
     let [cam_x, cam_z] = cam_x_z;
@@ -97,7 +97,7 @@ function inclineSS(f_cam_vect, current_tile) {
 }
 
 function walkwayIncline(walkway_tiles, f_cam_vect) {
-    let [x_hex_ind, z_hex_ind] = coords2Indexes(f_cam_vect.x, f_cam_vect.z);
+    let [x_hex_ind, z_hex_ind] = floatCoords2tileIndex(f_cam_vect.x, f_cam_vect.z);
     let tile_index = hexIndex(x_hex_ind, f_cam_vect.y, z_hex_ind);
     if (walkway_tiles.has(tile_index)) {
         let current_tile = walkway_tiles.get(tile_index);

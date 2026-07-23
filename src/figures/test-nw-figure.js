@@ -92,10 +92,10 @@ const shape_flower = translateShape(FLOWER_SHAPE, -7, -100, -3);
 const maps_figures = [...TEST_WALKWAY, ...shape_hat, ...shape_flower];
 
 const TEST_NW_FIGURE = {
-    walkway_locs: maps_figures,
-    fence_locs: TEST_FENCES,
-    trampoline_locs: TEST_TRAMPOLINES,
-    pentagon_locs: []
+    WALKWAY__LOCS: maps_figures,
+    FENCE__LOCS: TEST_FENCES,
+    TRAMPOLINE__LOCS: TEST_TRAMPOLINES,
+    ENEMY__LOCS: []
 };
 
 export { TEST_NW_FIGURE };

@@ -1,5 +1,6 @@
 import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 
+import { urlMapTrace } from "../misc/minor-routines.js";
 import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls.js";
 import { X_Z_2D_INCREMENT } from "../values/move-consts.js";
 
@@ -9,8 +10,12 @@ let moveLeft = false;
 let moveRight = false;
 
 const consLog = window["con" + "sole"].log;
+const consClear = window["con" + "sole"].clear;
 
-function makeControls(g_camera, e_enemy_points, e_do_click) {
+let g_enemy_points = { copy_output: "" };
+
+function makeControls(g_camera, g_recording_figure, e_do_click) {
+    let _my_map, my_figure;
     const g_key_controls = new PointerLockControls(g_camera, document.body);
 
     // g_key_controls.minPolarAngle = Math.PI / 2; // Limit upward rotation
@@ -19,27 +24,36 @@ function makeControls(g_camera, e_enemy_points, e_do_click) {
     const onKeyDown = function (event) {
         switch (event.code) {
             case "KeyO":
-                e_enemy_points.copy_output = " const PENTAGON_POINTS_X = [";
-                consLog("******************************");
-                consLog("******************************");
-                consLog("******************************");
-                consLog("******************************");
-                consLog("******************************");
-                consLog("** START PENTAGON RECORDING **");
-                break;
+                [_my_map, my_figure] = urlMapTrace(window.location.search);
+                if (my_figure) {
+                    consClear();
+                    const dash_2_under = g_recording_figure.replace(/-/g, "_");
+                    const upper_case = dash_2_under.toUpperCase();
+                    const figure_2_enemy = upper_case.replace("FIGURE_", "ENEMY_");
+                    g_enemy_points.copy_output += ` \n\n const ${figure_2_enemy} = [ `;
+                    consLog("******************************");
+                    consLog("******************************");
+                    consLog("******************************");
+                    consLog("******************************");
+                    consLog("******************************");
+                    consLog(`** START ENEMY RECORDING FOR ** ${my_figure}`);
+                    break;
+                }
 
             case "KeyP":
-                const enemy_moves = e_enemy_points.copy_output + "];";
-                consLog("** STOP PENTAGON RECORDING ***");
-                consLog("******************************");
-                consLog("******************************");
-                consLog("******************************");
-                consLog("******************************");
-                consLog("******************************");
-                consLog("******************************");
-                consLog(enemy_moves);
-                break;
-
+                [_my_map, my_figure] = urlMapTrace(window.location.search);
+                if (my_figure) {
+                    const enemy_moves = g_enemy_points.copy_output + "\n];";
+                    consLog(`** STOP ENEMY RECORDING FOR ** ${my_figure}`);
+                    consLog("******************************");
+                    consLog("******************************");
+                    consLog("******************************");
+                    consLog("******************************");
+                    consLog("******************************");
+                    consLog("******************************");
+                    consLog(enemy_moves);
+                    break;
+                }
             case "ArrowUp":
             case "KeyW":
                 moveForward = true;
@@ -102,8 +116,7 @@ function makeControls(g_camera, e_enemy_points, e_do_click) {
 
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
-
-    return g_key_controls;
+    return [g_key_controls, g_enemy_points];
 }
 
 function moveKeys(delta, g_key_controls) {

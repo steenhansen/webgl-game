@@ -3,7 +3,7 @@ import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 import { MV_FENCE_BLOCKED, TILT_NONE } from "../values/the-constants.js";
 import { undefTileDebugInfo } from "./ground-tiles.js";
 import { HEX_PAIR_DIVIDER } from "../values/the-constants.js";
-import { tileCenterCoord, coords2Indexes } from "./hex-tile.js";
+import { tileIndex2floatCoords, floatCoords2tileIndex } from "./hex-tile.js";
 
 function hitFence(o_fence_walls, prev_hex, this_hex) {
     const xyz_1_2_index = `${prev_hex}${HEX_PAIR_DIVIDER}${this_hex}`;
@@ -18,8 +18,8 @@ function currentHexIdxs(hex_data) {
     let { f_prev_coords, f_this_coords, f_y100_height, f_move_result, f_cam_vect } = hex_data;
 
     if (f_move_result == MV_FENCE_BLOCKED) {
-        let [ndx_x, ndx_z] = coords2Indexes(f_prev_coords.x, f_prev_coords.z);
-        let [x_coord, z_coord] = tileCenterCoord(ndx_x, ndx_z);
+        let [ndx_x, ndx_z] = floatCoords2tileIndex(f_prev_coords.x, f_prev_coords.z);
+        let [x_coord, z_coord] = tileIndex2floatCoords(ndx_x, ndx_z);
         f_prev_coords.x = x_coord;
         f_prev_coords.z = z_coord;
         f_cam_vect.x = f_prev_coords.x;

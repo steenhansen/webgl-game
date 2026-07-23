@@ -1,4 +1,10 @@
+import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
+
+import { translateFigure, translateShape, createStartFigure, shape2figure } from "../paths/figure-path.js";
+
 import {
+    ENEMY_VISIBLE,
+    ENEMY_HIDDEN,
     IS_TRANSPARENT,
     INCLINE___0,
     INCLINE_0_5,
@@ -74,4 +80,34 @@ const SPIRAL_CLOCKWISE_SHAPE = [
     ["002", HEIGHT_Y___19, "0", TILT_NW, INCLINE___1]
 ];
 
-export { SPIRAL_CLOCKWISE_SHAPE };
+const SPIRAL_ENEMY = [
+    // [1, 1159, -0.07],
+    // [1, 1159, -0.14],
+    // [1, 1159, -0.21]
+];
+
+function spiralfigure(the_name, x_y_z, enemy_moves, is_recording_or_playing) {
+    let [x, y, z] = x_y_z;
+    let [start_enemy_ind, index_iteration] = enemy_moves;
+
+    const long_name = the_name + "__spiral";
+
+    let enemy__locs;
+    if (is_recording_or_playing == ENEMY_VISIBLE) {
+        const enemey_locations = { ENEMY_X_Y_Z: SPIRAL_ENEMY, START_ENEMY_IND: start_enemy_ind, INDEX_ITERATION: index_iteration };
+        enemy__locs = { [long_name]: enemey_locations };
+    } else {
+        enemy__locs = {};
+    }
+    const spiral_figure = {
+        FIGURE__NAME: long_name,
+        WALKWAY__LOCS: SPIRAL_CLOCKWISE_SHAPE,
+        FENCE__LOCS: [],
+        TRAMPOLINE__LOCS: [],
+        ENEMY__LOCS: enemy__locs
+    };
+    const spiral_figure_t = translateFigure(spiral_figure, x, y, z);
+    return spiral_figure_t;
+}
+
+export { spiralfigure };

@@ -3,7 +3,7 @@ import { SEA_COLORS, SEA_EDGE, WALK_BEFORE_COLORS, WALK_EDGE } from "../values/c
 import { makeWalkway } from "../walkways/walkway-coords.js";
 import { makeFences } from "../fences/make-fences.js";
 import { makeTrampolines } from "../trampolines/trampoline-coords.js";
-import { makePentagon } from "../pentagons/pentagon-coords.js";
+import { placePentagons } from "../pentagons/pentagon-coords.js";
 import { ground_field } from "../tiles/ground-tiles.js";
 
 import * as THREE from "three";
@@ -11,8 +11,11 @@ import GLBench from "gl-bench/dist/gl-bench.module";
 import { AScene } from "../objects/a-scene.js";
 import { PerspCamera, projMatrix } from "../camera/perspective-camera.js";
 
+import { startPentagons } from "../pentagons/pentagon-coords.js";
+
 function buildObjects(g_scene, o_fence_ndxs, o_walkway_ndxs, o_trampolines, o_pentagons, o_unvisited_tiles) {
     var o_ground_tiles = new Map([]);
+
     var o_object_meshes = new Map([]);
 
     var o_walkway_tiles = new Map([]);
@@ -29,9 +32,9 @@ function buildObjects(g_scene, o_fence_ndxs, o_walkway_ndxs, o_trampolines, o_pe
 
     let o_trampoline_meshes;
     [o_trampoline_meshes, o_trampolines] = makeTrampolines(g_scene, o_trampolines);
-    let o_pentagon_meshes;
-    [o_pentagon_meshes, o_pentagons] = makePentagon(g_scene, o_object_meshes, o_pentagons);
 
+    let o_pentagon_meshes;
+    o_pentagon_meshes = placePentagons(g_scene, o_object_meshes, o_pentagons);
     return {
         o_fence_walls,
         o_object_meshes,

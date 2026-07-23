@@ -47,7 +47,6 @@ function moveIntoAirSe(se_dir, prev_hex, this_hex) {
 function moveBlockSe(se_dir, prev_hex, this_hex) {
     delete window.HEX_VARS.TEST_MOVE_TYPES.SE[se_dir];
     return MV_FENCE_BLOCKED;
-    s;
 }
 
 function moveSameSe(se_dir, prev_hex, this_hex) {

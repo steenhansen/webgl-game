@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { seaColor } from "../colors/tile-colors.js";
 import { addTextLoc } from "./text-tiles.js";
 import { tileMesh } from "./tile-mesh.js";
-import { distance2hexpoints, axial_round, coords2Indexes, tileCenterCoord } from "../misc/hex-maths.js";
+import { distance2hexpoints, axial_round, floatCoords2tileIndex, tileIndex2floatCoords } from "../misc/hex-maths.js";
 
 import {
     SQRT_3,
@@ -78,24 +78,15 @@ function tileTriangles(hex_points) {
 }
 
 const NORMAL_HEX_RADIUS = 1;
-/*
-  tileSlopedTransparent
-  tileFlatTranspaent  22222222222222222
-  tileSloped
-  tileFlat
 
-
-
-*/
 function HexTileSloped(g_scene, walkway_meshes, walkway_tiles, x_y_z, is_transparent, slope_tilt, incline_amount) {
-    // qbert
     const [x_index, y_100_index, z_index] = x_y_z;
     const xyz_index = `${x_index},${y_100_index},${z_index}`;
     if (slope_tilt == undefined) {
         slope_tilt = TILT_NONE;
         incline_amount = 0;
     }
-    let [x_center, z_center] = tileCenterCoord(x_index, z_index);
+    let [x_center, z_center] = tileIndex2floatCoords(x_index, z_index);
 
     const a_tile = new THREE.Group();
     a_tile.position.set(x_center, 0, z_center);
@@ -116,7 +107,7 @@ function HexTileFlat(g_scene, walkway_meshes, walkway_tiles, x_y_z) {
     // qbert
     const [x_index, y_100_index, z_index] = x_y_z;
     const xyz_index = `${x_index},${y_100_index},${z_index}`;
-    let [x_center, z_center] = tileCenterCoord(x_index, z_index);
+    let [x_center, z_center] = tileIndex2floatCoords(x_index, z_index);
     const a_tile = new THREE.Group();
     a_tile.position.set(x_center, 0, z_center);
 
@@ -141,7 +132,7 @@ function HexTile(g_scene, walkway_meshes, walkway_tiles, x_y_z, WALK_COLORS, WAL
         slope_tilt = TILT_NONE;
         incline_amount = 0;
     }
-    let [x_center, z_center] = tileCenterCoord(x_index, z_index);
+    let [x_center, z_center] = tileIndex2floatCoords(x_index, z_index);
     const tile_radius = 1;
 
     const a_tile = new THREE.Group();
@@ -163,7 +154,7 @@ function HexTile(g_scene, walkway_meshes, walkway_tiles, x_y_z, WALK_COLORS, WAL
 function offsetTilePoints(stair_tiles, x_y_z, slope_tilt, incline_amount, tile_points) {
     const [x_index, y_index, z_index] = x_y_z;
     const xyz_index = `${x_index},${y_index},${z_index}`;
-    let [x_center, z_center] = tileCenterCoord(x_index, z_index);
+    let [x_center, z_center] = tileIndex2floatCoords(x_index, z_index);
     let tile_positions = [];
 
     for (let i = 0; i < tile_points.length; i++) {
@@ -336,4 +327,4 @@ function hexPoints(tile_radius, y_100_height, up_direction, angled_height) {
     return stair_tiles;
 }
 
-export { HexTile, hexPoints, tileTriangles, tileCenterCoord, coords2Indexes, offsetTilePoints };
+export { HexTile, hexPoints, tileTriangles, tileIndex2floatCoords, floatCoords2tileIndex, offsetTilePoints };

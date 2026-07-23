@@ -1,7 +1,7 @@
 import { ee, tt, dd, EE, TT, DD } from "../misc/console-short.js";
 import * as THREE from "three";
 
-import { tileCenterCoord } from "../misc/hex-maths.js";
+import { tileIndex2floatCoords } from "../misc/hex-maths.js";
 import { IS_TRANSPARENT, FENCE_PART, FENCE_NN, FENCE_SS, FENCE_NW, FENCE_NE, FENCE_SE, FENCE_SW, SQRT_3 } from "../values/the-constants.js";
 
 function fenceMesh(fence_group, vertices_list, core_color, edge_color, is_transparent) {
@@ -59,7 +59,7 @@ function corePaneTriangles(pane_points) {
 function hex2Fence(o_fence_walls, mesh_index, x_y_z_a, fence_position, fence_vertices) {
     const [x_index, y_index, z_index] = x_y_z_a;
     const xyz_index = `${x_index},${y_index},${z_index}`;
-    let [x_center, z_center] = tileCenterCoord(x_index, z_index);
+    let [x_center, z_center] = tileIndex2floatCoords(x_index, z_index);
     let shifted_vertices = [];
     for (let i = 0; i < fence_vertices.length; i++) {
         let tile_point = fence_vertices[i];

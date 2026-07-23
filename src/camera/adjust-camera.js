@@ -13,7 +13,7 @@ import {
     DIRECTION_SW
 } from "../values/the-constants.js";
 
-import { coords2Indexes } from "../tiles/hex-tile.js";
+import { floatCoords2tileIndex } from "../tiles/hex-tile.js";
 import { hexIndex } from "../tiles/hex-routines.js";
 
 import { nearTestNN } from "./camera-nn.js";
@@ -34,8 +34,8 @@ function transition2NewTile(the_objects, f_prev_coords, f_this_coords) {
         return c_move_result;
     }
 
-    let [prev_x_ind, prev_z_ind] = coords2Indexes(f_prev_coords.x, f_prev_coords.z);
-    let [ndx_x, ndx_z] = coords2Indexes(f_this_coords.x, f_this_coords.z);
+    let [prev_x_ind, prev_z_ind] = floatCoords2tileIndex(f_prev_coords.x, f_prev_coords.z);
+    let [ndx_x, ndx_z] = floatCoords2tileIndex(f_this_coords.x, f_this_coords.z);
     let move_dir = movingDirection(f_prev_coords.x, f_prev_coords.z, f_this_coords.x, f_this_coords.z);
     let move_result;
     if (move_dir == DIRECTION_NN) {

@@ -48,7 +48,6 @@ function moveIntoAirSs(ss_dir, prev_hex, this_hex) {
 function moveBlockSs(ss_dir, prev_hex, this_hex) {
     delete window.HEX_VARS.TEST_MOVE_TYPES.SS[ss_dir];
     return MV_FENCE_BLOCKED;
-    s;
 }
 
 function moveSameSs(ss_dir, prev_hex, this_hex) {

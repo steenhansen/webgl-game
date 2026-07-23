@@ -24,9 +24,10 @@ function axial_round(x, y) {
 }
 
 //  https://www.redblobgames.com/grids/hexagons/#pixel-to-hex
-//function pixel_to_flat_he xMe(x_coord, z_coord) {
-//       camcoords2Indexes()
-function coords2Indexes(x_coord, z_coord) {
+//  function pixel_to_pointy_hex(point):
+
+// floatCoords2tileIndex(-10.5, -6.3) => [-7, 0]
+function floatCoords2tileIndex(x_coord, z_coord) {
     // invert the scaling
     var x = x_coord / 1;
     var y = z_coord / 1;
@@ -34,14 +35,19 @@ function coords2Indexes(x_coord, z_coord) {
     var q = (2 / 3) * x;
     var r = (-1 / 3) * x + (SQRT_3 / 3) * y;
     let ar = axial_round(q, r);
+    //tt("floatCoords2tileIndex", x_coord, z_coord, ar);
     return ar;
 }
 
-function tileCenterCoord(x_tile, z_tile) {
+//  https://www.redblobgames.com/grids/hexagons/#hex-to-pixel
+//  function pointy_hex_to_pixel(hex):
+
+// tileIndex2floatCoords(1,-6) => [1.5, -9.526]
+function tileIndex2floatCoords(x_tile, z_tile) {
     const x_coord = (3 / 2) * x_tile;
     const z_coord = (SQRT_3 / 2) * x_tile + SQRT_3 * z_tile;
-    coords2Indexes(x_coord, z_coord);
+    // tt("tileIndex2floatCoords", x_tile, z_tile, x_coord, z_coord);
     return [x_coord, z_coord];
 }
 
-export { distance2hexpoints, axial_round, coords2Indexes, tileCenterCoord };
+export { distance2hexpoints, axial_round, floatCoords2tileIndex, tileIndex2floatCoords };

@@ -2,12 +2,18 @@
 
 http://localhost:5173/index-dev.html?map=2           qbert
 
+http://localhost:5173/index-dev.html?map=1
+
+http://localhost:5173/index-dev.html?trace-route=figure-nn-pier
 
 
 
 
-but no jump
-if go straight forward then crash to bottom right
+
+
+
+
+
 
 
 
